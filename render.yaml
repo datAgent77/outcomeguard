@@ -26,6 +26,8 @@ services:
         sync: false
       - key: WEB_URL
         sync: false
+      - key: SESSION_SECRET
+        generateValue: true
       - key: ENABLE_SANDBOX_PROOF
         value: "false"
 

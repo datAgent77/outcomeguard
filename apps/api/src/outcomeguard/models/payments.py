@@ -79,6 +79,11 @@ class PaymentOrder(IdMixin, TimestampMixin, Base):
     __table_args__ = (CheckConstraint("amount_minor > 0", name="amount_positive"),)
 
     merchant_account_id: Mapped[str] = mapped_column(ForeignKey("merchant_accounts.id"))
+    # The locked agreement version this payment is for. Nullable only for the P02
+    # sandbox-proof driver; product orders always set it and it must be LOCKED.
+    agreement_version_id: Mapped[str | None] = mapped_column(
+        ForeignKey("agreement_versions.id"), index=True
+    )
     environment: Mapped[PaymentEnvironment] = mapped_column(
         enum_col(PaymentEnvironment, "payment_environment")
     )
@@ -150,6 +155,13 @@ class PaymentCapture(IdMixin, TimestampMixin, Base):
     error: Mapped[dict[str, Any] | None] = mapped_column(JSONB)
     last_paypal_response: Mapped[dict[str, Any] | None] = mapped_column(JSONB)
     requested_by: Mapped[str] = mapped_column(String(200))
+    # Evidence chain for the decision to capture. `approval_id` points at the human
+    # approval (approvals.subject_type = 'capture'). verification_run_id and
+    # policy_decision_id gain foreign keys when those tables land (P04 / P06); the policy
+    # engine will refuse to capture unless all of them are set.
+    approval_id: Mapped[str | None] = mapped_column(ForeignKey("approvals.id"))
+    verification_run_id: Mapped[str | None] = mapped_column(String(36))
+    policy_decision_id: Mapped[str | None] = mapped_column(String(36))
 
     authorization: Mapped[PaymentAuthorization] = relationship(back_populates="capture")
     refunds: Mapped[list[PaymentRefund]] = relationship(back_populates="capture")

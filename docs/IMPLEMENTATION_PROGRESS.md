@@ -5,8 +5,8 @@ Deadline: **2026-11-12 23:00 GMT+3** (PayPal AI Hackathon). Spec: [BUILD_PROMPT_
 | Phase | Scope | Status |
 |---|---|---|
 | P01 | Repository foundation | ✅ done (Docker images not built locally — daemon was off) |
-| P02 | PayPal Sandbox proof | 🟡 code + mocked tests done; **live gate waiting for Sandbox credentials + buyer approval** |
-| P03 | Agreement domain | ⏳ |
+| P02 | PayPal Sandbox proof | ⛔ **BLOCKED — REAL SANDBOX VERIFICATION PENDING** (code + mocked tests done; needs credentials + buyer approval) |
+| P03 | Agreement domain | 🟡 implemented + tested; **awaiting review** (built in parallel while P02 is blocked) |
 | P04 | Verification engine (Playwright, Lighthouse, SSRF guard) | ⏳ |
 | P05 | AI contract and evidence intelligence | ⏳ |
 | P06 | Deterministic policy, human approval, auth/RBAC | ⏳ |
@@ -25,7 +25,7 @@ Deadline: **2026-11-12 23:00 GMT+3** (PayPal AI Hackathon). Spec: [BUILD_PROMPT_
 - [x] Dockerfiles, `docker-compose.yml`, `render.yaml` (not deployed), GitHub Actions CI
 - [x] `.env.example`, `.gitignore`, docs skeleton
 - [ ] `docker compose up` verified (Docker daemon not running on dev machine)
-- [ ] CI run on GitHub (not pushed yet)
+- [x] CI green on GitHub for commit `6da634e` (api + web jobs)
 
 ## P02 — PayPal Sandbox proof (2026-10-15)
 
@@ -40,6 +40,28 @@ Deadline: **2026-11-12 23:00 GMT+3** (PayPal AI Hackathon). Spec: [BUILD_PROMPT_
 - [x] HTTP smoke test in rehearsal mode (order → simulated approval → authorize → capture → duplicate blocked → $50 refund → audit chain intact)
 - [ ] **Live Sandbox run** — needs `PAYPAL_CLIENT_ID`/`SECRET` in `.env` and a buyer approval
 - [ ] Live webhook delivery — needs a public HTTPS URL (Render deploy) and `PAYPAL_WEBHOOK_ID`
+
+## P03 — Agreement domain (2026-10-15)
+
+- [x] `agreements`, `agreement_versions`, `acceptance_criteria`, `approvals` (migration `686de0e0f441`)
+- [x] Typed, strictly validated verification specs: `http_availability`, `mobile_viewport`,
+      `contact_form` (posts only to a named operator sink), `lighthouse_performance`,
+      `manual_review` (→ `MANUAL_REVIEW_REQUIRED`)
+- [x] Deterministic landing-page template (not AI)
+- [x] Version states draft → proposed → locked → superseded (+ withdraw, discard)
+- [x] Buyer approval bound to the SHA-256 `content_hash` the approver saw; approval locks
+- [x] Immutability enforced twice: service layer and Postgres triggers (locked/superseded
+      versions, their criteria, and approvals are append-only)
+- [x] Optimistic concurrency (`revision`, `expected_revision`) + agreement row lock
+- [x] RBAC: buyer_admin edits, buyer_approver/buyer_admin approve, merchant reads only,
+      other organisations get 404; roles loaded from DB per request
+- [x] Interim signed session tokens (operator-gated `/dev/session`) — real login in P06
+- [x] Payment binding: `payment_orders.agreement_version_id`; product orders only for
+      LOCKED versions with amount + merchant taken from the version.
+      `payment_captures.approval_id` (FK), `verification_run_id`, `policy_decision_id`
+      columns reserved — FKs and enforcement land with P04/P06
+- [x] Audit event for every material change; rejected attempts leave no trace or partial write
+- [x] 47 new tests (97 total), migration up/down/up verified, `alembic check` clean
 
 ## Verified vs unverified
 

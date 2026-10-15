@@ -54,10 +54,22 @@ but no AI output is an input to a function that moves money.
 `payment_orders` 1─1 `payment_authorizations` 1─1 `payment_captures` 1─* `payment_refunds`,
 `webhook_events`, `idempotency_records`, `audit_events`.
 
-Planned (P03–P08): `agreements`, `agreement_versions`, `acceptance_criteria`,
-`evidence_submissions`, `verification_runs`, `verification_results`, `policy_decisions`,
-`approvals`, `refund_cases`; `payment_orders.agreement_version_id` will bind every
-payment to a locked agreement version.
+P03: `agreements` 1─* `agreement_versions` 1─* `acceptance_criteria`; `approvals`
+(subject = agreement version or, from P06, capture). `payment_orders.agreement_version_id`
+binds a payment to the LOCKED version it pays for; `payment_captures` carries
+`approval_id`, `verification_run_id`, `policy_decision_id` for the capture evidence chain.
+
+Planned (P04–P08): `evidence_submissions`, `verification_runs`, `verification_results`,
+`policy_decisions`, `refund_cases`.
+
+### Capture evidence chain (target, enforced in P06)
+
+```
+payment_capture ─▶ approval (human, capture)            approvals
+                ─▶ policy_decision (deterministic)       P06
+                ─▶ verification_run (tools)              P04
+                ─▶ payment_authorization ─▶ payment_order ─▶ agreement_version (LOCKED)
+```
 
 Each payment row keeps our state (`status`), PayPal's last reported status
 (`paypal_status`) and the redacted last PayPal response, so the ledger always shows what
@@ -79,6 +91,10 @@ Capture:  requested ─▶ completed | pending ─▶ completed
               └────▶ unknown   (timeout/5xx; blocks retries until reconcile)
 
 Refund:   requested ─▶ completed | pending | failed | cancelled | unknown
+
+AgreementVersion: draft ─propose─▶ proposed ─buyer approval─▶ locked ─▶ superseded
+                    ▲                 │ withdraw
+                    └─────────────────┘        draft/proposed ─discard─▶ discarded
 ```
 
 ## Decisions
@@ -92,4 +108,7 @@ Refund:   requested ─▶ completed | pending | failed | cancelled | unknown
 | ADR-5 | Hash-chained audit log in Postgres | Detects out-of-band edits; honestly documented as tamper-*evident*, not tamper-proof |
 | ADR-6 | Operator-token gate on `/dev/payments` | P02 needs a driver before real auth/RBAC exists (P06); disabled by default |
 | ADR-7 | `packages/shared-schemas` deferred | API OpenAPI schema will be the contract; a generated TS client replaces a hand-shared package (decide in P07) |
+| ADR-9 | Immutability in the database, not only in code | A locked agreement is the basis for moving money; triggers make "edit history" impossible even for a buggy code path |
+| ADR-10 | Approval quotes a content hash | Binds the human decision to exact content; prevents approve-after-silent-change |
+| ADR-11 | Roles from DB on every request, token holds only user id | Immediate revocation; no privilege in client-held data |
 | ADR-8 | Next.js 16 (create-next-app default) | Latest stable at build time; Cache Components enabled — dynamic data is streamed inside `<Suspense>` |

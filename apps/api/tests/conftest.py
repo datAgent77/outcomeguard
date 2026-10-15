@@ -7,6 +7,7 @@ os.environ["DATABASE_URL"] = TEST_DB
 os.environ.setdefault("PAYMENT_MODE", "rehearsal")
 os.environ["ENABLE_SANDBOX_PROOF"] = "true"
 os.environ["OPERATOR_TOKEN"] = "test-operator-token"
+os.environ["SESSION_SECRET"] = "test-session-secret"
 
 from collections.abc import Iterator  # noqa: E402
 from pathlib import Path  # noqa: E402
@@ -96,3 +97,22 @@ def authorization(svc, approved_order):
 @pytest.fixture
 def capture(svc, authorization):
     return svc.capture_authorization(authorization.id, actor="approver")
+
+
+# ---------------------------------------------------------------- P03 fixtures
+
+
+@pytest.fixture
+def ids(session):
+    from outcomeguard.services.identities import ensure_demo_identities
+
+    return ensure_demo_identities(session, PaymentEnvironment.SIMULATED)
+
+
+@pytest.fixture
+def who(session, ids):
+    """who("alice") -> Principal loaded from the database."""
+    from outcomeguard.auth import load_principal
+
+    emails = {e.split("@")[0]: e for e in ids.users}
+    return lambda name: load_principal(session, ids.users[emails[name]])

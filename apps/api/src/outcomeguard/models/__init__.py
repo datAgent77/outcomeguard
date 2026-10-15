@@ -1,3 +1,15 @@
+from outcomeguard.models.agreements import (
+    AcceptanceCriterion,
+    Agreement,
+    AgreementStatus,
+    AgreementVersion,
+    Approval,
+    ApprovalDecision,
+    ApprovalSubject,
+    CriterionSource,
+    ServiceCategory,
+    VersionStatus,
+)
 from outcomeguard.models.audit import AuditEvent
 from outcomeguard.models.base import Base
 from outcomeguard.models.identity import (
@@ -23,6 +35,16 @@ from outcomeguard.models.payments import (
 )
 
 __all__ = [
+    "AcceptanceCriterion",
+    "Agreement",
+    "AgreementStatus",
+    "AgreementVersion",
+    "Approval",
+    "ApprovalDecision",
+    "ApprovalSubject",
+    "CriterionSource",
+    "ServiceCategory",
+    "VersionStatus",
     "AuditEvent",
     "AuthorizationStatus",
     "Base",

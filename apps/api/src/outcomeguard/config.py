@@ -54,6 +54,8 @@ class Settings(BaseSettings):
     enable_sandbox_proof: bool = False
     # Shared secret required by operator-only endpoints until real auth lands (P06).
     operator_token: SecretStr | None = Field(default=None)
+    # Signs session tokens. Must be stable across restarts (else everyone is logged out).
+    session_secret: SecretStr | None = None
 
     log_level: str = "INFO"
 

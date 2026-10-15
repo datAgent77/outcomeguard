@@ -17,10 +17,14 @@ Legend: ✅ yes · ❌ not yet · — not applicable
 | Partial refund | ✅ | ✅ | ❌ | — |
 | Webhook signature verification | ✅ | ✅ | ❌ (needs public HTTPS URL + webhook id) | — |
 | Rehearsal mode (simulated, labeled) | ✅ | ✅ | — | — |
+| Agreement domain (versions, locking, approval, RBAC) | ✅ | ✅ (real Postgres, no external service) | — | — |
 | AI criteria / evidence intelligence | ❌ (P05) | ❌ | — | ❌ |
 | Playwright / Lighthouse verification | ❌ (P04) | ❌ | — | — |
 
-Last updated: 2026-10-15 — unit suite 50 passed; Sandbox suite skipped (no credentials).
+Last updated: 2026-10-15 (P03) — unit suite 97 passed; Sandbox suite skipped (no credentials).
+
+**P02 status: BLOCKED — real Sandbox verification pending.** No row above is ✅ in the
+"Tested against PayPal Sandbox" column until a run transcript exists below.
 
 ## How to reproduce
 

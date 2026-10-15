@@ -35,6 +35,7 @@ from sqlalchemy.orm import Session
 from outcomeguard.config import Settings
 from outcomeguard.logs import redact
 from outcomeguard.models import (
+    AgreementVersion,
     AuthorizationStatus,
     CaptureStatus,
     MerchantAccount,
@@ -45,6 +46,7 @@ from outcomeguard.models import (
     PaymentOrder,
     PaymentRefund,
     RefundStatus,
+    VersionStatus,
 )
 from outcomeguard.models.audit import record_audit
 from outcomeguard.models.base import utcnow
@@ -98,8 +100,18 @@ class PaymentService:
     # ------------------------------------------------------------------ orders
 
     def create_order(
-        self, *, merchant: MerchantAccount, amount: Money, description: str, actor: str
+        self,
+        *,
+        merchant: MerchantAccount,
+        amount: Money,
+        description: str,
+        actor: str,
+        agreement_version: AgreementVersion | None = None,
     ) -> PaymentOrder:
+        """Create a PayPal order. Product flows must pass the LOCKED agreement version the
+        payment is for; only the P02 sandbox-proof driver omits it."""
+        if agreement_version is not None:
+            self._check_agreement_binding(agreement_version, merchant, amount)
         if merchant.environment is not self.environment:
             raise PaymentRuleViolation(
                 "MERCHANT_ENVIRONMENT_MISMATCH",
@@ -117,6 +129,7 @@ class PaymentService:
             currency=amount.currency,
             description=description[:127],
             status=OrderStatus.CREATED,
+            agreement_version_id=agreement_version.id if agreement_version else None,
         )
         self.session.add(order)
         self.session.flush()
@@ -131,6 +144,34 @@ class PaymentService:
         self.session.commit()
         self._send_create_order(order)
         return order
+
+    def _check_agreement_binding(
+        self, version: AgreementVersion, merchant: MerchantAccount, amount: Money
+    ) -> None:
+        if version.status is not VersionStatus.LOCKED:
+            raise PaymentRuleViolation(
+                "AGREEMENT_NOT_LOCKED",
+                f"agreement version is {version.status.value}; only a locked version can be paid",
+            )
+        if version.agreement.merchant_account_id != merchant.id:
+            raise PaymentRuleViolation("MERCHANT_MISMATCH", "merchant differs from the agreement")
+        if amount != Money(version.amount_minor, version.currency):
+            raise PaymentRuleViolation(
+                "AMOUNT_MISMATCH", "payment amount differs from the locked agreement amount"
+            )
+
+    def create_order_for_agreement(self, version: AgreementVersion, *, actor: str) -> PaymentOrder:
+        """Amount, currency and merchant come from the locked version — never from a client."""
+        merchant = self.session.get(MerchantAccount, version.agreement.merchant_account_id)
+        if merchant is None:
+            raise PaymentRuleViolation("MERCHANT_MISMATCH", "agreement merchant not found")
+        return self.create_order(
+            merchant=merchant,
+            amount=Money(version.amount_minor, version.currency),
+            description=f"{version.title} (v{version.version_number})",
+            actor=actor,
+            agreement_version=version,
+        )
 
     def _order_body(self, order: PaymentOrder) -> Json:
         amount = Money(order.amount_minor, order.currency)

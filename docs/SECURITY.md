@@ -38,7 +38,13 @@
 | Accidental production payments | production base URL rejected by config validator | implemented, tested |
 | Unauthorized use of dev payment endpoints | disabled by default; constant-time operator token | implemented, tested |
 | Undetected audit edits | SHA-256 hash chain, serialized by advisory lock; `verify_chain` | implemented, tested — tamper-*evident* only: a DB admin can rewrite the whole chain |
-| Unauthorized approver / buyer impersonation | sessions + RBAC + ownership checks | **planned P06** |
+| Unauthorized agreement edit/approval | DB-loaded roles per request; edit = buyer_admin, approve = buyer_approver/buyer_admin; merchant read-only | implemented, tested |
+| Cross-organisation access | non-members get 404 for every read and write | implemented, tested |
+| Approving something other than what was reviewed | approval must quote the version's SHA-256 content hash | implemented, tested |
+| Rewriting approved agreements or approvals | service checks + Postgres triggers (locked/superseded versions, their criteria, approvals append-only) | implemented, tested with raw SQL |
+| Lost updates on drafts | `expected_revision` + row lock | implemented, tested concurrently |
+| Session forgery | HMAC-SHA256 tokens, constant-time compare, expiry; roles never in token | implemented, tested |
+| Real login / credential handling | password or SSO login, secure cookies | **planned P06** (interim: operator-issued demo tokens) |
 | Rate abuse on sensitive endpoints | rate limiting | **planned P09** |
 | SSRF from verifier (internal IPs, metadata 169.254.169.254, DNS rebinding, redirects) | resolve-then-pin IP, block private/link-local/loopback ranges, re-check every redirect, egress-restricted worker | **planned P04** |
 | Prompt injection via evidence | evidence passed as data; AI cannot change test results or policy | **planned P05** |

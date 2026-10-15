@@ -17,10 +17,12 @@ AI interprets the promise → Tools verify the evidence → Policy determines el
 Built for the [PayPal AI Hackathon](https://paypalaihackathon.devpost.com/) (2026).
 PayPal **Sandbox only** — no real money moves.
 
-> **Status: early build (P02 of P10).** The PayPal payment core (authorize → capture →
-> partial refund, idempotency, reconciliation, webhooks, audit log) is implemented and
-> unit-tested with mocked PayPal. Live Sandbox verification, agreements, AI and the
-> verification worker are in progress. See
+> **Status: early build (P03 of P10).** Implemented and tested: the PayPal payment core
+> (authorize → capture → partial refund, idempotency, reconciliation, webhooks, audit
+> log — unit-tested with mocked PayPal) and the agreement domain (versioned agreements,
+> typed acceptance criteria, buyer approval and locking, RBAC). **Not yet verified
+> against the live PayPal Sandbox.** AI, the verification worker and the product UI are
+> not built yet. See
 > [docs/IMPLEMENTATION_PROGRESS.md](docs/IMPLEMENTATION_PROGRESS.md) and
 > [docs/INTEGRATION_PROOF.md](docs/INTEGRATION_PROOF.md) for what is verified.
 

@@ -16,13 +16,26 @@ Current as of P02. Each item is either planned (phase noted) or a deliberate sco
 - **Refund webhooks for refunds issued outside OutcomeGuard** (e.g. in the PayPal
   dashboard) are recorded as `unmatched`, not imported.
 
+## Agreements
+
+- **Merchant acceptance is not required to lock** a version — only the buyer approves
+  (per spec P03). The merchant can read every version. Whether the provider must
+  countersign before payment is a P06 policy decision.
+- **Amendments after payment authorization**: a newer locked version may change the
+  amount. The payment stays bound to the version it was authorized for; P06 policy must
+  block capture against a superseded version or require a new authorization.
+- **One service category** (landing page) and a fixed template; AI-proposed criteria in P05.
+- The contact-form spec references a named test sink; the sink itself is configured in P04.
+
 ## Platform
 
-- **No authentication / RBAC yet** (planned P06). The payment driver endpoints are
-  operator-token protected and disabled by default.
+- **Interim authentication.** Sessions are HMAC-signed bearer tokens issued by the
+  operator-gated `/dev/session` endpoint for seeded demo users — there is no password or
+  SSO login yet (P06). RBAC itself is enforced from database memberships on every request.
+- The P02 payment driver endpoints are operator-token protected and disabled by default.
 - **No rate limiting yet** (planned P09).
 - **Audit log is tamper-evident, not tamper-proof**: someone with database write access
   can rewrite the whole hash chain.
 - **Rehearsal mode keeps simulated PayPal objects in memory**; restarting the API forgets
   them (our database rows remain and will fail to reconcile).
-- **No AI, verification worker, agreements or product UI yet** (P03–P07).
+- **No AI, verification worker or product UI yet** (P04–P07).
