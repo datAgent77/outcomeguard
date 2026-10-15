@@ -10,6 +10,13 @@ from outcomeguard.models.agreements import (
     ServiceCategory,
     VersionStatus,
 )
+from outcomeguard.models.ai import (
+    AgreementDraft,
+    AICall,
+    AnalysisStatus,
+    DraftStatus,
+    EvidenceAnalysis,
+)
 from outcomeguard.models.audit import AuditEvent
 from outcomeguard.models.base import Base
 from outcomeguard.models.identity import (
@@ -46,6 +53,11 @@ from outcomeguard.models.verification import (
 )
 
 __all__ = [
+    "AICall",
+    "AgreementDraft",
+    "AnalysisStatus",
+    "DraftStatus",
+    "EvidenceAnalysis",
     "ArtifactKind",
     "EvidenceArtifact",
     "EvidenceSubmission",

@@ -1,0 +1,1034 @@
+{
+  "kind": "p05-ai-demo",
+  "started_at": "2026-10-15T13:14:09.039615+00:00",
+  "request": "Build a mobile-friendly landing page for $500. The contact form must work, the website must be accessible and Lighthouse performance must score at least 90.",
+  "steps": {
+    "2_ai_draft": {
+      "ai_call": {
+        "ai_call_id": "1903d9d9-734e-4e47-bfcb-520a6cf2b8f2",
+        "provider": "anthropic",
+        "model_requested": "claude-opus-5",
+        "model_used": "claude-opus-5",
+        "outcome": "ok",
+        "latency_ms": 21908,
+        "input_tokens": 2449,
+        "output_tokens": 1839,
+        "request_id": "req_011Cg45mP5M3CiwhEEoA9sxC",
+        "prompt_version": "agreement-draft/v1"
+      },
+      "ai_output": {
+        "service_summary": "Build and deliver a mobile-friendly landing page with a working contact form, meeting an accessibility expectation and a Lighthouse performance score of at least 90, for a stated price of $500.",
+        "deliverables": [
+          "A landing page that is reachable at a URL the buyer and seller agree on",
+          "A mobile-friendly layout for the landing page",
+          "A working contact form on the landing page",
+          "A landing page that meets the buyer's accessibility expectation",
+          "A landing page achieving a Lighthouse performance score of at least 90"
+        ],
+        "criteria": [
+          {
+            "key": "landing_page_available",
+            "title": "The delivered landing page responds successfully over HTTP",
+            "kind": "http_availability",
+            "blocking": true,
+            "source_quote": "Build a mobile-friendly landing page",
+            "expected": {
+              "min_performance_score": null,
+              "form_factor": null
+            },
+            "needs_configuration": [
+              "Final URL of the delivered landing page"
+            ],
+            "manual_review_instructions": null
+          },
+          {
+            "key": "mobile_friendly_viewport",
+            "title": "The landing page fits a phone-sized viewport without horizontal scrolling",
+            "kind": "mobile_viewport",
+            "blocking": true,
+            "source_quote": "Build a mobile-friendly landing page",
+            "expected": {
+              "min_performance_score": null,
+              "form_factor": "mobile"
+            },
+            "needs_configuration": [
+              "Final URL of the delivered landing page",
+              "Target phone viewport size(s) / devices, if the buyer has a preference"
+            ],
+            "manual_review_instructions": null
+          },
+          {
+            "key": "contact_form_works",
+            "title": "The contact form can be filled in and submitted successfully",
+            "kind": "contact_form",
+            "blocking": true,
+            "source_quote": "The contact form must work",
+            "expected": {
+              "min_performance_score": null,
+              "form_factor": null
+            },
+            "needs_configuration": [
+              "URL of the page containing the contact form",
+              "Field selectors or names for each form field",
+              "Sample values to submit for each field",
+              "How success is indicated (e.g. success message text or confirmation URL)",
+              "Where submissions should be delivered, if delivery is part of 'must work'"
+            ],
+            "manual_review_instructions": null
+          },
+          {
+            "key": "lighthouse_performance_90",
+            "title": "Lighthouse performance score is at least 90",
+            "kind": "lighthouse_performance",
+            "blocking": true,
+            "source_quote": "Lighthouse performance must score at least 90",
+            "expected": {
+              "min_performance_score": 90,
+              "form_factor": null
+            },
+            "needs_configuration": [
+              "URL to run Lighthouse against",
+              "Form factor to test (mobile or desktop) \u2014 not stated by the buyer"
+            ],
+            "manual_review_instructions": null
+          },
+          {
+            "key": "website_accessible",
+            "title": "A human reviews whether the website is accessible",
+            "kind": "manual_review",
+            "blocking": true,
+            "source_quote": "the website must be accessible",
+            "expected": {
+              "min_performance_score": null,
+              "form_factor": null
+            },
+            "needs_configuration": [
+              "The accessibility standard and level the buyer means (e.g. a specific WCAG version/level), if any"
+            ],
+            "manual_review_instructions": "Review the delivered landing page against the accessibility expectation the buyer specifies. Since the buyer did not define a standard, confirm with the buyer what 'accessible' means before reviewing, then check the page accordingly (for example keyboard navigation, text alternatives, colour contrast, form labels) and record findings."
+          }
+        ],
+        "ambiguities": [
+          {
+            "topic": "Lighthouse form factor",
+            "question": "Should the Lighthouse performance score of at least 90 be measured on mobile, on desktop, or on both?"
+          },
+          {
+            "topic": "Meaning of 'accessible'",
+            "question": "What exactly do you mean by 'accessible' \u2014 is there a standard and level you want met (for example a specific WCAG version and level), and who decides whether it is met?"
+          },
+          {
+            "topic": "Contact form behaviour",
+            "question": "What counts as the contact form 'working' \u2014 a visible success confirmation after submitting, an email arriving at a specific address, or both? If email delivery matters, which address?"
+          },
+          {
+            "topic": "Delivery location",
+            "question": "At which URL (and on whose hosting/domain) will the finished landing page be delivered for verification?"
+          },
+          {
+            "topic": "Scope",
+            "question": "Is the deliverable a single landing page only, or does 'the website must be accessible' refer to additional pages as well?"
+          }
+        ],
+        "manual_review_items": [
+          {
+            "requirement": "the website must be accessible",
+            "reason": "Accessibility is not covered by any automated criterion kind and the buyer did not state a standard, so a human must review it against a definition the buyer confirms."
+          }
+        ],
+        "unsupported_requirements": []
+      },
+      "deterministic_review": {
+        "criteria": [
+          {
+            "key": "landing_page_available",
+            "title": "The delivered landing page responds successfully over HTTP",
+            "kind": "http_availability",
+            "blocking": true,
+            "source_quote": "Build a mobile-friendly landing page",
+            "expected": {},
+            "needs_configuration": [
+              "Final URL of the delivered landing page"
+            ],
+            "manual_review_instructions": null
+          },
+          {
+            "key": "mobile_friendly_viewport",
+            "title": "The landing page fits a phone-sized viewport without horizontal scrolling",
+            "kind": "mobile_viewport",
+            "blocking": true,
+            "source_quote": "Build a mobile-friendly landing page",
+            "expected": {
+              "form_factor": "mobile"
+            },
+            "needs_configuration": [
+              "Final URL of the delivered landing page",
+              "Target phone viewport size(s) / devices, if the buyer has a preference"
+            ],
+            "manual_review_instructions": null
+          },
+          {
+            "key": "contact_form_works",
+            "title": "The contact form can be filled in and submitted successfully",
+            "kind": "contact_form",
+            "blocking": true,
+            "source_quote": "The contact form must work",
+            "expected": {},
+            "needs_configuration": [
+              "URL of the page containing the contact form",
+              "Field selectors or names for each form field",
+              "Sample values to submit for each field",
+              "How success is indicated (e.g. success message text or confirmation URL)",
+              "Where submissions should be delivered, if delivery is part of 'must work'"
+            ],
+            "manual_review_instructions": null
+          },
+          {
+            "key": "lighthouse_performance_90",
+            "title": "Lighthouse performance score is at least 90",
+            "kind": "lighthouse_performance",
+            "blocking": true,
+            "source_quote": "Lighthouse performance must score at least 90",
+            "expected": {
+              "min_performance_score": 90
+            },
+            "needs_configuration": [
+              "URL to run Lighthouse against",
+              "Form factor to test (mobile or desktop) \u2014 not stated by the buyer"
+            ],
+            "manual_review_instructions": null
+          },
+          {
+            "key": "website_accessible",
+            "title": "A human reviews whether the website is accessible",
+            "kind": "manual_review",
+            "blocking": true,
+            "source_quote": "the website must be accessible",
+            "expected": {},
+            "needs_configuration": [
+              "The accessibility standard and level the buyer means (e.g. a specific WCAG version/level), if any"
+            ],
+            "manual_review_instructions": "Review the delivered landing page against the accessibility expectation the buyer specifies. Since the buyer did not define a standard, confirm with the buyer what 'accessible' means before reviewing, then check the page accordingly (for example keyboard navigation, text alternatives, colour contrast, form labels) and record findings."
+          }
+        ],
+        "rejected_criteria": [],
+        "ambiguities": [
+          {
+            "topic": "Lighthouse form factor",
+            "question": "Should the Lighthouse performance score of at least 90 be measured on mobile, on desktop, or on both?"
+          },
+          {
+            "topic": "Meaning of 'accessible'",
+            "question": "What exactly do you mean by 'accessible' \u2014 is there a standard and level you want met (for example a specific WCAG version and level), and who decides whether it is met?"
+          },
+          {
+            "topic": "Contact form behaviour",
+            "question": "What counts as the contact form 'working' \u2014 a visible success confirmation after submitting, an email arriving at a specific address, or both? If email delivery matters, which address?"
+          },
+          {
+            "topic": "Delivery location",
+            "question": "At which URL (and on whose hosting/domain) will the finished landing page be delivered for verification?"
+          },
+          {
+            "topic": "Scope",
+            "question": "Is the deliverable a single landing page only, or does 'the website must be accessible' refer to additional pages as well?"
+          }
+        ],
+        "manual_review_items": [
+          {
+            "requirement": "the website must be accessible",
+            "reason": "Accessibility is not covered by any automated criterion kind and the buyer did not state a standard, so a human must review it against a definition the buyer confirms."
+          }
+        ],
+        "unsupported_requirements": [],
+        "service_summary": "Build and deliver a mobile-friendly landing page with a working contact form, meeting an accessibility expectation and a Lighthouse performance score of at least 90, for a stated price of $500.",
+        "deliverables": [
+          "A landing page that is reachable at a URL the buyer and seller agree on",
+          "A mobile-friendly layout for the landing page",
+          "A working contact form on the landing page",
+          "A landing page that meets the buyer's accessibility expectation",
+          "A landing page achieving a Lighthouse performance score of at least 90"
+        ]
+      }
+    },
+    "3_human_review": {
+      "decisions": {
+        "use_standard_form_fields": true,
+        "blocking_overrides": {
+          "website_accessible": false
+        },
+        "configuration": {
+          "landing_page_available": {
+            "require_https": false
+          }
+        }
+      },
+      "agreement_id": "711b379a-6ddb-4565-9605-56011fcc1f60",
+      "content_hash": "5e6af953ba4ab8e31f4c14c4def718b5609b578a7dbb61bc3690cb0d20362b8d",
+      "approved_by": "bob@acme.demo (buyer_approver)"
+    },
+    "4_verification_landing-page-broken": {
+      "run_id": "d3bbc112-cc2a-4106-8fc3-93a189f4a114",
+      "verdict": "fail",
+      "results": [
+        [
+          "landing_page_available",
+          true,
+          "pass",
+          "OK"
+        ],
+        [
+          "mobile_friendly_viewport",
+          true,
+          "pass",
+          "OK"
+        ],
+        [
+          "contact_form_works",
+          true,
+          "fail",
+          "NO_SUBMISSION_TO_SINK"
+        ],
+        [
+          "lighthouse_performance_90",
+          true,
+          "pass",
+          "OK"
+        ],
+        [
+          "website_accessible",
+          false,
+          "manual_review_required",
+          "MANUAL_CRITERION"
+        ]
+      ]
+    },
+    "5_ai_explanation_landing-page-broken": {
+      "ai_call": {
+        "ai_call_id": "c3770c1a-1cbd-4658-86b8-47f749f0f1cd",
+        "provider": "anthropic",
+        "model_requested": "claude-opus-5",
+        "model_used": "claude-opus-5",
+        "outcome": "ok",
+        "latency_ms": 39328,
+        "input_tokens": 4134,
+        "output_tokens": 3412,
+        "request_id": "req_011Cg45pe1rYLMtmPqg3kqRx",
+        "prompt_version": "evidence-analysis/v1"
+      },
+      "status": "partially_rejected",
+      "grounded": {
+        "verdict": "fail",
+        "summary": "The run completed with an overall verdict of fail. Three blocking checks passed: the landing page returned HTTP 200 on the first request with no redirects, the page fit a 390px-wide mobile viewport with no horizontal overflow, and Lighthouse mobile performance scored 100 against a minimum of 90. The blocking contact-form check failed: the form and all three expected fields were found and filled, but after clicking the submit button no request reached the test sink, no receipt was recorded, and the expected 'Thank you' confirmation never appeared. One non-blocking accessibility criterion is flagged for manual review because the buyer did not define an accessibility standard; no automated measurement was taken for it.",
+        "summary_rejected": null,
+        "explanations": [
+          {
+            "criterion_key": "landing_page_available",
+            "result_id": "94580d4b-7d61-4818-baf0-c1a7a6937f35",
+            "outcome": "pass",
+            "reason_code": "OK",
+            "blocking": true,
+            "explanation": "A request to the landing page path '/' resolved in a single hop to http://127.0.0.1:8020/landing-page-broken/ with status 200 and no redirect location, completing in 61 ms, which satisfies the expected status of 200 within the 10000 ms timeout and 5-redirect limit. The HTTP trace artifact records this chain.",
+            "evidence_refs": [
+              {
+                "result_id": "94580d4b-7d61-4818-baf0-c1a7a6937f35",
+                "measurement": "chain"
+              },
+              {
+                "result_id": "94580d4b-7d61-4818-baf0-c1a7a6937f35",
+                "measurement": "elapsed_ms"
+              },
+              {
+                "result_id": "94580d4b-7d61-4818-baf0-c1a7a6937f35",
+                "artifact_id": "a64de999-a136-414f-8850-b4113aa1a997"
+              }
+            ],
+            "remediation": null,
+            "confidence": "high",
+            "insufficient_evidence": false
+          },
+          {
+            "criterion_key": "mobile_friendly_viewport",
+            "result_id": "d85bcbd8-5740-45b6-83ca-588ef541095a",
+            "outcome": "pass",
+            "reason_code": "OK",
+            "blocking": true,
+            "explanation": "Rendered at a 390x844 viewport, the page returned HTTP 200 and its scroll width equalled the viewport width (390 = 390), so there was no horizontal overflow as required. No required visible selectors were specified, so the selectors_visible map is empty. The mobile screenshot artifact documents the rendered page.",
+            "evidence_refs": [
+              {
+                "result_id": "d85bcbd8-5740-45b6-83ca-588ef541095a",
+                "measurement": "scroll_width"
+              },
+              {
+                "result_id": "d85bcbd8-5740-45b6-83ca-588ef541095a",
+                "measurement": "viewport_width"
+              },
+              {
+                "result_id": "d85bcbd8-5740-45b6-83ca-588ef541095a",
+                "measurement": "http_status"
+              },
+              {
+                "result_id": "d85bcbd8-5740-45b6-83ca-588ef541095a",
+                "artifact_id": "1f7ec384-23c8-415a-9c0a-99f09590b219"
+              }
+            ],
+            "remediation": null,
+            "confidence": "high",
+            "insufficient_evidence": false
+          },
+          {
+            "criterion_key": "contact_form_works",
+            "result_id": "12a1619b-f32c-4728-89b0-c90eada05ba4",
+            "outcome": "fail",
+            "reason_code": "NO_SUBMISSION_TO_SINK",
+            "blocking": true,
+            "explanation": "The checker found the form ('form_found' true) and none of the three expected fields were missing, so name, email and message were filled as specified. After clicking button[type=submit], however, 'sink_requests' is an empty list and 'sink_receipts_in_db' is 0, meaning no submission ever reached the configured test endpoint, and 'success_text_seen' is false, meaning the expected 'Thank you' confirmation never rendered. The reason code is NO_SUBMISSION_TO_SINK. No prohibited or unrelated blocked requests were recorded, so the failure is not attributable to egress filtering in this evidence. The post-submit screenshot shows the page state after the click. The measurements do not reveal the underlying cause (for example a missing form action, a JavaScript error, or a disabled submit handler).",
+            "evidence_refs": [
+              {
+                "result_id": "12a1619b-f32c-4728-89b0-c90eada05ba4",
+                "measurement": "sink_requests"
+              },
+              {
+                "result_id": "12a1619b-f32c-4728-89b0-c90eada05ba4",
+                "measurement": "sink_receipts_in_db"
+              },
+              {
+                "result_id": "12a1619b-f32c-4728-89b0-c90eada05ba4",
+                "measurement": "success_text_seen"
+              },
+              {
+                "result_id": "12a1619b-f32c-4728-89b0-c90eada05ba4",
+                "measurement": "form_found"
+              },
+              {
+                "result_id": "12a1619b-f32c-4728-89b0-c90eada05ba4",
+                "measurement": "fields_missing"
+              },
+              {
+                "result_id": "12a1619b-f32c-4728-89b0-c90eada05ba4",
+                "measurement": "prohibited_requests"
+              },
+              {
+                "result_id": "12a1619b-f32c-4728-89b0-c90eada05ba4",
+                "artifact_id": "c77b9ba5-ee1f-47a1-8940-f1c8b3a35086"
+              }
+            ],
+            "remediation": "Make the contact form actually submit to the agreed test endpoint: give the <form> a real action/method (or an onsubmit/fetch handler) pointing at the configured 'default' test endpoint, and ensure the button[type=submit] is inside the form, not disabled, and that its default action is not cancelled by preventDefault() without a replacement network call. Verify in the browser devtools Network tab that clicking submit issues a POST carrying the name, email and message values, and that the page then renders visible text containing the exact string 'Thank you' (not only inside a hidden element, an alert, or a redirect that is blocked). Re-test at a 390px viewport with JavaScript console open to catch any script error that aborts submission.",
+            "confidence": "high",
+            "insufficient_evidence": false
+          },
+          {
+            "criterion_key": "lighthouse_performance_90",
+            "result_id": "8f00bb80-a1ea-49bf-aba8-09baf441ef9f",
+            "outcome": "pass",
+            "reason_code": "OK",
+            "blocking": true,
+            "explanation": "A single Lighthouse mobile run with simulated throttling scored 100 against the required minimum of 90, placing the result in band 5 with no adaptive retry needed. The run took 10016 ms and the full report is stored as the Lighthouse JSON artifact.",
+            "evidence_refs": [
+              {
+                "result_id": "8f00bb80-a1ea-49bf-aba8-09baf441ef9f",
+                "measurement": "scores"
+              },
+              {
+                "result_id": "8f00bb80-a1ea-49bf-aba8-09baf441ef9f",
+                "measurement": "band"
+              },
+              {
+                "result_id": "8f00bb80-a1ea-49bf-aba8-09baf441ef9f",
+                "measurement": "lighthouse_runs"
+              },
+              {
+                "result_id": "8f00bb80-a1ea-49bf-aba8-09baf441ef9f",
+                "artifact_id": "24a34db5-404e-492b-9ad0-996f623d787f"
+              }
+            ],
+            "remediation": null,
+            "confidence": "high",
+            "insufficient_evidence": false
+          }
+        ],
+        "rejected_claims": [
+          {
+            "criterion_key": "website_accessible",
+            "result_id": "35cccdf7-133f-4209-bf27-8c8322824b22",
+            "reasons": [
+              "REF_UNKNOWN_MEASUREMENT:measured"
+            ]
+          }
+        ],
+        "unexplained_criteria": [
+          "website_accessible"
+        ],
+        "missing_evidence": [
+          "Browser console/JavaScript error log from the contact-form run, which would show whether a script error prevented submission",
+          "The DOM/HTML of the form element (action, method, handler attributes) at the time of the check",
+          "A network log scoped to the contact-form interaction showing any outbound request attempts after the submit click; the run includes an egress-decisions network log artifact (2c0769ea-dfd1-4a0e-82e2-9fe9f0dfe6d5) but it is not linked to any result",
+          "A pre-submit screenshot to confirm the fields were visibly populated before the click",
+          "An agreed accessibility standard and any automated accessibility scan output for the website_accessible criterion"
+        ],
+        "limitations": [
+          "Verdicts were produced by deterministic tooling; this explanation reports them and cannot change them, and it carries no authority over payment.",
+          "The contact-form evidence shows the absence of a submission but not its cause, so the remediation lists plausible fixes rather than a confirmed root cause.",
+          "Checks were run against a local host (http://127.0.0.1:8020/landing-page-broken/), so behaviour on the production domain or over HTTPS was not verified (require_https was false).",
+          "Lighthouse performance is based on a single simulated mobile run and may vary across runs and real devices.",
+          "Artifacts were referenced by id and hash only; their contents were not independently re-examined here."
+        ]
+      },
+      "ai_output": {
+        "summary": "The run completed with an overall verdict of fail. Three blocking checks passed: the landing page returned HTTP 200 on the first request with no redirects, the page fit a 390px-wide mobile viewport with no horizontal overflow, and Lighthouse mobile performance scored 100 against a minimum of 90. The blocking contact-form check failed: the form and all three expected fields were found and filled, but after clicking the submit button no request reached the test sink, no receipt was recorded, and the expected 'Thank you' confirmation never appeared. One non-blocking accessibility criterion is flagged for manual review because the buyer did not define an accessibility standard; no automated measurement was taken for it.",
+        "criteria": [
+          {
+            "criterion_key": "landing_page_available",
+            "result_id": "94580d4b-7d61-4818-baf0-c1a7a6937f35",
+            "outcome_reported": "pass",
+            "explanation": "A request to the landing page path '/' resolved in a single hop to http://127.0.0.1:8020/landing-page-broken/ with status 200 and no redirect location, completing in 61 ms, which satisfies the expected status of 200 within the 10000 ms timeout and 5-redirect limit. The HTTP trace artifact records this chain.",
+            "evidence_refs": [
+              {
+                "result_id": "94580d4b-7d61-4818-baf0-c1a7a6937f35",
+                "measurement": "chain",
+                "artifact_id": null
+              },
+              {
+                "result_id": "94580d4b-7d61-4818-baf0-c1a7a6937f35",
+                "measurement": "elapsed_ms",
+                "artifact_id": null
+              },
+              {
+                "result_id": "94580d4b-7d61-4818-baf0-c1a7a6937f35",
+                "measurement": null,
+                "artifact_id": "a64de999-a136-414f-8850-b4113aa1a997"
+              }
+            ],
+            "remediation": null,
+            "confidence": "high",
+            "insufficient_evidence": false
+          },
+          {
+            "criterion_key": "mobile_friendly_viewport",
+            "result_id": "d85bcbd8-5740-45b6-83ca-588ef541095a",
+            "outcome_reported": "pass",
+            "explanation": "Rendered at a 390x844 viewport, the page returned HTTP 200 and its scroll width equalled the viewport width (390 = 390), so there was no horizontal overflow as required. No required visible selectors were specified, so the selectors_visible map is empty. The mobile screenshot artifact documents the rendered page.",
+            "evidence_refs": [
+              {
+                "result_id": "d85bcbd8-5740-45b6-83ca-588ef541095a",
+                "measurement": "scroll_width",
+                "artifact_id": null
+              },
+              {
+                "result_id": "d85bcbd8-5740-45b6-83ca-588ef541095a",
+                "measurement": "viewport_width",
+                "artifact_id": null
+              },
+              {
+                "result_id": "d85bcbd8-5740-45b6-83ca-588ef541095a",
+                "measurement": "http_status",
+                "artifact_id": null
+              },
+              {
+                "result_id": "d85bcbd8-5740-45b6-83ca-588ef541095a",
+                "measurement": null,
+                "artifact_id": "1f7ec384-23c8-415a-9c0a-99f09590b219"
+              }
+            ],
+            "remediation": null,
+            "confidence": "high",
+            "insufficient_evidence": false
+          },
+          {
+            "criterion_key": "contact_form_works",
+            "result_id": "12a1619b-f32c-4728-89b0-c90eada05ba4",
+            "outcome_reported": "fail",
+            "explanation": "The checker found the form ('form_found' true) and none of the three expected fields were missing, so name, email and message were filled as specified. After clicking button[type=submit], however, 'sink_requests' is an empty list and 'sink_receipts_in_db' is 0, meaning no submission ever reached the configured test endpoint, and 'success_text_seen' is false, meaning the expected 'Thank you' confirmation never rendered. The reason code is NO_SUBMISSION_TO_SINK. No prohibited or unrelated blocked requests were recorded, so the failure is not attributable to egress filtering in this evidence. The post-submit screenshot shows the page state after the click. The measurements do not reveal the underlying cause (for example a missing form action, a JavaScript error, or a disabled submit handler).",
+            "evidence_refs": [
+              {
+                "result_id": "12a1619b-f32c-4728-89b0-c90eada05ba4",
+                "measurement": "sink_requests",
+                "artifact_id": null
+              },
+              {
+                "result_id": "12a1619b-f32c-4728-89b0-c90eada05ba4",
+                "measurement": "sink_receipts_in_db",
+                "artifact_id": null
+              },
+              {
+                "result_id": "12a1619b-f32c-4728-89b0-c90eada05ba4",
+                "measurement": "success_text_seen",
+                "artifact_id": null
+              },
+              {
+                "result_id": "12a1619b-f32c-4728-89b0-c90eada05ba4",
+                "measurement": "form_found",
+                "artifact_id": null
+              },
+              {
+                "result_id": "12a1619b-f32c-4728-89b0-c90eada05ba4",
+                "measurement": "fields_missing",
+                "artifact_id": null
+              },
+              {
+                "result_id": "12a1619b-f32c-4728-89b0-c90eada05ba4",
+                "measurement": "prohibited_requests",
+                "artifact_id": null
+              },
+              {
+                "result_id": "12a1619b-f32c-4728-89b0-c90eada05ba4",
+                "measurement": null,
+                "artifact_id": "c77b9ba5-ee1f-47a1-8940-f1c8b3a35086"
+              }
+            ],
+            "remediation": "Make the contact form actually submit to the agreed test endpoint: give the <form> a real action/method (or an onsubmit/fetch handler) pointing at the configured 'default' test endpoint, and ensure the button[type=submit] is inside the form, not disabled, and that its default action is not cancelled by preventDefault() without a replacement network call. Verify in the browser devtools Network tab that clicking submit issues a POST carrying the name, email and message values, and that the page then renders visible text containing the exact string 'Thank you' (not only inside a hidden element, an alert, or a redirect that is blocked). Re-test at a 390px viewport with JavaScript console open to catch any script error that aborts submission.",
+            "confidence": "high",
+            "insufficient_evidence": false
+          },
+          {
+            "criterion_key": "lighthouse_performance_90",
+            "result_id": "8f00bb80-a1ea-49bf-aba8-09baf441ef9f",
+            "outcome_reported": "pass",
+            "explanation": "A single Lighthouse mobile run with simulated throttling scored 100 against the required minimum of 90, placing the result in band 5 with no adaptive retry needed. The run took 10016 ms and the full report is stored as the Lighthouse JSON artifact.",
+            "evidence_refs": [
+              {
+                "result_id": "8f00bb80-a1ea-49bf-aba8-09baf441ef9f",
+                "measurement": "scores",
+                "artifact_id": null
+              },
+              {
+                "result_id": "8f00bb80-a1ea-49bf-aba8-09baf441ef9f",
+                "measurement": "band",
+                "artifact_id": null
+              },
+              {
+                "result_id": "8f00bb80-a1ea-49bf-aba8-09baf441ef9f",
+                "measurement": "lighthouse_runs",
+                "artifact_id": null
+              },
+              {
+                "result_id": "8f00bb80-a1ea-49bf-aba8-09baf441ef9f",
+                "measurement": null,
+                "artifact_id": "24a34db5-404e-492b-9ad0-996f623d787f"
+              }
+            ],
+            "remediation": null,
+            "confidence": "high",
+            "insufficient_evidence": false
+          },
+          {
+            "criterion_key": "website_accessible",
+            "result_id": "35cccdf7-133f-4209-bf27-8c8322824b22",
+            "outcome_reported": "manual_review_required",
+            "explanation": "This non-blocking criterion is of kind manual_review with reason code MANUAL_CRITERION, so no automated measurement was attempted; the 'measured' object is empty and no artifacts were captured. The stored instructions note that the buyer did not define what 'accessible' means and that the standard must be confirmed with the buyer before a human reviews keyboard navigation, text alternatives, colour contrast and similar aspects. Nothing in the evidence allows an automated conclusion about accessibility.",
+            "evidence_refs": [
+              {
+                "result_id": "35cccdf7-133f-4209-bf27-8c8322824b22",
+                "measurement": "measured",
+                "artifact_id": null
+              },
+              {
+                "result_id": "35cccdf7-133f-4209-bf27-8c8322824b22",
+                "measurement": "reason_code",
+                "artifact_id": null
+              }
+            ],
+            "remediation": "Agree a concrete accessibility target with the buyer (for example WCAG 2.1 level AA) and supply supporting evidence for a human reviewer: an axe-core or Lighthouse accessibility report, a keyboard-only navigation walkthrough, documented focus states, alt text on all images, form labels associated with the name/email/message inputs, and measured colour-contrast ratios.",
+            "confidence": "high",
+            "insufficient_evidence": true
+          }
+        ],
+        "missing_evidence": [
+          "Browser console/JavaScript error log from the contact-form run, which would show whether a script error prevented submission",
+          "The DOM/HTML of the form element (action, method, handler attributes) at the time of the check",
+          "A network log scoped to the contact-form interaction showing any outbound request attempts after the submit click; the run includes an egress-decisions network log artifact (2c0769ea-dfd1-4a0e-82e2-9fe9f0dfe6d5) but it is not linked to any result",
+          "A pre-submit screenshot to confirm the fields were visibly populated before the click",
+          "An agreed accessibility standard and any automated accessibility scan output for the website_accessible criterion"
+        ],
+        "limitations": [
+          "Verdicts were produced by deterministic tooling; this explanation reports them and cannot change them, and it carries no authority over payment.",
+          "The contact-form evidence shows the absence of a submission but not its cause, so the remediation lists plausible fixes rather than a confirmed root cause.",
+          "Checks were run against a local host (http://127.0.0.1:8020/landing-page-broken/), so behaviour on the production domain or over HTTPS was not verified (require_https was false).",
+          "Lighthouse performance is based on a single simulated mobile run and may vary across runs and real devices.",
+          "Artifacts were referenced by id and hash only; their contents were not independently re-examined here."
+        ]
+      }
+    },
+    "6_verification_landing-page-fixed": {
+      "run_id": "801b709c-cace-46f9-925e-5dbab1167b1d",
+      "verdict": "pass",
+      "results": [
+        [
+          "landing_page_available",
+          true,
+          "pass",
+          "OK"
+        ],
+        [
+          "mobile_friendly_viewport",
+          true,
+          "pass",
+          "OK"
+        ],
+        [
+          "contact_form_works",
+          true,
+          "pass",
+          "OK"
+        ],
+        [
+          "lighthouse_performance_90",
+          true,
+          "pass",
+          "OK"
+        ],
+        [
+          "website_accessible",
+          false,
+          "manual_review_required",
+          "MANUAL_CRITERION"
+        ]
+      ]
+    },
+    "7_ai_explanation_landing-page-fixed": {
+      "ai_call": {
+        "ai_call_id": "a8f5b81e-6e56-4624-ab58-e23465a769d6",
+        "provider": "anthropic",
+        "model_requested": "claude-opus-5",
+        "model_used": "claude-opus-5",
+        "outcome": "ok",
+        "latency_ms": 32664,
+        "input_tokens": 4146,
+        "output_tokens": 2942,
+        "request_id": "req_011Cg45tUjMyMaSuutnJGCYR",
+        "prompt_version": "evidence-analysis/v1"
+      },
+      "status": "partially_rejected",
+      "grounded": {
+        "verdict": "pass",
+        "summary": "All four automated, blocking checks passed on this run: the landing page returned HTTP 200 directly with no redirects, the page fit a 390px-wide mobile viewport with no horizontal overflow, the contact form submitted successfully and reached the test endpoint, and Lighthouse mobile performance scored 100 (threshold 90). One non-blocking criterion, 'website_accessible', is a manual review item and was not evaluated by the tools \\u2014 the stored instructions note the buyer never defined what 'accessible' means, so a human reviewer needs to agree a standard with the buyer and check the page against it. The overall run verdict recorded by the tooling is 'pass'.",
+        "summary_rejected": null,
+        "explanations": [
+          {
+            "criterion_key": "landing_page_available",
+            "result_id": "11ca7bf0-c1f3-4358-af01-068400815eee",
+            "outcome": "pass",
+            "reason_code": "OK",
+            "blocking": true,
+            "explanation": "A single request to http://127.0.0.1:8020/landing-page-fixed/ returned status 200 with no redirect location, matching the expected_status of [200] within the 10000 ms timeout; the response took 61 ms. The HTTP trace artifact records the full chain.",
+            "evidence_refs": [
+              {
+                "result_id": "11ca7bf0-c1f3-4358-af01-068400815eee",
+                "measurement": "chain"
+              },
+              {
+                "result_id": "11ca7bf0-c1f3-4358-af01-068400815eee",
+                "measurement": "elapsed_ms"
+              },
+              {
+                "result_id": "11ca7bf0-c1f3-4358-af01-068400815eee",
+                "artifact_id": "602bc0b9-433c-4f97-8201-f51f185aada2"
+              }
+            ],
+            "remediation": null,
+            "confidence": "high",
+            "insufficient_evidence": false
+          },
+          {
+            "criterion_key": "mobile_friendly_viewport",
+            "result_id": "bd8df1d1-43e1-4ab9-bd0b-94e769650fdd",
+            "outcome": "pass",
+            "reason_code": "OK",
+            "blocking": true,
+            "explanation": "Rendered at a 390x844 viewport, the page returned http_status 200 and scroll_width equalled viewport_width (390), so there was no horizontal overflow as required. No required_visible_selectors were specified, so selectors_visible is empty. The mobile screenshot artifact documents the rendering.",
+            "evidence_refs": [
+              {
+                "result_id": "bd8df1d1-43e1-4ab9-bd0b-94e769650fdd",
+                "measurement": "scroll_width"
+              },
+              {
+                "result_id": "bd8df1d1-43e1-4ab9-bd0b-94e769650fdd",
+                "measurement": "viewport_width"
+              },
+              {
+                "result_id": "bd8df1d1-43e1-4ab9-bd0b-94e769650fdd",
+                "measurement": "http_status"
+              },
+              {
+                "result_id": "bd8df1d1-43e1-4ab9-bd0b-94e769650fdd",
+                "artifact_id": "a44b7dd5-91ac-47dc-a81c-17b308c337a9"
+              }
+            ],
+            "remediation": null,
+            "confidence": "high",
+            "insufficient_evidence": false
+          },
+          {
+            "criterion_key": "contact_form_works",
+            "result_id": "1b62c74f-ca31-429e-ada6-208e6e6582c9",
+            "outcome": "pass",
+            "reason_code": "OK",
+            "blocking": true,
+            "explanation": "The form was found with no missing fields, all three expected inputs (name, email, message) were filled and submitted, and the configured test endpoint received one request that returned status 201 with 1 receipt recorded in the sink database. The expected 'Thank you' confirmation text was observed (success_text_seen true), and no prohibited or unrelated blocked requests were recorded. The post-submit screenshot captures the confirmation state.",
+            "evidence_refs": [
+              {
+                "result_id": "1b62c74f-ca31-429e-ada6-208e6e6582c9",
+                "measurement": "form_found"
+              },
+              {
+                "result_id": "1b62c74f-ca31-429e-ada6-208e6e6582c9",
+                "measurement": "fields_missing"
+              },
+              {
+                "result_id": "1b62c74f-ca31-429e-ada6-208e6e6582c9",
+                "measurement": "sink_requests"
+              },
+              {
+                "result_id": "1b62c74f-ca31-429e-ada6-208e6e6582c9",
+                "measurement": "sink_receipts_in_db"
+              },
+              {
+                "result_id": "1b62c74f-ca31-429e-ada6-208e6e6582c9",
+                "measurement": "success_text_seen"
+              },
+              {
+                "result_id": "1b62c74f-ca31-429e-ada6-208e6e6582c9",
+                "measurement": "prohibited_requests"
+              },
+              {
+                "result_id": "1b62c74f-ca31-429e-ada6-208e6e6582c9",
+                "artifact_id": "483e0636-6223-47ae-9c62-feccd33b755f"
+              }
+            ],
+            "remediation": null,
+            "confidence": "high",
+            "insufficient_evidence": false
+          },
+          {
+            "criterion_key": "lighthouse_performance_90",
+            "result_id": "ec797d01-7388-475f-88b7-b54d6c4e3cdf",
+            "outcome": "pass",
+            "reason_code": "OK",
+            "blocking": true,
+            "explanation": "A single Lighthouse run in mobile form factor with simulated throttling scored 100, comfortably above the min_score of 90, so no adaptive retry was triggered (adaptive_retry false; band 5). The run took 10279 ms and the full report is stored as lighthouse-run-1.json.gz.",
+            "evidence_refs": [
+              {
+                "result_id": "ec797d01-7388-475f-88b7-b54d6c4e3cdf",
+                "measurement": "scores"
+              },
+              {
+                "result_id": "ec797d01-7388-475f-88b7-b54d6c4e3cdf",
+                "measurement": "adaptive_retry"
+              },
+              {
+                "result_id": "ec797d01-7388-475f-88b7-b54d6c4e3cdf",
+                "measurement": "lighthouse_runs"
+              },
+              {
+                "result_id": "ec797d01-7388-475f-88b7-b54d6c4e3cdf",
+                "artifact_id": "4b5646c5-187e-44b7-8293-5df6374d0277"
+              }
+            ],
+            "remediation": null,
+            "confidence": "high",
+            "insufficient_evidence": false
+          }
+        ],
+        "rejected_claims": [
+          {
+            "criterion_key": "website_accessible",
+            "result_id": "ef5a05da-e8d5-40d7-9178-b57cd5b45d3b",
+            "reasons": [
+              "REF_UNKNOWN_MEASUREMENT:measured"
+            ]
+          }
+        ],
+        "unexplained_criteria": [
+          "website_accessible"
+        ],
+        "missing_evidence": [
+          "A buyer-agreed definition or standard for 'accessible' (e.g. WCAG version and conformance level) so the criterion can be evaluated objectively.",
+          "An automated accessibility scan (axe-core or Lighthouse accessibility category) and/or a keyboard-navigation and contrast review of the landing page.",
+          "Context for the network_log artifact 'egress-decisions.json' (3b23999f-a8c6-4e52-86bd-a9538de7e420), which is not linked to any result and therefore cannot be tied to a specific criterion."
+        ],
+        "limitations": [
+          "The verdicts were produced by deterministic tooling; this explanation describes them and cannot change them, and it has no bearing on payment decisions.",
+          "Checks were run against a local host address (http://127.0.0.1:8020/landing-page-fixed/), so the results reflect that environment rather than a public production URL, and require_https was false so TLS was not verified.",
+          "Lighthouse performance is based on a single simulated-throttling run; scores can vary between runs and environments.",
+          "The contact form was exercised against a test endpoint ('test_endpoint_ref': 'default'), so delivery to the buyer's real inbox or CRM was not verified."
+        ]
+      },
+      "ai_output": {
+        "summary": "All four automated, blocking checks passed on this run: the landing page returned HTTP 200 directly with no redirects, the page fit a 390px-wide mobile viewport with no horizontal overflow, the contact form submitted successfully and reached the test endpoint, and Lighthouse mobile performance scored 100 (threshold 90). One non-blocking criterion, 'website_accessible', is a manual review item and was not evaluated by the tools \\u2014 the stored instructions note the buyer never defined what 'accessible' means, so a human reviewer needs to agree a standard with the buyer and check the page against it. The overall run verdict recorded by the tooling is 'pass'.",
+        "criteria": [
+          {
+            "criterion_key": "landing_page_available",
+            "result_id": "11ca7bf0-c1f3-4358-af01-068400815eee",
+            "outcome_reported": "pass",
+            "explanation": "A single request to http://127.0.0.1:8020/landing-page-fixed/ returned status 200 with no redirect location, matching the expected_status of [200] within the 10000 ms timeout; the response took 61 ms. The HTTP trace artifact records the full chain.",
+            "evidence_refs": [
+              {
+                "result_id": "11ca7bf0-c1f3-4358-af01-068400815eee",
+                "measurement": "chain",
+                "artifact_id": null
+              },
+              {
+                "result_id": "11ca7bf0-c1f3-4358-af01-068400815eee",
+                "measurement": "elapsed_ms",
+                "artifact_id": null
+              },
+              {
+                "result_id": "11ca7bf0-c1f3-4358-af01-068400815eee",
+                "measurement": null,
+                "artifact_id": "602bc0b9-433c-4f97-8201-f51f185aada2"
+              }
+            ],
+            "remediation": null,
+            "confidence": "high",
+            "insufficient_evidence": false
+          },
+          {
+            "criterion_key": "mobile_friendly_viewport",
+            "result_id": "bd8df1d1-43e1-4ab9-bd0b-94e769650fdd",
+            "outcome_reported": "pass",
+            "explanation": "Rendered at a 390x844 viewport, the page returned http_status 200 and scroll_width equalled viewport_width (390), so there was no horizontal overflow as required. No required_visible_selectors were specified, so selectors_visible is empty. The mobile screenshot artifact documents the rendering.",
+            "evidence_refs": [
+              {
+                "result_id": "bd8df1d1-43e1-4ab9-bd0b-94e769650fdd",
+                "measurement": "scroll_width",
+                "artifact_id": null
+              },
+              {
+                "result_id": "bd8df1d1-43e1-4ab9-bd0b-94e769650fdd",
+                "measurement": "viewport_width",
+                "artifact_id": null
+              },
+              {
+                "result_id": "bd8df1d1-43e1-4ab9-bd0b-94e769650fdd",
+                "measurement": "http_status",
+                "artifact_id": null
+              },
+              {
+                "result_id": "bd8df1d1-43e1-4ab9-bd0b-94e769650fdd",
+                "measurement": null,
+                "artifact_id": "a44b7dd5-91ac-47dc-a81c-17b308c337a9"
+              }
+            ],
+            "remediation": null,
+            "confidence": "high",
+            "insufficient_evidence": false
+          },
+          {
+            "criterion_key": "contact_form_works",
+            "result_id": "1b62c74f-ca31-429e-ada6-208e6e6582c9",
+            "outcome_reported": "pass",
+            "explanation": "The form was found with no missing fields, all three expected inputs (name, email, message) were filled and submitted, and the configured test endpoint received one request that returned status 201 with 1 receipt recorded in the sink database. The expected 'Thank you' confirmation text was observed (success_text_seen true), and no prohibited or unrelated blocked requests were recorded. The post-submit screenshot captures the confirmation state.",
+            "evidence_refs": [
+              {
+                "result_id": "1b62c74f-ca31-429e-ada6-208e6e6582c9",
+                "measurement": "form_found",
+                "artifact_id": null
+              },
+              {
+                "result_id": "1b62c74f-ca31-429e-ada6-208e6e6582c9",
+                "measurement": "fields_missing",
+                "artifact_id": null
+              },
+              {
+                "result_id": "1b62c74f-ca31-429e-ada6-208e6e6582c9",
+                "measurement": "sink_requests",
+                "artifact_id": null
+              },
+              {
+                "result_id": "1b62c74f-ca31-429e-ada6-208e6e6582c9",
+                "measurement": "sink_receipts_in_db",
+                "artifact_id": null
+              },
+              {
+                "result_id": "1b62c74f-ca31-429e-ada6-208e6e6582c9",
+                "measurement": "success_text_seen",
+                "artifact_id": null
+              },
+              {
+                "result_id": "1b62c74f-ca31-429e-ada6-208e6e6582c9",
+                "measurement": "prohibited_requests",
+                "artifact_id": null
+              },
+              {
+                "result_id": "1b62c74f-ca31-429e-ada6-208e6e6582c9",
+                "measurement": null,
+                "artifact_id": "483e0636-6223-47ae-9c62-feccd33b755f"
+              }
+            ],
+            "remediation": null,
+            "confidence": "high",
+            "insufficient_evidence": false
+          },
+          {
+            "criterion_key": "lighthouse_performance_90",
+            "result_id": "ec797d01-7388-475f-88b7-b54d6c4e3cdf",
+            "outcome_reported": "pass",
+            "explanation": "A single Lighthouse run in mobile form factor with simulated throttling scored 100, comfortably above the min_score of 90, so no adaptive retry was triggered (adaptive_retry false; band 5). The run took 10279 ms and the full report is stored as lighthouse-run-1.json.gz.",
+            "evidence_refs": [
+              {
+                "result_id": "ec797d01-7388-475f-88b7-b54d6c4e3cdf",
+                "measurement": "scores",
+                "artifact_id": null
+              },
+              {
+                "result_id": "ec797d01-7388-475f-88b7-b54d6c4e3cdf",
+                "measurement": "adaptive_retry",
+                "artifact_id": null
+              },
+              {
+                "result_id": "ec797d01-7388-475f-88b7-b54d6c4e3cdf",
+                "measurement": "lighthouse_runs",
+                "artifact_id": null
+              },
+              {
+                "result_id": "ec797d01-7388-475f-88b7-b54d6c4e3cdf",
+                "measurement": null,
+                "artifact_id": "4b5646c5-187e-44b7-8293-5df6374d0277"
+              }
+            ],
+            "remediation": null,
+            "confidence": "high",
+            "insufficient_evidence": false
+          },
+          {
+            "criterion_key": "website_accessible",
+            "result_id": "ef5a05da-e8d5-40d7-9178-b57cd5b45d3b",
+            "outcome_reported": "manual_review_required",
+            "explanation": "This non-blocking criterion is typed as manual_review and was routed to a human with reason_code MANUAL_CRITERION. No measurements were taken (measured is empty) and no artifacts were produced, so the evidence says nothing about the page's actual accessibility. The stored instructions themselves note that the buyer did not define a standard for 'accessible' and that this must be confirmed with the buyer before review.",
+            "evidence_refs": [
+              {
+                "result_id": "ef5a05da-e8d5-40d7-9178-b57cd5b45d3b",
+                "measurement": "measured",
+                "artifact_id": null
+              },
+              {
+                "result_id": "ef5a05da-e8d5-40d7-9178-b57cd5b45d3b",
+                "measurement": "reason_code",
+                "artifact_id": null
+              },
+              {
+                "result_id": "ef5a05da-e8d5-40d7-9178-b57cd5b45d3b",
+                "measurement": "expected",
+                "artifact_id": null
+              }
+            ],
+            "remediation": "Agree a concrete, testable accessibility target with the buyer (for example WCAG 2.1 AA) and restate the criterion in those terms. In the meantime, prepare evidence a reviewer can check quickly: an automated axe-core or Lighthouse accessibility report for the landing page, confirmation that every form control has a programmatically associated label, that the page is fully operable by keyboard with a visible focus indicator, that images have appropriate alt text, and that text/background colour contrast meets at least 4.5:1 for body text.",
+            "confidence": "high",
+            "insufficient_evidence": true
+          }
+        ],
+        "missing_evidence": [
+          "A buyer-agreed definition or standard for 'accessible' (e.g. WCAG version and conformance level) so the criterion can be evaluated objectively.",
+          "An automated accessibility scan (axe-core or Lighthouse accessibility category) and/or a keyboard-navigation and contrast review of the landing page.",
+          "Context for the network_log artifact 'egress-decisions.json' (3b23999f-a8c6-4e52-86bd-a9538de7e420), which is not linked to any result and therefore cannot be tied to a specific criterion."
+        ],
+        "limitations": [
+          "The verdicts were produced by deterministic tooling; this explanation describes them and cannot change them, and it has no bearing on payment decisions.",
+          "Checks were run against a local host address (http://127.0.0.1:8020/landing-page-fixed/), so the results reflect that environment rather than a public production URL, and require_https was false so TLS was not verified.",
+          "Lighthouse performance is based on a single simulated-throttling run; scores can vary between runs and environments.",
+          "The contact form was exercised against a test endpoint ('test_endpoint_ref': 'default'), so delivery to the buyer's real inbox or CRM was not verified."
+        ]
+      }
+    }
+  }
+}

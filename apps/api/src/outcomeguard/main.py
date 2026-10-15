@@ -6,8 +6,10 @@ from fastapi import FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
 
+from outcomeguard.ai.evidence import AnalysisError
 from outcomeguard.api import (
     routes_agreements,
+    routes_ai,
     routes_payments,
     routes_session,
     routes_system,
@@ -72,6 +74,10 @@ def create_app() -> FastAPI:
     def _verification(_: Request, exc: VerificationError) -> JSONResponse:
         return JSONResponse({"code": exc.code, "message": exc.message}, status_code=exc.http_status)
 
+    @app.exception_handler(AnalysisError)
+    def _analysis(_: Request, exc: AnalysisError) -> JSONResponse:
+        return JSONResponse({"code": exc.code, "message": exc.message}, status_code=exc.http_status)
+
     @app.exception_handler(AuthError)
     def _auth(_: Request, exc: AuthError) -> JSONResponse:
         return JSONResponse(
@@ -89,6 +95,7 @@ def create_app() -> FastAPI:
     app.include_router(routes_system.router)
     app.include_router(routes_session.router)
     app.include_router(routes_agreements.router)
+    app.include_router(routes_ai.router)
     app.include_router(routes_verification.router)
     app.include_router(routes_verification.sink_router)
     app.include_router(routes_payments.public)

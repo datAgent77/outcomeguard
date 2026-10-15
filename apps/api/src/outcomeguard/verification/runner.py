@@ -28,7 +28,9 @@ import httpx
 from outcomeguard.verification.netpolicy import PolicyViolation, validate_url
 from outcomeguard.verification.proxy import EgressProxy, ThreadedProxy
 
-FORBIDDEN_ENV = re.compile(r"^(PAYPAL_|DATABASE_URL|SESSION_SECRET|OPERATOR_TOKEN|SINK_SECRET)")
+FORBIDDEN_ENV = re.compile(
+    r"^(PAYPAL_|ANTHROPIC_|DATABASE_URL|SESSION_SECRET|OPERATOR_TOKEN|SINK_SECRET)"
+)
 BLOCK_HEADER = "x-outcomeguard-blocked"
 MOBILE_UA = (
     "Mozilla/5.0 (Linux; Android 14; Pixel 8) AppleWebKit/537.36 (KHTML, like Gecko) "

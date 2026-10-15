@@ -22,7 +22,9 @@ PayPal **Sandbox only** — no real money moves.
 > live webhook delivery not verified yet), the agreement domain (versioned agreements,
 > typed acceptance criteria, buyer approval and locking, RBAC), and real evidence
 > verification (Chromium, Lighthouse, controlled contact-form sink, SSRF-guarded egress,
-> container network isolation). AI (P05) and the product UI (P07) are not built yet. See
+> container network isolation), and the AI layer (Claude drafts acceptance criteria from
+> plain language and explains real verification evidence — grounded, no financial
+> authority). The product UI (P07) is not built yet. See
 > [docs/IMPLEMENTATION_PROGRESS.md](docs/IMPLEMENTATION_PROGRESS.md) and
 > [docs/INTEGRATION_PROOF.md](docs/INTEGRATION_PROOF.md) for what is verified.
 
@@ -82,6 +84,8 @@ uv run pytest -m sandbox        # opt-in, real PayPal Sandbox (needs credentials
 - [PayPal integration](docs/PAYPAL_INTEGRATION.md)
 - [Integration proof](docs/INTEGRATION_PROOF.md)
 - [Evidence verification (P04)](docs/VERIFICATION.md)
+- [AI contract & evidence intelligence (P05)](docs/AI_VERIFICATION.md)
+- [Technical debt register](docs/TECH_DEBT.md)
 - [Webhooks: go-live procedure](docs/WEBHOOKS.md)
 - [P04 verification worker plan](docs/architecture/P04_VERIFICATION_PLAN.md)
 - [Known limitations](docs/KNOWN_LIMITATIONS.md)

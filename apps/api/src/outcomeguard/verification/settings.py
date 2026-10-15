@@ -13,7 +13,7 @@ from pydantic_settings import BaseSettings, SettingsConfigDict
 
 API_DIR = Path(__file__).resolve().parents[3]
 
-_PAYPAL_ENV = re.compile(r"^PAYPAL_")
+_PAYPAL_ENV = re.compile(r"^(PAYPAL_|ANTHROPIC_)")  # verifier holds no payment or AI keys
 
 
 class VerifierSettings(BaseSettings):

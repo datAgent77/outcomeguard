@@ -129,6 +129,7 @@ class AgreementService:
         criteria: list[CriterionInput] | None = None,
         use_template: bool = False,
         template_min_performance: int = 90,
+        criteria_source: CriterionSource | None = None,
     ) -> Agreement:
         principal.require(buyer_organization_id, *EDIT_ROLES, action="creating an agreement")
         org = self.session.get(Organization, buyer_organization_id)
@@ -149,7 +150,9 @@ class AgreementService:
                 if use_template
                 else []
             )
-        source = CriterionSource.TEMPLATE if use_template else CriterionSource.BUYER
+        source = criteria_source or (
+            CriterionSource.TEMPLATE if use_template else CriterionSource.BUYER
+        )
 
         agreement = Agreement(
             buyer_organization_id=buyer_organization_id,

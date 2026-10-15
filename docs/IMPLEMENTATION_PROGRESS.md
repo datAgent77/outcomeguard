@@ -7,8 +7,8 @@ Deadline: **2026-11-12 23:00 GMT+3** (PayPal AI Hackathon). Spec: [BUILD_PROMPT_
 | P01 | Repository foundation | ✅ done (Docker images not built locally — daemon was off) |
 | P02 | PayPal Sandbox proof | ✅ core lifecycle accepted (live Sandbox 2026-10-15) · ⏳ **live webhook verification open** — procedure in WEBHOOKS.md, needs a public URL (approval) |
 | P03 | Agreement domain | ✅ accepted (gate re-run before P04: 47/47) |
-| P04 | Verification engine (Playwright, Lighthouse, SSRF guard) | 🟡 implemented + tested; **awaiting review** — see [VERIFICATION.md](VERIFICATION.md) |
-| P05 | AI contract and evidence intelligence | ⏳ |
+| P04 | Verification engine (Playwright, Lighthouse, SSRF guard) | ✅ conditionally accepted — see [VERIFICATION.md](VERIFICATION.md), open items in [TECH_DEBT.md](TECH_DEBT.md) |
+| P05 | AI contract and evidence intelligence | 🟡 implemented + real-model tested; **awaiting review** — see [AI_VERIFICATION.md](AI_VERIFICATION.md) |
 | P06 | Deterministic policy, human approval, auth/RBAC | ⏳ |
 | P07 | Product UI + AG Grid ledger | ⏳ |
 | P08 | Resolution and refunds | ⏳ (payment-level refund done in P02) |
@@ -83,6 +83,22 @@ Deadline: **2026-11-12 23:00 GMT+3** (PayPal AI Hackathon). Spec: [BUILD_PROMPT_
 - [x] Credential isolation: verifier never loads PayPal settings; runner env allow-listed
 - [x] Container topology (`docker/verifier-isolation.compose.yml`) — see INTEGRATION_PROOF
 - [x] PayPal Sandbox suite still green after P04 (2/2)
+
+## P05 — AI contract and evidence intelligence (2026-10-15)
+
+- [x] P05a: provider abstraction, Anthropic Claude (`claude-opus-5`, structured output,
+      `fallbacks: "default"`), timeouts/retries/daily token budget, append-only `ai_calls`
+- [x] P05b: NL → structured draft; deterministic review (verbatim quotes, no invented
+      thresholds/selectors); buyer acceptance with explicit configuration → DRAFT agreement;
+      locking still needs propose + approve
+- [x] P05c/d: grounded evidence explanations (result id / measurement / artifact refs,
+      stored outcomes only, contradiction and payment-claim rejection), separate append-only
+      `evidence_analyses`; deterministic fallback when AI is unavailable
+- [x] P05e: 49 scripted-provider tests (malformed JSON, unsupported kinds, invented
+      selectors, timeouts, outages, refusals, fabricated claims, injection, payment-change
+      attempts, no code execution, import isolation) + 2 real-model tests
+- [x] Demo with the real model on the real fixtures (broken → FAIL, fixed → PASS, both explained)
+- [x] Technical debt register created: [TECH_DEBT.md](TECH_DEBT.md)
 
 ## Verified vs unverified
 

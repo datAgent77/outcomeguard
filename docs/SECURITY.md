@@ -54,7 +54,11 @@
 | Verifier holding PayPal credentials | settings class without PayPal fields; worker and runner refuse PAYPAL_* env; runner env allow-listed | implemented, tested |
 | Silent edits of verification results | append-only + run-immutability triggers; PASS requires completed run (DB check) | implemented, tested with raw SQL |
 | Tampered evidence files | content-addressed store, hash re-verified on every read | implemented, tested |
-| Prompt injection via evidence | evidence passed as data; AI cannot change test results or policy | **planned P05** |
+| Prompt injection via buyer text or page-derived evidence | data wrapped and `<`/`>`-escaped; system prompt marks it untrusted; schema has no verdict/payment fields; grounding rejects outcomes that differ from stored results; AI package has no import path to payments/verifier | implemented; scripted "obeying" model + real model test |
+| AI fabricating test claims | every claim must cite existing result ids, measurement fields, artifact ids; stored outcome always displayed | implemented, tested |
+| AI-generated code / selectors executed | schema forbids selectors/URLs/code; AI package has no exec/eval/subprocess/SQL (static test); criteria validated by P03 spec schemas | implemented, tested |
+| AI key leakage | key only in API settings (`SecretStr`); verifier and runner refuse `ANTHROPIC_*`; `ai_calls` stores error class names and a prompt hash only | implemented, tested |
+| AI cost runaway | per-call `max_tokens`, SDK timeout/retries, daily token budget checked before every call | implemented, tested |
 
 ## Operational rules
 

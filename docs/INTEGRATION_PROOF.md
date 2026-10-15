@@ -26,13 +26,15 @@ Legend: ✅ yes · ❌ not yet · — not applicable
 | Webhook signature verification | ✅ | ✅ | ❌ (needs public HTTPS URL + webhook id — see [WEBHOOKS.md](WEBHOOKS.md)) | — |
 | Rehearsal mode (simulated, labeled) | ✅ | ✅ | — | — |
 | Agreement domain (versions, locking, approval, RBAC) | ✅ | ✅ (real Postgres, no external service) | — | — |
-| AI criteria / evidence intelligence | ❌ (P05) | ❌ | — | ❌ |
+| AI agreement drafting (structured output + deterministic review) | ✅ | ✅ (ScriptedProvider) | — | ✅ 2026-10-15 `claude-opus-5` |
+| AI evidence explanations (grounded) | ✅ | ✅ | — | ✅ 2026-10-15 `claude-opus-5` |
+| Prompt-injection containment | ✅ | ✅ (model that obeys the injection) | — | ✅ 2026-10-15 (real model did not follow it) |
 | Verification: real Chromium checks (mobile, contact form) | ✅ | ✅ verdict logic | — (real Chromium 156, local) | — |
 | Verification: Lighthouse with adaptive retry | ✅ | ✅ | — (real Lighthouse 13.5.0, local + container) | — |
 | SSRF policy / egress proxy | ✅ | ✅ + real sockets + real Chromium | — | — |
 | Runner network isolation in a container | ✅ | — | — (Docker, `scripts/container_isolation_test.sh`, 17/17 probes) | — |
 
-Last updated: 2026-10-15 (P04) — API suite 205 passed (incl. 4 real-browser tests); Sandbox suite (`-m sandbox`) 2 passed;
+Last updated: 2026-10-15 (P05) — API suite 254 passed (incl. 4 real-browser tests; AI tests use a scripted provider); `-m ai_live` 2 passed against the real model; Sandbox suite (`-m sandbox`) 2 passed;
 full lifecycle run passed against the live PayPal Sandbox (see Runs).
 
 **P02 core gate: PASSED** (OAuth → Create Order → Buyer Approval → Authorize → Capture →
@@ -103,6 +105,51 @@ container) was fixed, and that run's output was discarded.)*
 
 **Not verified:** the full `docker-compose.yml` stack (API + worker + runner + DB in
 containers) end-to-end, and any hosted (Render) environment.
+
+## AI evidence (P05, 2026-10-15)
+
+Real calls to the Anthropic Claude API, model `claude-opus-5` (every answer was served by
+`claude-opus-5`; the refusal fallback never triggered), SDK `anthropic` 1.14.0. Recorded in
+`ai_calls` (no prompts or keys stored).
+
+| Call | Latency | Tokens in/out | Result |
+|---|---|---|---|
+| Connectivity check (structured `{ok, word}`) | 2.9 s | 264 / 17 | `{"ok":true,"word":"ready"}` |
+| Live test: draft from the example request | 21.4 s | 2 449 / 1 631 | 5 criteria kept, 0 rejected; Lighthouse 90 from the text; "accessible" → manual review |
+| Live test: evidence analysis with an injection embedded in page-derived data | 30.7 s | — | `grounded`; contact form stayed `fail`; verdict unchanged |
+| Demo run 1: draft / broken / fixed | 21.9 / 39.3 / 32.7 s | 2 449/1 839 · 4 134/3 412 · 4 146/2 942 | both analyses `partially_rejected` — see finding below |
+| Demo run 2: draft / broken / fixed | 18.1 / 47.9 / 31.7 s | 2 449/1 493 · 4 152/4 050 · 4 155/2 927 | broken `grounded`, fixed `grounded`, 0 rejected claims |
+
+Demo-run tokens: 21 485 in / 16 663 out (≈ $0.52 at list price; billing in the Anthropic
+console is authoritative).
+
+### Demo — [`runs/ai-demo-20261015T131921Z.json`](integration/runs/ai-demo-20261015T131921Z.json)
+
+1. Request: *"Build a mobile-friendly landing page for $500. The contact form must work, the
+   website must be accessible and Lighthouse performance must score at least 90."*
+2. AI proposed 5 criteria, each with a verbatim `source_quote`: `http_availability`
+   ("Build a mobile-friendly landing page"), `mobile_viewport`, `contact_form` (listing the
+   selectors, sample values and success indicator it needs — none invented),
+   `lighthouse_performance` (min 90, from the text), `manual_review` for accessibility; plus
+   ambiguities (form factor, meaning of "accessible", what "working" form means, delivery URL).
+3. Buyer review (scripted human decisions, recorded): standard test-form fields opted in,
+   `require_https: false` for local fixtures, accessibility made **non-blocking** (checked
+   manually); then propose + approval by the buyer approver locked the version.
+4. Broken page → **FAIL** (`contact_form_works` fail `NO_SUBMISSION_TO_SINK`).
+5. AI: "the form and all three expected fields were present and the submit was attempted,
+   but no request reached the test sink, no receipt was recorded, and the expected 'Thank
+   you' confirmation text never appeared" — cites `sink_requests`, `sink_receipts_in_db`,
+   `success_text_seen`, the post-submit screenshot artifact; states the measurements do not
+   reveal the root cause; remediation for the submit handler.
+6. Fixed page → **PASS** (all 4 blocking criteria pass; accessibility `manual_review_required`, non-blocking).
+7. AI: explains each pass with references (sink 201, 1 receipt, success text, Lighthouse 100).
+
+**Finding from demo run 1 (fixed):** the grounding validator accepted only keys *inside*
+`measured`; for the manual-review result (no measurements) the model cited the result's
+own `measured` field, which exists, and was rejected — so both analyses were
+`partially_rejected`. The validator now accepts real top-level fields of the result
+packet; regression test `test_refs_to_real_top_level_result_fields_are_grounded`. Run 1's
+transcript is kept: [`runs/ai-demo-20261015T131618Z.json`](integration/runs/ai-demo-20261015T131618Z.json).
 
 ## How to reproduce
 

@@ -7,6 +7,7 @@ license = "MIT"
 requires-python = ">=3.12"
 dependencies = [
     "alembic>=1.20.0",
+    "anthropic>=1.14.0",
     "fastapi>=0.143.1",
     "httpx>=0.28.1",
     "playwright>=1.64.0",
@@ -26,9 +27,10 @@ module-name = "outcomeguard"
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]
-addopts = "-q -m 'not sandbox'"
+addopts = "-q -m 'not sandbox and not ai_live'"
 markers = [
   "sandbox: opt-in tests that call the real PayPal Sandbox (need credentials)",
+  "ai_live: opt-in tests that call the real model API (cost money; need ANTHROPIC_API_KEY)",
   "browser: tests that drive real Chromium (and Lighthouse) via Playwright",
 ]
 

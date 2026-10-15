@@ -63,6 +63,16 @@ class Settings(BaseSettings):
     verifier_form_sinks: str = "default"
     evidence_dir: str = str(Path(__file__).resolve().parents[2] / ".evidence")
 
+    # AI (P05). The model never receives financial authority; see docs/AI_VERIFICATION.md.
+    ai_provider: str = "anthropic"  # anthropic | disabled
+    anthropic_api_key: SecretStr | None = None
+    ai_model: str = "claude-opus-5"
+    ai_effort: str = "high"
+    ai_timeout_seconds: float = 120.0
+    ai_max_retries: int = 2
+    ai_max_output_tokens: int = 16000
+    ai_daily_token_budget: int = 1_000_000
+
     log_level: str = "INFO"
 
     @field_validator("database_url")
@@ -98,6 +108,8 @@ class Settings(BaseSettings):
             "paypal_credentials_configured": self.paypal_configured,
             "paypal_webhook_configured": bool(self.paypal_webhook_id),
             "sandbox_proof_enabled": self.enable_sandbox_proof,
+            "ai_provider": self.ai_provider if self.anthropic_api_key else "not configured",
+            "ai_model": self.ai_model,
         }
 
 

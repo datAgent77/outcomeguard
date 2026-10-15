@@ -41,7 +41,22 @@ Current as of P02. Each item is either planned (phase noted) or a deliberate sco
   can rewrite the whole hash chain.
 - **Rehearsal mode keeps simulated PayPal objects in memory**; restarting the API forgets
   them (our database rows remain and will fail to reconcile).
-- **No AI or product UI yet** (P05, P07).
+- **No product UI yet** (P07).
+
+## AI (P05)
+
+- **The AI can only explain what was measured.** P04 captures no browser console or
+  JavaScript errors, so for the broken fixture the model correctly reports that the root
+  cause (a script error) is not visible in the evidence. Capturing console errors would
+  improve explanations.
+- **Drafting may propose criteria the buyer did not ask for explicitly** when a quote
+  supports them (e.g. `http_availability` from "Build a … landing page"); the buyer review
+  step is where these are kept or dropped.
+- **One unsupported kind or invented field rejects the whole draft** (strict schema); the
+  buyer can retry or use the template.
+- **Evidence explanations cost ~30–50 s and ~4k/3–4k tokens per run** with
+  `claude-opus-5` at effort `high`.
+- **Two real-model tests only**; no broad evaluation set yet (TECH_DEBT TD-6).
 
 ## Verification (P04)
 
