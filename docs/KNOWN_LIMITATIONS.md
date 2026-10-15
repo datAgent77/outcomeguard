@@ -5,6 +5,9 @@ Current as of P02. Each item is either planned (phase noted) or a deliberate sco
 ## Payments
 
 - **Sandbox only.** Production PayPal is refused by configuration.
+- **Merchant balance is not read from PayPal.** "Net after refunds" is derived from the
+  PayPal-reported capture and refund breakdowns; the Transaction Search / reporting API is
+  not used, so the account balance itself is unverified.
 - **Single merchant.** One sandbox merchant account receives all payments; no
   multi-party / marketplace payouts (would need PayPal Commerce Platform onboarding).
 - **One full capture per authorization.** No partial or multiple captures.

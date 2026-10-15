@@ -159,6 +159,10 @@ class PaymentCapture(IdMixin, TimestampMixin, Base):
     # approval (approvals.subject_type = 'capture'). verification_run_id and
     # policy_decision_id gain foreign keys when those tables land (P04 / P06); the policy
     # engine will refuse to capture unless all of them are set.
+    # PayPal-reported seller_receivable_breakdown at capture time (never estimated).
+    # NULL when PayPal has not reported it (e.g. PENDING captures).
+    paypal_fee_minor: Mapped[int | None] = mapped_column(BigInteger)
+    net_minor: Mapped[int | None] = mapped_column(BigInteger)
     approval_id: Mapped[str | None] = mapped_column(ForeignKey("approvals.id"))
     verification_run_id: Mapped[str | None] = mapped_column(String(36))
     policy_decision_id: Mapped[str | None] = mapped_column(String(36))
@@ -179,6 +183,10 @@ class PaymentRefund(IdMixin, TimestampMixin, Base):
     status: Mapped[RefundStatus] = mapped_column(enum_col(RefundStatus, "refund_status"))
     paypal_status: Mapped[str | None] = mapped_column(String(40))
     note: Mapped[str | None] = mapped_column(String(255))
+    # PayPal-reported seller_payable_breakdown: fee PayPal returned to the merchant, and
+    # the net amount debited from the merchant for this refund. NULL until reported.
+    paypal_fee_returned_minor: Mapped[int | None] = mapped_column(BigInteger)
+    merchant_debit_minor: Mapped[int | None] = mapped_column(BigInteger)
     error: Mapped[dict[str, Any] | None] = mapped_column(JSONB)
     last_paypal_response: Mapped[dict[str, Any] | None] = mapped_column(JSONB)
     requested_by: Mapped[str] = mapped_column(String(200))

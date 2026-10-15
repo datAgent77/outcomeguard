@@ -309,3 +309,78 @@ def test_order_status_progression(svc, approved_order, session):
     assert approved_order.status is OrderStatus.APPROVED
     svc.authorize_order(approved_order.id, actor="buyer")
     assert svc._get(type(approved_order), approved_order.id).status is OrderStatus.AUTHORIZED
+
+
+def test_paypal_status_mirrors_are_read_back_after_money_moves(svc, capture):
+    # Found in the live Sandbox run 2026-10-15: parents kept stale paypal_status.
+    auth = svc._get(PaymentAuthorization, capture.payment_authorization_id)
+    assert auth.paypal_status == "CAPTURED"
+    svc.refund_capture(
+        capture.id, amount=Money(200, "USD"), idempotency_key="mirror-ref-1", actor="m"
+    )
+    cap = svc._get(type(capture), capture.id)
+    assert cap.paypal_status == "PARTIALLY_REFUNDED"
+    assert cap.status is CaptureStatus.COMPLETED
+
+
+# ------------------------------------------------- financial reporting accuracy
+
+
+def _with_breakdown(resp, key, **values):
+    b = {k: {"currency_code": "USD", "value": v} for k, v in values.items()}
+    return {**resp, key: b}
+
+
+def test_settlement_uses_only_paypal_reported_figures(svc, authorization, gateway):
+    # Figures mirror the live Sandbox run of 2026-10-15.
+    gateway.override["capture_authorization"] = lambda r: _with_breakdown(
+        r,
+        "seller_receivable_breakdown",
+        gross_amount="10.00",
+        paypal_fee="0.84",
+        net_amount="9.16",
+    )
+    gateway.override["refund_capture"] = lambda r: _with_breakdown(
+        r,
+        "seller_payable_breakdown",
+        gross_amount="2.00",
+        paypal_fee="0.00",
+        net_amount="2.00",
+        total_refunded_amount="2.00",
+    )
+    from outcomeguard.services.payments import settlement_summary
+
+    cap = svc.capture_authorization(authorization.id, actor="approver")
+    assert (cap.paypal_fee_minor, cap.net_minor) == (84, 916)
+    svc.refund_capture(cap.id, amount=Money(200, "USD"), idempotency_key="fin-ref-1", actor="m")
+    s = settlement_summary(svc._get(type(cap), cap.id))
+    assert s.paypal_fee == 84 and s.net_at_capture == 916
+    assert s.refunded_gross == 200 and s.refund_fees_returned == 0
+    assert s.refund_merchant_debits == 200
+    assert s.net_after_refunds == 716  # derived: 9.16 - 2.00, not a PayPal balance
+
+
+def test_missing_breakdown_is_never_estimated(svc, capture):
+    from outcomeguard.services.payments import settlement_summary
+
+    s = settlement_summary(capture)
+    assert s.gross_captured == 50000
+    assert s.paypal_fee is None and s.net_at_capture is None and s.net_after_refunds is None
+
+
+def test_net_after_refunds_unknown_while_refund_in_flight(svc, authorization, gateway):
+    gateway.override["capture_authorization"] = lambda r: _with_breakdown(
+        r,
+        "seller_receivable_breakdown",
+        gross_amount="500.00",
+        paypal_fee="17.94",
+        net_amount="482.06",
+    )
+    from outcomeguard.services.payments import settlement_summary
+
+    cap = svc.capture_authorization(authorization.id, actor="approver")
+    gateway.fail_before["refund_capture"] = PayPalUncertainError("timeout")
+    with pytest.raises(PaymentUncertain):
+        svc.refund_capture(cap.id, amount=Money(100, "USD"), idempotency_key="fin-ref-2", actor="m")
+    s = settlement_summary(svc._get(type(cap), cap.id))
+    assert s.refunds_in_flight == 100 and s.net_after_refunds is None

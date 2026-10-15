@@ -5,9 +5,9 @@ Deadline: **2026-11-12 23:00 GMT+3** (PayPal AI Hackathon). Spec: [BUILD_PROMPT_
 | Phase | Scope | Status |
 |---|---|---|
 | P01 | Repository foundation | ✅ done (Docker images not built locally — daemon was off) |
-| P02 | PayPal Sandbox proof | ⛔ **BLOCKED — REAL SANDBOX VERIFICATION PENDING** (code + mocked tests done; needs credentials + buyer approval) |
+| P02 | PayPal Sandbox proof | ✅ core lifecycle accepted (live Sandbox 2026-10-15) · ⏳ **live webhook verification open** — procedure in WEBHOOKS.md, needs a public URL (approval) |
 | P03 | Agreement domain | 🟡 implemented + tested; **awaiting review** (built in parallel while P02 is blocked) |
-| P04 | Verification engine (Playwright, Lighthouse, SSRF guard) | ⏳ |
+| P04 | Verification engine (Playwright, Lighthouse, SSRF guard) | 📝 plan ready for review: [architecture/P04_VERIFICATION_PLAN.md](architecture/P04_VERIFICATION_PLAN.md) — not started |
 | P05 | AI contract and evidence intelligence | ⏳ |
 | P06 | Deterministic policy, human approval, auth/RBAC | ⏳ |
 | P07 | Product UI + AG Grid ledger | ⏳ |
@@ -38,7 +38,11 @@ Deadline: **2026-11-12 23:00 GMT+3** (PayPal AI Hackathon). Spec: [BUILD_PROMPT_
 - [x] Operator-gated `/dev/payments` driver + `scripts/paypal_sandbox_proof.py`
 - [x] 50 unit tests (mocked PayPal), including concurrency
 - [x] HTTP smoke test in rehearsal mode (order → simulated approval → authorize → capture → duplicate blocked → $50 refund → audit chain intact)
-- [ ] **Live Sandbox run** — needs `PAYPAL_CLIENT_ID`/`SECRET` in `.env` and a buyer approval
+- [x] **Live Sandbox run 2026-10-15**: $10 authorize → capture → $2 refund, all `COMPLETED` (see INTEGRATION_PROOF.md)
+- [x] `-m sandbox` suite: 2 passed (create/read order, idempotency, unapproved authorize → 422)
+- [x] Defect from live run fixed: parent `paypal_status` re-read after capture/refund
+- [x] Financial reporting: PayPal-reported fee/net breakdowns persisted (migration `3cb04b42a4ff`); API `settlement` block separates gross, PayPal fee, net at capture, refunds, fees returned, merchant debits and a clearly *derived* net-after-refunds; nothing estimated
+- [x] Webhook go-live procedure + `scripts/webhook_report.py` ([WEBHOOKS.md](WEBHOOKS.md)) — not executed
 - [ ] Live webhook delivery — needs a public HTTPS URL (Render deploy) and `PAYPAL_WEBHOOK_ID`
 
 ## P03 — Agreement domain (2026-10-15)
@@ -61,7 +65,7 @@ Deadline: **2026-11-12 23:00 GMT+3** (PayPal AI Hackathon). Spec: [BUILD_PROMPT_
       `payment_captures.approval_id` (FK), `verification_run_id`, `policy_decision_id`
       columns reserved — FKs and enforcement land with P04/P06
 - [x] Audit event for every material change; rejected attempts leave no trace or partial write
-- [x] 47 new tests (97 total), migration up/down/up verified, `alembic check` clean
+- [x] 47 new tests (97 total at P03; 101 after P02 financial fixes), migration up/down/up verified, `alembic check` clean
 
 ## Verified vs unverified
 

@@ -1,0 +1,57 @@
+{
+  "kind": "paypal-sandbox-proof",
+  "environment": "sandbox",
+  "started_at": "2026-10-15T10:44:15.051032+00:00",
+  "finished_at": "2026-10-15T10:57:51.888291+00:00",
+  "steps": [
+    {
+      "step": 1,
+      "title": "OAuth + Create Order (intent=AUTHORIZE)",
+      "paypal_order_id": "0X912012XG131200X",
+      "paypal_status": "PAYER_ACTION_REQUIRED",
+      "amount": "10.00 USD"
+    },
+    {
+      "step": 2,
+      "title": "Buyer approval confirmed by GET order (not by redirect)",
+      "paypal_status": "APPROVED",
+      "payer_id": "[omitted \u2014 not needed as evidence]"
+    },
+    {
+      "step": 3,
+      "title": "Authorize order",
+      "paypal_authorization_id": "4CG20771KK4495022",
+      "paypal_status": "CREATED",
+      "payee": "[omitted \u2014 not needed as evidence]",
+      "expires_at": "2026-11-13 10:57:46+00:00"
+    },
+    {
+      "step": 4,
+      "title": "Capture authorization",
+      "paypal_capture_id": "65Y23481GC472070C",
+      "paypal_status": "COMPLETED",
+      "status": "completed",
+      "request_id": "og-cap-d0d5a899-2550-4b9e-ae03-71f526ad1911-b653dcb0"
+    },
+    {
+      "step": 5,
+      "title": "Partial refund",
+      "paypal_refund_id": "735071810K223724S",
+      "paypal_status": "COMPLETED",
+      "amount": "2.00 USD"
+    },
+    {
+      "step": 6,
+      "title": "Re-read capture from PayPal",
+      "paypal_status": "PARTIALLY_REFUNDED",
+      "refundable_balance": "8.00 USD"
+    },
+    {
+      "step": 7,
+      "title": "Audit chain verification",
+      "intact": "True",
+      "first_bad_seq": "None"
+    }
+  ],
+  "note": "Sandbox-only ids. Account identifiers (payer id, payee merchant id) omitted."
+}

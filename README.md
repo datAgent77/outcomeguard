@@ -20,9 +20,10 @@ PayPal **Sandbox only** — no real money moves.
 > **Status: early build (P03 of P10).** Implemented and tested: the PayPal payment core
 > (authorize → capture → partial refund, idempotency, reconciliation, webhooks, audit
 > log — unit-tested with mocked PayPal) and the agreement domain (versioned agreements,
-> typed acceptance criteria, buyer approval and locking, RBAC). **Not yet verified
-> against the live PayPal Sandbox.** AI, the verification worker and the product UI are
-> not built yet. See
+> typed acceptance criteria, buyer approval and locking, RBAC). The payment lifecycle
+> (authorize → capture → partial refund) **has run against the live PayPal Sandbox**
+> (2026-10-15); live webhook delivery is not verified yet. AI, the verification worker and
+> the product UI are not built yet. See
 > [docs/IMPLEMENTATION_PROGRESS.md](docs/IMPLEMENTATION_PROGRESS.md) and
 > [docs/INTEGRATION_PROOF.md](docs/INTEGRATION_PROOF.md) for what is verified.
 
@@ -81,6 +82,8 @@ uv run pytest -m sandbox        # opt-in, real PayPal Sandbox (needs credentials
 - [Security & threat model](docs/SECURITY.md)
 - [PayPal integration](docs/PAYPAL_INTEGRATION.md)
 - [Integration proof](docs/INTEGRATION_PROOF.md)
+- [Webhooks: go-live procedure](docs/WEBHOOKS.md)
+- [P04 verification worker plan](docs/architecture/P04_VERIFICATION_PLAN.md)
 - [Known limitations](docs/KNOWN_LIMITATIONS.md)
 - [Build specification](docs/BUILD_PROMPT_P00.md)
 

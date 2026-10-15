@@ -112,6 +112,16 @@ PayPal authorizations are valid for **29 days** (`expiration_time` is stored) wi
 Handled: `PAYMENT.AUTHORIZATION.{CREATED,VOIDED}`,
 `PAYMENT.CAPTURE.{COMPLETED,PENDING,DENIED,DECLINED,REFUNDED,REVERSED}`.
 
+## Fees and net amounts
+
+Captures store PayPal's `seller_receivable_breakdown` (`paypal_fee`, `net_amount`) and
+refunds store `seller_payable_breakdown` (`paypal_fee` returned, `net_amount` debited from
+the merchant). The API's `settlement` block shows these as reported and adds one
+**derived** figure, `net_after_refunds_derived` = capture net − merchant debits of
+completed refunds (null while any refund is in flight or any input is missing). PayPal's
+capture `net_amount` is the at-capture figure and is not updated after refunds. Fees are
+never estimated from rates. Live webhook status: see [WEBHOOKS.md](WEBHOOKS.md).
+
 ## Rehearsal mode
 
 `PAYMENT_MODE=rehearsal` swaps in `RehearsalPayPalGateway`: no network calls, ids

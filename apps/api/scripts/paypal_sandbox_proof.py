@@ -99,7 +99,7 @@ def main() -> int:
             2,
             "Buyer approval confirmed by GET order (not by redirect)",
             paypal_status=order.paypal_status,
-            payer_id=order.payer_id,
+            payer_recorded=bool(order.payer_id),
         )
     )
 
@@ -110,7 +110,7 @@ def main() -> int:
             "Authorize order",
             paypal_authorization_id=auth.paypal_authorization_id,
             paypal_status=auth.paypal_status,
-            payee=auth.payee_merchant_id,
+            payee_pinned=bool(auth.payee_merchant_id),
             expires_at=auth.expires_at,
         )
     )

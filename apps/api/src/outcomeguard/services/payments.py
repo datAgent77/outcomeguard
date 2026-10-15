@@ -517,7 +517,9 @@ class PaymentService:
             )
             self.session.commit()
             raise
-        return self._settle_capture(capture_id, resp)
+        capture = self._settle_capture(capture_id, resp)
+        self._refresh_mirrors(authorization_id=capture.payment_authorization_id)
+        return capture
 
     def _settle_capture(self, capture_id: str, resp: Json) -> PaymentCapture:
         capture = self._lock(PaymentCapture, capture_id)
@@ -539,6 +541,7 @@ class PaymentService:
         capture.paypal_capture_id = resp["id"]
         capture.paypal_status = resp["status"]
         capture.last_paypal_response = redact(resp)
+        _apply_capture_breakdown(capture, resp)
         if capture.status in (CaptureStatus.COMPLETED, CaptureStatus.PENDING):
             auth.status = AuthorizationStatus.CAPTURED
             auth.order.paypal_status = "COMPLETED"
@@ -700,7 +703,9 @@ class PaymentService:
             )
             self.session.commit()
             raise
-        return self._settle_refund(refund_id, resp)
+        refund = self._settle_refund(refund_id, resp)
+        self._refresh_mirrors(capture_id=refund.payment_capture_id)
+        return refund
 
     def _settle_refund(self, refund_id: str, resp: Json) -> PaymentRefund:
         refund = self._lock(PaymentRefund, refund_id)
@@ -708,6 +713,7 @@ class PaymentService:
         refund.paypal_refund_id = resp["id"]
         refund.paypal_status = resp["status"]
         refund.last_paypal_response = redact(resp)
+        _apply_refund_breakdown(refund, resp)
         if got != self._money(refund):
             refund.status = RefundStatus.UNKNOWN
             refund.error = {
@@ -737,6 +743,28 @@ class PaymentService:
         return refund
 
     # ----------------------------------------------------------------- helpers
+
+    def _refresh_mirrors(
+        self, *, authorization_id: str | None = None, capture_id: str | None = None
+    ) -> None:
+        """After money moved, re-read the *parent* object from PayPal so `paypal_status`
+        shows what PayPal reports (e.g. authorization CAPTURED, capture
+        PARTIALLY_REFUNDED) instead of a stale or inferred value. Best effort: a failed
+        read leaves the previous observation and is retried by later reconciliation."""
+        try:
+            if authorization_id:
+                self.refresh_authorization(authorization_id)
+            if capture_id:
+                cap = self._get(PaymentCapture, capture_id)
+                resp = self.gateway.get_capture(_require(cap.paypal_capture_id, "capture id"))
+                cap = self._lock(PaymentCapture, capture_id)
+                cap.paypal_status = resp["status"]
+                cap.last_paypal_response = redact(resp)
+                _apply_capture_breakdown(cap, resp)
+                self.session.commit()
+        except (PayPalAPIError, PayPalUncertainError, PaymentRuleViolation) as exc:
+            self.session.rollback()
+            log.warning("mirror refresh failed", extra={"data": {"error": str(exc)}})
 
     def _lock[T](self, model: type[T], pk: str) -> T:
         # Expire the identity map so relationships (order.authorization, auth.capture,
@@ -802,6 +830,85 @@ class PaymentService:
             raise PaymentRuleViolation(
                 "MERCHANT_MISMATCH", "authorization payee differs from the configured merchant"
             )
+
+
+def _reported(breakdown: Json | None, key: str, currency: str) -> int | None:
+    """Minor units of a PayPal-reported breakdown amount, or None if absent/foreign."""
+    amount = (breakdown or {}).get(key)
+    if not amount:
+        return None
+    try:
+        m = Money.from_paypal(amount)
+    except (MoneyError, KeyError):
+        return None
+    return m.minor if m.currency == currency else None
+
+
+def _apply_capture_breakdown(capture: PaymentCapture, resp: Json) -> None:
+    b = resp.get("seller_receivable_breakdown")
+    if b is None:
+        return
+    capture.paypal_fee_minor = _reported(b, "paypal_fee", capture.currency)
+    capture.net_minor = _reported(b, "net_amount", capture.currency)
+
+
+def _apply_refund_breakdown(refund: PaymentRefund, resp: Json) -> None:
+    b = resp.get("seller_payable_breakdown")
+    if b is None:
+        return
+    refund.paypal_fee_returned_minor = _reported(b, "paypal_fee", refund.currency)
+    refund.merchant_debit_minor = _reported(b, "net_amount", refund.currency)
+
+
+@dataclass(frozen=True)
+class SettlementSummary:
+    """Financial view of one capture, built only from PayPal-reported numbers.
+
+    `net_after_refunds` is *derived* (capture net minus merchant debits of completed
+    refunds); it is not a balance read from PayPal and is None whenever any input was
+    not reported by PayPal.
+    """
+
+    currency: str
+    gross_captured: int
+    paypal_fee: int | None
+    net_at_capture: int | None
+    refunded_gross: int
+    refund_fees_returned: int | None
+    refund_merchant_debits: int | None
+    net_after_refunds: int | None
+    refunds_in_flight: int
+
+
+def settlement_summary(capture: PaymentCapture) -> SettlementSummary:
+    done = [r for r in capture.refunds if r.status is RefundStatus.COMPLETED]
+    in_flight = [
+        r
+        for r in capture.refunds
+        if r.status in (RefundStatus.REQUESTED, RefundStatus.PENDING, RefundStatus.UNKNOWN)
+    ]
+
+    def total(values: list[int | None]) -> int | None:
+        return None if any(v is None for v in values) else sum(v for v in values if v is not None)
+
+    fees_returned = total([r.paypal_fee_returned_minor for r in done])
+    debits = total([r.merchant_debit_minor for r in done])
+    net_after = (
+        capture.net_minor - debits
+        if capture.net_minor is not None and debits is not None and not in_flight
+        else None
+    )
+    return SettlementSummary(
+        currency=capture.currency,
+        gross_captured=capture.amount_minor if capture.status is CaptureStatus.COMPLETED else 0,
+        paypal_fee=capture.paypal_fee_minor,
+        net_at_capture=capture.net_minor,
+        refunded_gross=sum(r.amount_minor for r in done),
+        refund_fees_returned=fees_returned,
+        refund_merchant_debits=debits,
+        net_after_refunds=net_after,
+        refunds_in_flight=sum(r.amount_minor for r in in_flight),
+    )
 
 
 def _require(value: str | None, name: str) -> str:
