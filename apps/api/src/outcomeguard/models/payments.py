@@ -163,9 +163,11 @@ class PaymentCapture(IdMixin, TimestampMixin, Base):
     # NULL when PayPal has not reported it (e.g. PENDING captures).
     paypal_fee_minor: Mapped[int | None] = mapped_column(BigInteger)
     net_minor: Mapped[int | None] = mapped_column(BigInteger)
-    approval_id: Mapped[str | None] = mapped_column(ForeignKey("approvals.id"))
+    # Governed captures (agreement-bound orders) must carry all three; enforced by the
+    # governance service AND a database trigger (P06).
+    approval_id: Mapped[str | None] = mapped_column(ForeignKey("capture_approvals.id"))
     verification_run_id: Mapped[str | None] = mapped_column(ForeignKey("verification_runs.id"))
-    policy_decision_id: Mapped[str | None] = mapped_column(String(36))
+    policy_decision_id: Mapped[str | None] = mapped_column(ForeignKey("policy_decisions.id"))
 
     authorization: Mapped[PaymentAuthorization] = relationship(back_populates="capture")
     refunds: Mapped[list[PaymentRefund]] = relationship(back_populates="capture")

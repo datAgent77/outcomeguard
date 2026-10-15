@@ -10,6 +10,7 @@ from outcomeguard.ai.evidence import AnalysisError
 from outcomeguard.api import (
     routes_agreements,
     routes_ai,
+    routes_governance,
     routes_payments,
     routes_session,
     routes_system,
@@ -20,6 +21,7 @@ from outcomeguard.config import get_settings
 from outcomeguard.logs import configure_logging
 from outcomeguard.paypal.gateway import PayPalAPIError, PayPalNotConfiguredError
 from outcomeguard.services.agreements import AgreementError
+from outcomeguard.services.governance import GovernanceError
 from outcomeguard.services.payments import PaymentRuleViolation, PaymentUncertain
 from outcomeguard.verification.service import VerificationError
 
@@ -74,6 +76,13 @@ def create_app() -> FastAPI:
     def _verification(_: Request, exc: VerificationError) -> JSONResponse:
         return JSONResponse({"code": exc.code, "message": exc.message}, status_code=exc.http_status)
 
+    @app.exception_handler(GovernanceError)
+    def _governance(_: Request, exc: GovernanceError) -> JSONResponse:
+        body: dict = {"code": exc.code, "message": exc.message}
+        if exc.reasons:
+            body["reasons"] = exc.reasons
+        return JSONResponse(body, status_code=exc.http_status)
+
     @app.exception_handler(AnalysisError)
     def _analysis(_: Request, exc: AnalysisError) -> JSONResponse:
         return JSONResponse({"code": exc.code, "message": exc.message}, status_code=exc.http_status)
@@ -96,6 +105,7 @@ def create_app() -> FastAPI:
     app.include_router(routes_session.router)
     app.include_router(routes_agreements.router)
     app.include_router(routes_ai.router)
+    app.include_router(routes_governance.router)
     app.include_router(routes_verification.router)
     app.include_router(routes_verification.sink_router)
     app.include_router(routes_payments.public)

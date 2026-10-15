@@ -11,9 +11,11 @@ only with a link to the commit and the evidence that proves it.
 | TD-4 | Full Docker Compose end-to-end verification | Only the isolation topology has been run in containers, not API + worker + runner + DB together | 2026-10-15 (P04) | P09/P10 | **open** |
 | TD-5 | Live PayPal webhook verification | Signature verification and delivery only tested with mocks; needs a public HTTPS URL + `PAYPAL_WEBHOOK_ID` | 2026-10-15 (P02) | P10 (with hosted deploy, needs approval) | **open** |
 | TD-6 | Comprehensive real-model evaluation dataset | Live tests + demos cover the canonical scenario and one injection; no broad eval of drafting quality, grounding or injection resistance across models | 2026-10-15 (P05) | P09 | **open** |
-| TD-7 | Real authentication and authorization | Interim operator-issued demo tokens; no real login, sessions or MFA | 2026-10-15 (P03) | P06/P09 | **open** |
+| TD-7 | Real authentication and authorization | P06 replaced the interim tokens with scrypt passwords + server-side revocable sessions + lockout and enforces org/role checks on review/capture. Still missing: MFA, password reset flow, session cookies for the web UI with CSRF protection, audit of logins, external IdP | 2026-10-15 (P03) | P09 | **partially addressed** (P06, see GOVERNANCE.md) — not resolved |
 | TD-8 | Rate limiting | AI endpoints are budget-capped per day but not rate-limited per user; no rate limits on payment or sink endpoints | 2026-10-15 (P05) | P09 | **open** |
 | TD-9 | Local AI budget is an estimate | Reservations use list prices and reported usage, not Anthropic billing; covers only calls through this gateway | 2026-10-15 (P05) | P10 (configure Console spend limit before any shared deployment) | **open** |
+| TD-11 | Authorization reauthorization not implemented | Authorizations near expiry are blocked (`AUTH_EXPIRED`, 1 h margin) but cannot be renewed; a new order is needed | 2026-10-15 (P06) | P08/P09 | **open** |
+| TD-12 | Demo users and scripted actors | Demo identities share one operator-supplied password; demo scripts act as the human actors | 2026-10-15 (P06) | P10 | **open** |
 | TD-10 | No browser console capture in verification | AI cannot see JavaScript errors, so root causes like the broken fixture's TypeError are reported as "not visible in the evidence" | 2026-10-15 (P05) | P09 | **open** |
 
 **Before any publicly accessible deployment** TD-1 (worker DB permissions), TD-3/TD-4

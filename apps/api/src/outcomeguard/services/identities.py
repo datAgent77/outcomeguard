@@ -7,6 +7,7 @@ from dataclasses import dataclass
 from sqlalchemy import select
 from sqlalchemy.orm import Session
 
+from outcomeguard.auth import set_password
 from outcomeguard.models import (
     MerchantAccount,
     Organization,
@@ -15,6 +16,7 @@ from outcomeguard.models import (
     PaymentEnvironment,
     Role,
     User,
+    UserKind,
 )
 from outcomeguard.services.merchants import ensure_demo_merchant
 
@@ -39,12 +41,21 @@ def _org(session: Session, name: str, kind: OrgKind) -> Organization:
     return org
 
 
-def _user(session: Session, email: str, name: str, memberships: list[tuple[str, Role]]) -> User:
+def _user(
+    session: Session,
+    email: str,
+    name: str,
+    memberships: list[tuple[str, Role]],
+    password: str | None = None,
+    kind: UserKind = UserKind.HUMAN,
+) -> User:
     user = session.scalar(select(User).where(User.email == email))
     if user is None:
-        user = User(email=email, display_name=name)
+        user = User(email=email, display_name=name, kind=kind)
         session.add(user)
         session.flush()
+    if password:
+        set_password(session, user, password)
     for org_id, role in memberships:
         exists = session.scalar(
             select(OrganizationMembership).where(
@@ -59,7 +70,11 @@ def _user(session: Session, email: str, name: str, memberships: list[tuple[str, 
     return user
 
 
-def ensure_demo_identities(session: Session, environment: PaymentEnvironment) -> DemoIdentities:
+def ensure_demo_identities(
+    session: Session, environment: PaymentEnvironment, password: str | None = None
+) -> DemoIdentities:
+    """Demo orgs/users. `password` (operator-supplied, never a default) enables login for
+    every human demo user; without it the users exist but cannot log in."""
     buyer = _org(session, BUYER_ORG, OrgKind.BUYER)
     other = _org(session, OTHER_BUYER_ORG, OrgKind.BUYER)
     merchant = ensure_demo_merchant(session, environment)
@@ -68,18 +83,40 @@ def ensure_demo_identities(session: Session, environment: PaymentEnvironment) ->
         u.email: u.id
         for u in [
             _user(
-                session, "alice@acme.demo", "Alice (buyer admin)", [(buyer.id, Role.BUYER_ADMIN)]
+                session,
+                "alice@acme.demo",
+                "Alice (buyer admin)",
+                [(buyer.id, Role.BUYER_ADMIN)],
+                password,
             ),
             _user(
-                session, "bob@acme.demo", "Bob (buyer approver)", [(buyer.id, Role.BUYER_APPROVER)]
+                session,
+                "bob@acme.demo",
+                "Bob (buyer approver)",
+                [(buyer.id, Role.BUYER_APPROVER)],
+                password,
             ),
             _user(
                 session,
                 "maya@northwind.demo",
                 "Maya (agency owner)",
                 [(m_org, Role.MERCHANT_ADMIN), (m_org, Role.PROVIDER)],
+                password,
             ),
-            _user(session, "eve@globex.demo", "Eve (other buyer)", [(other.id, Role.BUYER_ADMIN)]),
+            _user(
+                session,
+                "eve@globex.demo",
+                "Eve (other buyer)",
+                [(other.id, Role.BUYER_ADMIN)],
+                password,
+            ),
+            _user(
+                session,
+                "rita@acme.demo",
+                "Rita (accessibility reviewer)",
+                [(buyer.id, Role.BUYER_REVIEWER)],
+                password,
+            ),
         ]
     }
     session.commit()

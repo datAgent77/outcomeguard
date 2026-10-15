@@ -6,7 +6,7 @@ from typing import Annotated
 from fastapi import Depends, Header, HTTPException
 from sqlalchemy.orm import Session
 
-from outcomeguard.auth import AuthError, Principal, load_principal, verify_token
+from outcomeguard.auth import AuthError, Principal, authenticate, load_principal
 from outcomeguard.config import Settings, get_settings
 from outcomeguard.db import get_session
 from outcomeguard.paypal import get_gateway
@@ -45,14 +45,11 @@ OperatorDep = Annotated[str, Depends(require_operator)]
 
 def get_principal(
     session: SessionDep,
-    settings: SettingsDep,
     authorization: Annotated[str | None, Header()] = None,
 ) -> Principal:
-    if not settings.session_secret:
-        raise HTTPException(503, "SESSION_SECRET is not configured")
     if not authorization or not authorization.startswith("Bearer "):
         raise AuthError("missing bearer token")
-    user_id = verify_token(settings.session_secret.get_secret_value(), authorization[7:])
+    user_id = authenticate(session, authorization[7:].strip())
     return load_principal(session, user_id)
 
 

@@ -8,8 +8,8 @@ Deadline: **2026-11-12 23:00 GMT+3** (PayPal AI Hackathon). Spec: [BUILD_PROMPT_
 | P02 | PayPal Sandbox proof | ✅ core lifecycle accepted (live Sandbox 2026-10-15) · ⏳ **live webhook verification open** — procedure in WEBHOOKS.md, needs a public URL (approval) |
 | P03 | Agreement domain | ✅ accepted (gate re-run before P04: 47/47) |
 | P04 | Verification engine (Playwright, Lighthouse, SSRF guard) | ✅ conditionally accepted — see [VERIFICATION.md](VERIFICATION.md), open items in [TECH_DEBT.md](TECH_DEBT.md) |
-| P05 | AI contract and evidence intelligence | 🟡 final corrections done, real-model canonical demo run; **awaiting acceptance** — see [AI_VERIFICATION.md](AI_VERIFICATION.md) |
-| P06 | Deterministic policy, human approval, auth/RBAC | 📝 design ready: [architecture/P06_POLICY_PLAN.md](architecture/P06_POLICY_PLAN.md) — not started |
+| P05 | AI contract and evidence intelligence | ✅ accepted — see [AI_VERIFICATION.md](AI_VERIFICATION.md) |
+| P06 | Deterministic policy, human approval, auth/RBAC | 🟡 implemented + tested; **awaiting review** — see [GOVERNANCE.md](GOVERNANCE.md) |
 | P07 | Product UI + AG Grid ledger | ⏳ |
 | P08 | Resolution and refunds | ⏳ (payment-level refund done in P02) |
 | P09 | Security and integration hardening | ⏳ |
@@ -114,6 +114,18 @@ Deadline: **2026-11-12 23:00 GMT+3** (PayPal AI Hackathon). Spec: [BUILD_PROMPT_
       cross-run references rejected; negation-aware success-claim check
 - [x] Two real-model bugs found and fixed with regression tests; all transcripts labeled
       ([runs/README.md](integration/runs/README.md))
+
+## P06 — Deterministic payment governance (2026-10-15)
+
+- [x] Password + server-side session authentication (interim tokens removed), lockout,
+      human/service account kinds, `buyer_reviewer` role
+- [x] Evidence-bound manual-review decisions; provider self-review and service accounts refused
+- [x] Pure policy engine with reason codes; every evaluation stored
+- [x] Capture approval bound to authorization + policy inputs hash; consumed once
+- [x] Capture re-evaluates under the authorization lock, reserves, commits, then calls PayPal
+- [x] DB trigger requires policy/approval/run references on agreement-bound captures;
+      service refuses gate-less capture (dev endpoint cannot bypass); prod refuses dev endpoints
+- [x] Migration `c3be1fa32c64`; mocked + HTTP + real-Sandbox evidence (see INTEGRATION_PROOF)
 
 ## Verified vs unverified
 

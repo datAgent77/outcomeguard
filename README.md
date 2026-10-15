@@ -25,8 +25,9 @@ PayPal **Sandbox only** — no real money moves.
 > container network isolation), and the AI layer (Claude Sonnet 5.5 drafts acceptance
 > criteria from plain language and explains real verification evidence — grounded, budget-
 > capped, no financial authority). A fixed page with an unresolved blocking manual review
-> is reported as NEEDS_MANUAL_REVIEW, never as verified. Payment governance (P06) and the
-> product UI (P07) are not built yet. See
+> is reported as NEEDS_MANUAL_REVIEW, never as verified. Payment governance (P06): a
+> deterministic policy, evidence-bound human reviews and a separate buyer capture approval,
+> re-checked at the moment of capture. The product UI (P07) is not built yet. See
 > [docs/IMPLEMENTATION_PROGRESS.md](docs/IMPLEMENTATION_PROGRESS.md) and
 > [docs/INTEGRATION_PROOF.md](docs/INTEGRATION_PROOF.md) for what is verified.
 
@@ -87,6 +88,7 @@ uv run pytest -m sandbox        # opt-in, real PayPal Sandbox (needs credentials
 - [Integration proof](docs/INTEGRATION_PROOF.md)
 - [Evidence verification (P04)](docs/VERIFICATION.md)
 - [AI contract & evidence intelligence (P05)](docs/AI_VERIFICATION.md)
+- [Payment governance (P06)](docs/GOVERNANCE.md)
 - [Technical debt register](docs/TECH_DEBT.md)
 - [Webhooks: go-live procedure](docs/WEBHOOKS.md)
 - [P04 verification worker plan](docs/architecture/P04_VERIFICATION_PLAN.md)

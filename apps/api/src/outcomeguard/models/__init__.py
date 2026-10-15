@@ -21,7 +21,15 @@ from outcomeguard.models.ai import (
 )
 from outcomeguard.models.audit import AuditEvent
 from outcomeguard.models.base import Base
+from outcomeguard.models.governance import (
+    CaptureApproval,
+    ManualReviewDecision,
+    PolicyDecisionRecord,
+    PolicyOutcome,
+    ReviewDecision,
+)
 from outcomeguard.models.identity import (
+    AuthSession,
     MerchantAccount,
     Organization,
     OrganizationMembership,
@@ -29,6 +37,7 @@ from outcomeguard.models.identity import (
     PaymentEnvironment,
     Role,
     User,
+    UserKind,
 )
 from outcomeguard.models.payments import (
     AuthorizationStatus,
@@ -55,6 +64,13 @@ from outcomeguard.models.verification import (
 )
 
 __all__ = [
+    "CaptureApproval",
+    "ManualReviewDecision",
+    "PolicyDecisionRecord",
+    "PolicyOutcome",
+    "ReviewDecision",
+    "AuthSession",
+    "UserKind",
     "AICall",
     "AISpendReservation",
     "ReservationStatus",

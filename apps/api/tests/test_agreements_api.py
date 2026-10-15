@@ -1,15 +1,12 @@
 """Agreement API over HTTP: authentication, RBAC responses, full lifecycle."""
 
-import time
 from datetime import UTC, datetime, timedelta
 
 import pytest
 from fastapi.testclient import TestClient
 
-from outcomeguard.auth import AuthError, issue_token, verify_token
-
 OP = {"X-Operator-Token": "test-operator-token"}
-SECRET = "test-session-secret"
+DEMO_PW = "correct horse battery staple"
 
 
 @pytest.fixture
@@ -17,11 +14,12 @@ def api(make_session):
     from outcomeguard.main import create_app
 
     c = TestClient(create_app())
-    seed = c.post("/dev/seed", headers=OP).json()
+    seed = c.post("/dev/seed", json={"password": DEMO_PW}, headers=OP).json()
 
     def as_(email: str) -> dict:
-        tok = c.post("/dev/session", json={"email": email}, headers=OP).json()["token"]
-        return {"Authorization": f"Bearer {tok}"}
+        r = c.post("/auth/login", json={"email": email, "password": DEMO_PW})
+        assert r.status_code == 200, r.text
+        return {"Authorization": f"Bearer {r.json()['token']}"}
 
     return c, seed, as_
 
@@ -38,16 +36,15 @@ def create_body(seed) -> dict:
 
 
 def test_requires_authentication(api):
-    c, seed, _ = api
-    assert c.get("/agreements").status_code == 401
-    assert c.get("/agreements", headers={"Authorization": "Bearer junk.sig"}).status_code == 401
-    forged = issue_token("wrong-secret", seed["users"]["alice@acme.demo"])
-    assert c.get("/agreements", headers={"Authorization": f"Bearer {forged}"}).status_code == 401
-
-
-def test_session_issuance_is_operator_gated(api):
     c, _, _ = api
-    assert c.post("/dev/session", json={"email": "alice@acme.demo"}).status_code == 401
+    assert c.get("/agreements").status_code == 401
+    assert c.get("/agreements", headers={"Authorization": "Bearer junk"}).status_code == 401
+
+
+def test_seed_is_operator_gated(api):
+    c, _, _ = api
+    assert c.post("/dev/seed", json={"password": DEMO_PW}).status_code == 401
+    assert c.post("/dev/session", json={"email": "alice@acme.demo"}).status_code in (404, 405)
 
 
 def test_full_lifecycle_over_http(api):
@@ -143,15 +140,3 @@ def test_custom_criteria_validated_over_http(api):
     }
     r = c.post("/agreements", json=body, headers=as_("alice@acme.demo"))
     assert r.status_code == 422
-
-
-def test_token_expiry_and_tamper():
-    tok = issue_token(SECRET, "user-1", ttl=-1)
-    with pytest.raises(AuthError):
-        verify_token(SECRET, tok)
-    good = issue_token(SECRET, "user-1")
-    payload, sig = good.split(".")
-    with pytest.raises(AuthError):
-        verify_token(SECRET, payload[:-2] + "AA." + sig)
-    assert verify_token(SECRET, good) == "user-1"
-    assert int(time.time()) > 0

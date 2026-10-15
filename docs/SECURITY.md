@@ -44,7 +44,12 @@
 | Rewriting approved agreements or approvals | service checks + Postgres triggers (locked/superseded versions, their criteria, approvals append-only) | implemented, tested with raw SQL |
 | Lost updates on drafts | `expected_revision` + row lock | implemented, tested concurrently |
 | Session forgery | HMAC-SHA256 tokens, constant-time compare, expiry; roles never in token | implemented, tested |
-| Real login / credential handling | password or SSO login, secure cookies | **planned P06** (interim: operator-issued demo tokens) |
+| Credential handling / session theft | scrypt password hashes; sessions stored as SHA-256 of random tokens, 8 h expiry, revocation on logout and password change; 5-failure lockout; generic errors | implemented, tested (P06). No MFA / reset flow yet (TD-7) |
+| Capture without verified evidence or human approval | pure policy re-evaluated under the authorization lock at capture; approval bound to inputs hash; DB trigger requires policy/approval/run refs | implemented, tested (mocked, HTTP, real Sandbox) |
+| Provider approving its own delivery | members of the merchant organization refused for reviews and capture approvals; policy ignores provider reviews | implemented, tested |
+| AI / automation acting as a human | `users.kind = service` refused; no AI path writes review/approval records; AI pending_human_review never counts | implemented, tested |
+| Stale approvals (evidence or agreement changed) | approvals/reviews bound to hashes; any change → `STALE_EVIDENCE` / `AGREEMENT_SUPERSEDED` / `APPROVAL_STALE` | implemented, tested |
+| Policy bypass via developer endpoints | service-level `POLICY_REQUIRED` for agreement-bound captures, DB trigger, prod config refuses `ENABLE_SANDBOX_PROOF` | implemented, tested |
 | Rate abuse on sensitive endpoints | rate limiting | **planned P09** |
 | SSRF from verifier (internal IPs, metadata, DNS rebinding, redirects, IP-encoding tricks) | single policy (`netpolicy.py`) enforced by the egress proxy for HTTPX, Chromium (incl. `<-loopback>`) and Lighthouse; resolve once, reject if any answer is non-public, connect to the checked IP; every redirect is a new proxied request | implemented; unit + real-socket + real-Chromium tests |
 | Browser ignoring proxy settings / direct network access | runner container on an internal network whose only peer is the proxy | implemented; **verified only in the container topology** (`scripts/container_isolation_test.sh`), not on a bare host |

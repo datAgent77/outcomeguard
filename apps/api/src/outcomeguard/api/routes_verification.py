@@ -22,6 +22,7 @@ from outcomeguard.models import (
     RunStatus,
     VerificationRun,
 )
+from outcomeguard.services.governance import evidence_snapshot_sha256
 from outcomeguard.verification import sinktoken
 from outcomeguard.verification.service import is_verified_pass, submit_evidence
 from outcomeguard.verification.store import EvidenceIntegrityError, EvidenceStore
@@ -68,6 +69,8 @@ class RunOut(BaseModel):
     status: str
     verdict: str | None
     verified_pass: bool
+    # Bind manual-review decisions to this (P06).
+    evidence_snapshot_sha256: str | None
     agreement_version_id: str
     agreement_content_hash: str
     delivery_url: str
@@ -88,6 +91,9 @@ def _run_out(session, run: VerificationRun) -> RunOut:
         status=run.status.value,
         verdict=run.verdict.value if run.verdict else None,
         verified_pass=is_verified_pass(session, run.id),
+        evidence_snapshot_sha256=evidence_snapshot_sha256(session, run)
+        if run.status.value == "completed"
+        else None,
         agreement_version_id=run.agreement_version_id,
         agreement_content_hash=run.agreement_content_hash,
         delivery_url=sub.delivery_url,

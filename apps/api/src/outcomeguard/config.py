@@ -56,7 +56,7 @@ class Settings(BaseSettings):
     enable_sandbox_proof: bool = False
     # Shared secret required by operator-only endpoints until real auth lands (P06).
     operator_token: SecretStr | None = Field(default=None)
-    # Signs session tokens. Must be stable across restarts (else everyone is logged out).
+    # Legacy (P03 interim tokens, removed in P06); kept so existing .env files still load.
     session_secret: SecretStr | None = None
 
     # Verification (P04): the API hosts the controlled form sink and serves artifacts.
@@ -91,6 +91,12 @@ class Settings(BaseSettings):
             if v.startswith(prefix):
                 return "postgresql+psycopg://" + v[len(prefix) :]
         return v
+
+    @model_validator(mode="after")
+    def _no_dev_endpoints_in_production(self) -> Settings:
+        if self.app_env.lower() == "production" and self.enable_sandbox_proof:
+            raise ValueError("ENABLE_SANDBOX_PROOF must be false when APP_ENV=production")
+        return self
 
     @model_validator(mode="after")
     def _sandbox_only(self) -> Settings:

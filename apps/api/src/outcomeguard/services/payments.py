@@ -25,6 +25,7 @@ from __future__ import annotations
 import logging
 import re
 import uuid
+from collections.abc import Callable
 from dataclasses import dataclass
 from datetime import UTC, datetime, timedelta
 from typing import Any
@@ -74,6 +75,19 @@ class PaymentRuleViolation(Exception):
         self.message = message
         self.http_status = http_status
         super().__init__(f"{code}: {message}")
+
+
+@dataclass
+class CaptureRefs:
+    """What a governance gate returns: the evidence chain for this capture."""
+
+    policy_decision_id: str
+    approval_id: str
+    verification_run_id: str
+    on_reserved: Callable[[PaymentCapture], None] | None = None
+
+
+CaptureGate = Callable[["PaymentAuthorization"], CaptureRefs]
 
 
 class PaymentUncertain(Exception):
@@ -396,8 +410,17 @@ class PaymentService:
     # ----------------------------------------------------------------- capture
 
     def capture_authorization(
-        self, auth_id: str, *, actor: str, note_to_payer: str | None = None
+        self,
+        auth_id: str,
+        *,
+        actor: str,
+        note_to_payer: str | None = None,
+        gate: CaptureGate | None = None,
     ) -> PaymentCapture:
+        """Capture an authorization. For agreement-bound orders a governance `gate` is
+        mandatory: it runs inside the reservation transaction, while the authorization row
+        is locked, and must return the policy/approval/verification references — otherwise
+        nothing is reserved (POLICY_REQUIRED). The PayPal call happens after commit."""
         # 0. Re-read PayPal's view before reserving (valid state, amount unchanged).
         auth = self._get(PaymentAuthorization, auth_id)
         remote = self.gateway.get_authorization(auth.paypal_authorization_id)
@@ -433,6 +456,21 @@ class PaymentService:
         if (auth.amount_minor, auth.currency) != (order.amount_minor, order.currency):
             self.session.commit()
             raise PaymentRuleViolation("AMOUNT_MISMATCH", "authorization does not match the order")
+        refs: CaptureRefs | None = None
+        if order.agreement_version_id is not None:
+            if gate is None:
+                self.session.rollback()
+                raise PaymentRuleViolation(
+                    "POLICY_REQUIRED",
+                    "agreement-bound payments can only be captured through the governance "
+                    "policy (fresh evaluation + human approval)",
+                    http_status=403,
+                )
+            try:
+                refs = gate(auth)  # same transaction, authorization row still locked
+            except Exception:
+                self.session.rollback()
+                raise
 
         request_id = f"og-cap-{auth.id}-{uuid.uuid4().hex[:8]}"
         if existing:  # previous attempt FAILED/DECLINED at PayPal: no money moved, retry
@@ -441,6 +479,10 @@ class PaymentService:
             capture.status = CaptureStatus.REQUESTED
             capture.error = None
             capture.requested_by = actor
+            if refs:
+                capture.policy_decision_id = refs.policy_decision_id
+                capture.approval_id = refs.approval_id
+                capture.verification_run_id = refs.verification_run_id
         else:
             capture = PaymentCapture(
                 payment_authorization_id=auth.id,
@@ -450,10 +492,15 @@ class PaymentService:
                 final_capture=True,
                 status=CaptureStatus.REQUESTED,
                 requested_by=actor,
+                policy_decision_id=refs.policy_decision_id if refs else None,
+                approval_id=refs.approval_id if refs else None,
+                verification_run_id=refs.verification_run_id if refs else None,
             )
             self.session.add(capture)
         auth.status = AuthorizationStatus.CAPTURE_IN_PROGRESS
         self.session.flush()
+        if refs and refs.on_reserved:
+            refs.on_reserved(capture)
         record_audit(
             self.session,
             actor=actor,

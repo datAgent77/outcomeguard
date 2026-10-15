@@ -35,7 +35,7 @@ Legend: ✅ yes · ❌ not yet · — not applicable
 | SSRF policy / egress proxy | ✅ | ✅ + real sockets + real Chromium | — | — |
 | Runner network isolation in a container | ✅ | — | — (Docker, `scripts/container_isolation_test.sh`, 17/17 probes) | — |
 
-Last updated: 2026-10-15 (P05 final) — API suite 280 passed (incl. 4 real-browser tests; AI tests use a scripted provider); `-m ai_live` 2 passed against `claude-sonnet-5-5` (fallback off); `-m sandbox` 2 passed; `mypy` clean;
+Last updated: 2026-10-15 (P06) — API suite 336 passed (incl. 4 real-browser tests; AI and governance tests use mocked providers/gateways); `-m ai_live` 2 passed; `-m sandbox` 2 passed; `mypy` clean;
 full lifecycle run passed against the live PayPal Sandbox (see Runs).
 
 **P02 core gate: PASSED** (OAuth → Create Order → Buyer Approval → Authorize → Capture →
@@ -169,6 +169,32 @@ fallback on): 21 485 in / 16 663 out ≈ $0.52 at list price.
 [`runs/ai-demo-20261015T131921Z.json`](integration/runs/ai-demo-20261015T131921Z.json):
 `claude-opus-5`, the buyer **explicitly made accessibility non-blocking** (audited), so the
 fixed page was PASS. Valid only as a buyer-approved relaxed-criteria scenario.
+
+## Payment governance evidence (P06, 2026-10-15)
+
+| Scenario | Mocked gateway (`tests/test_governance.py`) | HTTP + sessions, simulated payments (`tests/test_governance_api.py`) | Real PayPal Sandbox (`scripts/governance_demo.py`) |
+|---|---|---|---|
+| Broken page → FAIL → capture blocked | ✅ | — | ⏳ pending |
+| Fixed page → NEEDS_MANUAL_REVIEW → capture blocked | ✅ | ✅ | ⏳ pending |
+| Authorized human review satisfies accessibility | ✅ | ✅ | ⏳ pending |
+| Separate buyer capture approval bound to inputs hash | ✅ | ✅ | ⏳ pending |
+| Fresh policy evaluation at capture (under lock) | ✅ | ✅ | ⏳ pending |
+| Capture completes | ✅ (mock) | ✅ (simulated, labeled) | ⏳ pending |
+| Duplicate capture blocked | ✅ | ✅ | ⏳ pending |
+| Stale evidence / agreement change blocks capture | ✅ / ✅ | — | ⏳ pending (stale evidence) |
+| Provider self-approval rejected | ✅ | ✅ | ⏳ pending |
+| AI / service-account approval rejected | ✅ | — | ⏳ pending |
+| Expired authorization rejected | ✅ | — | — (cannot be produced live; mock only) |
+| Lost PayPal response → UNKNOWN → reconcile | ✅ | — | ⏳ pending (real capture, response dropped client-side) |
+| Dev endpoint cannot bypass policy | ✅ | ✅ | — |
+| DB trigger rejects capture rows without policy refs | ✅ | — | — |
+
+**Real Sandbox status: not yet run to completion.** Two attempts on 2026-10-15 created real
+Sandbox orders (`0J671308PH8748725`, `3XF69583SJ739070F`) but stopped before any
+authorization: the first on a transient PayPal `502` while polling for approval (polling now
+retries transient errors), the second because the buyer approval did not arrive within the
+15-minute window. No authorization or capture happened in either. The run requires a human
+to approve the payment in the browser.
 
 ## How to reproduce
 
