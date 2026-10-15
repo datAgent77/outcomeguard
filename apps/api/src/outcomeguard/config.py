@@ -7,6 +7,7 @@ configuration that may leave the process.
 
 from __future__ import annotations
 
+from decimal import Decimal
 from enum import StrEnum
 from functools import lru_cache
 from pathlib import Path
@@ -66,12 +67,19 @@ class Settings(BaseSettings):
     # AI (P05). The model never receives financial authority; see docs/AI_VERIFICATION.md.
     ai_provider: str = "anthropic"  # anthropic | disabled
     anthropic_api_key: SecretStr | None = None
-    ai_model: str = "claude-opus-5"
+    # Default: Claude Sonnet 5.5 (verified via the Models API and the pricing page,
+    # 2026-10-15). claude-opus-5 stays selectable for comparison.
+    ai_model: str = "claude-sonnet-5-5"
     ai_effort: str = "high"
     ai_timeout_seconds: float = 120.0
-    ai_max_retries: int = 2
-    ai_max_output_tokens: int = 16000
+    ai_max_retries: int = 1
+    ai_max_output_tokens: int = 12000
+    # Server-side model fallback OFF by default so proofs are reproducible: the model that
+    # answers is the model that was requested.
+    ai_server_fallback: bool = False
     ai_daily_token_budget: int = 1_000_000
+    # Local, estimated USD limit per UTC day (reserved before each call). Not billing data.
+    ai_daily_budget_usd: Decimal = Decimal("5.00")
 
     log_level: str = "INFO"
 

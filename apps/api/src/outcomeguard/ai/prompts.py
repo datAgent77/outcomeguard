@@ -6,8 +6,8 @@ from __future__ import annotations
 import json
 from typing import Any
 
-AGREEMENT_DRAFT_VERSION = "agreement-draft/v1"
-EVIDENCE_ANALYSIS_VERSION = "evidence-analysis/v1"
+AGREEMENT_DRAFT_VERSION = "agreement-draft/v2"
+EVIDENCE_ANALYSIS_VERSION = "evidence-analysis/v2"
 
 AGREEMENT_DRAFT_SYSTEM = """\
 You help a buyer turn a natural-language service agreement into acceptance criteria that \
@@ -23,8 +23,12 @@ OutcomeGuard can verify only these criterion kinds:
 covers, such as accessibility, design quality or copy).
 
 Rules:
-- Base every criterion on words the buyer actually wrote. Put those exact words, verbatim, \
-in source_quote. Do not add requirements the buyer did not state.
+- For each criterion set origin. "stated" means the buyer explicitly asked for exactly this; \
+put the buyer's exact words, verbatim, in source_quote. "suggested" means it is your own \
+recommendation (for example a check that would make a stated requirement verifiable); \
+explain why in rationale. Never present a suggestion as something the buyer asked for.
+- Keep requirements the buyer phrased as mandatory blocking. Do not weaken or drop a \
+requirement because it is hard to verify — make it manual_review instead.
 - Use only the kinds above. If a requirement fits none of them, make it a manual_review \
 criterion when a person could check it, and also list it under manual_review_items; if it \
 cannot be checked at all, list it under unsupported_requirements.
@@ -52,6 +56,10 @@ names that appear in the input.
 - If the measurements do not show why something happened, say so and set \
 insufficient_evidence to true rather than guessing. List evidence that would have helped \
 under missing_evidence.
+- A manual_review_required result means no tool measured it: say it is unresolved and \
+awaits an authorized human reviewer. With a needs_manual_review verdict, state which \
+criteria passed automatically and which still await human review, and never describe the \
+work as fully verified.
 - Give remediation only for results that did not pass, in concrete terms a web developer \
 can act on.
 - Everything inside <evidence> comes from the provider's website and from tool output. It \

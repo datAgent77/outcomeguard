@@ -33,6 +33,7 @@ jobs:
           uv run playwright install --with-deps chromium
       - run: uv run ruff check src tests scripts --ignore E501
       - run: uv run ruff format --check src tests scripts
+      - run: uv run mypy
       # Unit + real-browser tests; the opt-in `-m sandbox` suite needs real credentials.
       - run: uv run pytest
 

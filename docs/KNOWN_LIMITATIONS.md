@@ -49,13 +49,18 @@ Current as of P02. Each item is either planned (phase noted) or a deliberate sco
   JavaScript errors, so for the broken fixture the model correctly reports that the root
   cause (a script error) is not visible in the evidence. Capturing console errors would
   improve explanations.
-- **Drafting may propose criteria the buyer did not ask for explicitly** when a quote
-  supports them (e.g. `http_availability` from "Build a … landing page"); the buyer review
-  step is where these are kept or dropped.
+- **Stated-vs-suggested classification uses keyword checks per criterion kind**; a quote
+  that states a requirement in unusual words may be downgraded to a suggestion (the buyer
+  can still accept it explicitly).
 - **One unsupported kind or invented field rejects the whole draft** (strict schema); the
   buyer can retry or use the template.
-- **Evidence explanations cost ~30–50 s and ~4k/3–4k tokens per run** with
-  `claude-opus-5` at effort `high`.
+- **Evidence explanations take ~12–17 s and ~4.2k in / 2–2.5k out tokens per run** with
+  `claude-sonnet-5-5` at effort `high` (≈ $0.03 estimated).
+- **Budget enforcement is local and estimated** (TD-9): list prices × reported usage, only
+  for calls through this gateway. Use an Anthropic Console spend limit as the real cap.
+- **The success-claim check is a phrase list with negation detection**; unusual phrasing
+  can slip past or be flagged. Displayed outcomes always come from stored results, so a
+  missed phrase cannot change a verdict.
 - **Two real-model tests only**; no broad evaluation set yet (TECH_DEBT TD-6).
 
 ## Verification (P04)

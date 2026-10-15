@@ -115,7 +115,9 @@ class AgreementService:
         if principal.member_of(agreement.buyer_organization_id):
             return True
         merchant = self.session.get(MerchantAccount, agreement.merchant_account_id)
-        return bool(merchant) and principal.has(merchant.organization_id, *MERCHANT_READ_ROLES)
+        return merchant is not None and principal.has(
+            merchant.organization_id, *MERCHANT_READ_ROLES
+        )
 
     # ------------------------------------------------------------- mutations
 

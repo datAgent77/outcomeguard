@@ -48,7 +48,13 @@ ignore = ["S101"]
 [dependency-groups]
 dev = [
     "httpx>=0.28.1",
+    "mypy>=2.4.0",
     "pytest>=9.1.1",
     "respx>=0.23.1",
     "ruff>=0.17.0",
 ]
+
+[tool.mypy]
+python_version = "3.12"
+ignore_missing_imports = true
+files = ["src"]

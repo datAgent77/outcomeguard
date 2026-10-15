@@ -30,6 +30,7 @@ class AIResult:
     input_tokens: int | None = None
     output_tokens: int | None = None
     cache_read_tokens: int | None = None
+    cache_write_tokens: int | None = None
     request_id: str | None = None
     stop_reason: str | None = None
     error: str | None = None
@@ -48,22 +49,30 @@ class AIProvider(Protocol):
 class AnthropicProvider:
     """Claude via the official SDK, structured output constrained to the Pydantic schema.
 
-    * `fallbacks: "default"` (beta server-side-fallback-2026-07-01): if Claude Opus 5's
-      safety classifiers decline, the API re-runs the request on Anthropic's recommended
-      fallback model; `model_used` records which model actually answered.
+    * Server-side fallback (`fallbacks: "default"`) is OFF unless `server_fallback=True`, so
+      the model that answers is the model requested; `model_used` records the actual ID
+      returned by the API either way.
     * Timeouts and retries are explicit; the API key comes from settings, never logged.
     """
 
     name = "anthropic"
 
     def __init__(
-        self, *, api_key: str, model: str, effort: str, timeout_s: float, max_retries: int
+        self,
+        *,
+        api_key: str,
+        model: str,
+        effort: str,
+        timeout_s: float,
+        max_retries: int,
+        server_fallback: bool = False,
     ) -> None:
         import anthropic
 
         self._anthropic = anthropic
         self.model = model
         self.effort = effort
+        self.server_fallback = server_fallback
         self._client = anthropic.Anthropic(
             api_key=api_key, timeout=timeout_s, max_retries=max_retries
         )
@@ -75,16 +84,28 @@ class AnthropicProvider:
         base = AIResult(outcome="error", text=None, provider=self.name, model_requested=self.model)
         t0 = time.monotonic()
         try:
-            resp = self._client.beta.messages.parse(
-                model=self.model,
-                max_tokens=max_tokens,
-                system=system,
-                messages=[{"role": "user", "content": user}],
-                output_format=schema,
-                output_config={"effort": self.effort},
-                betas=["server-side-fallback-2026-07-01"],
-                fallbacks="default",
-            )
+            effort: Any = self.effort  # validated by the API; SDK types it as a Literal
+            if self.server_fallback:
+                # Opt-in only: lets Anthropic re-run a declined request on another model.
+                resp: Any = self._client.beta.messages.parse(
+                    model=self.model,
+                    max_tokens=max_tokens,
+                    system=system,
+                    messages=[{"role": "user", "content": user}],
+                    output_format=schema,
+                    output_config={"effort": effort},
+                    betas=["server-side-fallback-2026-07-01"],
+                    fallbacks="default",
+                )
+            else:
+                resp = self._client.messages.parse(
+                    model=self.model,
+                    max_tokens=max_tokens,
+                    system=system,
+                    messages=[{"role": "user", "content": user}],
+                    output_format=schema,
+                    output_config={"effort": effort},
+                )
         except a.APITimeoutError as exc:
             return _fail(base, t0, "timeout", exc)
         except a.AuthenticationError as exc:
@@ -106,6 +127,7 @@ class AnthropicProvider:
         base.input_tokens = getattr(usage, "input_tokens", None)
         base.output_tokens = getattr(usage, "output_tokens", None)
         base.cache_read_tokens = getattr(usage, "cache_read_input_tokens", None)
+        base.cache_write_tokens = getattr(usage, "cache_creation_input_tokens", None)
         if resp.stop_reason == "refusal":
             details = getattr(resp, "stop_details", None)
             base.outcome = "refusal"
@@ -141,15 +163,20 @@ class ScriptedProvider:
 
     name = "scripted-test-double"
 
-    def __init__(self, replies: list[str | AIResult], model: str = "test-model") -> None:
+    def __init__(
+        self, replies: list[str | AIResult], model: str = "claude-sonnet-5-5", delay_s: float = 0
+    ) -> None:
         self.replies = list(replies)
         self.model = model
         self.prompts: list[tuple[str, str]] = []
+        self.delay_s = delay_s
 
     def complete(
         self, *, system: str, user: str, schema: type[BaseModel], max_tokens: int
     ) -> AIResult:
         self.prompts.append((system, user))
+        if self.delay_s:
+            time.sleep(self.delay_s)
         reply = self.replies.pop(0)
         if isinstance(reply, AIResult):
             return reply

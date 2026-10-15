@@ -26,15 +26,16 @@ Legend: ✅ yes · ❌ not yet · — not applicable
 | Webhook signature verification | ✅ | ✅ | ❌ (needs public HTTPS URL + webhook id — see [WEBHOOKS.md](WEBHOOKS.md)) | — |
 | Rehearsal mode (simulated, labeled) | ✅ | ✅ | — | — |
 | Agreement domain (versions, locking, approval, RBAC) | ✅ | ✅ (real Postgres, no external service) | — | — |
-| AI agreement drafting (structured output + deterministic review) | ✅ | ✅ (ScriptedProvider) | — | ✅ 2026-10-15 `claude-opus-5` |
-| AI evidence explanations (grounded) | ✅ | ✅ | — | ✅ 2026-10-15 `claude-opus-5` |
+| AI agreement drafting (structured output + deterministic review) | ✅ | ✅ (ScriptedProvider) | — | ✅ 2026-10-15 `claude-sonnet-5-5` (also `claude-opus-5`) |
+| AI evidence explanations (grounded) | ✅ | ✅ | — | ✅ 2026-10-15 `claude-sonnet-5-5` (also `claude-opus-5`) |
+| AI USD budget reservation / settlement | ✅ | ✅ (incl. concurrency) | — | ✅ settled from real usage (6 calls) |
 | Prompt-injection containment | ✅ | ✅ (model that obeys the injection) | — | ✅ 2026-10-15 (real model did not follow it) |
 | Verification: real Chromium checks (mobile, contact form) | ✅ | ✅ verdict logic | — (real Chromium 156, local) | — |
 | Verification: Lighthouse with adaptive retry | ✅ | ✅ | — (real Lighthouse 13.5.0, local + container) | — |
 | SSRF policy / egress proxy | ✅ | ✅ + real sockets + real Chromium | — | — |
 | Runner network isolation in a container | ✅ | — | — (Docker, `scripts/container_isolation_test.sh`, 17/17 probes) | — |
 
-Last updated: 2026-10-15 (P05) — API suite 254 passed (incl. 4 real-browser tests; AI tests use a scripted provider); `-m ai_live` 2 passed against the real model; Sandbox suite (`-m sandbox`) 2 passed;
+Last updated: 2026-10-15 (P05 final) — API suite 280 passed (incl. 4 real-browser tests; AI tests use a scripted provider); `-m ai_live` 2 passed against `claude-sonnet-5-5` (fallback off); `-m sandbox` 2 passed; `mypy` clean;
 full lifecycle run passed against the live PayPal Sandbox (see Runs).
 
 **P02 core gate: PASSED** (OAuth → Create Order → Buyer Approval → Authorize → Capture →
@@ -108,48 +109,66 @@ containers) end-to-end, and any hosted (Render) environment.
 
 ## AI evidence (P05, 2026-10-15)
 
-Real calls to the Anthropic Claude API, model `claude-opus-5` (every answer was served by
-`claude-opus-5`; the refusal fallback never triggered), SDK `anthropic` 1.14.0. Recorded in
-`ai_calls` (no prompts or keys stored).
+Real calls to the Anthropic Claude API through the official SDK (`anthropic` 1.14.0).
+Every call is recorded in `ai_calls` (no prompts or keys). Costs are **local estimates**
+from reported usage × the published price list — not Anthropic billing.
 
-| Call | Latency | Tokens in/out | Result |
-|---|---|---|---|
-| Connectivity check (structured `{ok, word}`) | 2.9 s | 264 / 17 | `{"ok":true,"word":"ready"}` |
-| Live test: draft from the example request | 21.4 s | 2 449 / 1 631 | 5 criteria kept, 0 rejected; Lighthouse 90 from the text; "accessible" → manual review |
-| Live test: evidence analysis with an injection embedded in page-derived data | 30.7 s | — | `grounded`; contact form stayed `fail`; verdict unchanged |
-| Demo run 1: draft / broken / fixed | 21.9 / 39.3 / 32.7 s | 2 449/1 839 · 4 134/3 412 · 4 146/2 942 | both analyses `partially_rejected` — see finding below |
-| Demo run 2: draft / broken / fixed | 18.1 / 47.9 / 31.7 s | 2 449/1 493 · 4 152/4 050 · 4 155/2 927 | broken `grounded`, fixed `grounded`, 0 rejected claims |
+### Final configuration (canonical)
 
-Demo-run tokens: 21 485 in / 16 663 out (≈ $0.52 at list price; billing in the Anthropic
-console is authoritative).
+`claude-sonnet-5-5`, effort `high`, **server-side fallback off**, `max_tokens` 12 000,
+1 retry, daily budget $5.00 (estimated). Every answer below came from the requested model
+(`model_used == model_requested`).
 
-### Demo — [`runs/ai-demo-20261015T131921Z.json`](integration/runs/ai-demo-20261015T131921Z.json)
+| Real call (Sonnet 5.5) | Latency | Tokens in/out | Est. cost | Reserved | Result |
+|---|---|---|---|---|---|
+| Live test: draft | 12.4 s | 2 778 / 1 361 | $0.019 | $0.258 | 4 stated (accessibility **blocking** manual review, Lighthouse 90), http availability as **suggestion** |
+| Live test: injection in page data | 13.8 s | — | — | — | `grounded`; contact form stayed `fail`; model described the injected text as evidence, did not follow it |
+| Canonical demo 1: draft / broken / fixed | 9.8 / 15.6 / 12.4 s | 2 778/1 441 · 4 232/2 371 · 4 205/2 074 | $0.020 · $0.032 · $0.029 | $0.26 each | fixed summary wrongly replaced — finding 2 |
+| **Canonical demo 2**: draft / broken / fixed | 10.2 / 16.2 / 14.7 s | 2 778/1 551 · 4 239/2 448 · 4 235/2 246 | $0.021 · $0.033 · $0.031 | $0.26 each | broken `grounded`, fixed `grounded`, 0 rejected claims |
+
+Sonnet 5.5 demo calls: 22 467 in / 12 131 out tokens, **≈ $0.166 estimated** (reserved
+worst case $1.57, all settled from usage). Earlier `claude-opus-5` runs (first P05 round,
+fallback on): 21 485 in / 16 663 out ≈ $0.52 at list price.
+
+### Canonical demo — [`runs/ai-demo-canonical-20261015T134532Z.json`](integration/runs/ai-demo-canonical-20261015T134532Z.json)
 
 1. Request: *"Build a mobile-friendly landing page for $500. The contact form must work, the
    website must be accessible and Lighthouse performance must score at least 90."*
-2. AI proposed 5 criteria, each with a verbatim `source_quote`: `http_availability`
-   ("Build a mobile-friendly landing page"), `mobile_viewport`, `contact_form` (listing the
-   selectors, sample values and success indicator it needs — none invented),
-   `lighthouse_performance` (min 90, from the text), `manual_review` for accessibility; plus
-   ambiguities (form factor, meaning of "accessible", what "working" form means, delivery URL).
-3. Buyer review (scripted human decisions, recorded): standard test-form fields opted in,
-   `require_https: false` for local fixtures, accessibility made **non-blocking** (checked
-   manually); then propose + approval by the buyer approver locked the version.
-4. Broken page → **FAIL** (`contact_form_works` fail `NO_SUBMISSION_TO_SINK`).
-5. AI: "the form and all three expected fields were present and the submit was attempted,
-   but no request reached the test sink, no receipt was recorded, and the expected 'Thank
-   you' confirmation text never appeared" — cites `sink_requests`, `sink_receipts_in_db`,
-   `success_text_seen`, the post-submit screenshot artifact; states the measurements do not
-   reveal the root cause; remediation for the submit handler.
-6. Fixed page → **PASS** (all 4 blocking criteria pass; accessibility `manual_review_required`, non-blocking).
-7. AI: explains each pass with references (sink 201, 1 receipt, success text, Lighthouse 100).
+2. AI draft: **stated** — `mobile_viewport` ("Build a mobile-friendly landing page"),
+   `contact_form` ("The contact form must work"), `manual_review` accessibility ("the
+   website must be accessible", **blocking**), `lighthouse_performance` (min **90**, from
+   the text); **suggested** — `http_availability` (rationale given). Ambiguities: Lighthouse
+   form factor, accessibility standard, delivery URL, form success definition, …
+3. Buyer review (scripted human decisions): standard test-form fields opted in; the
+   availability **suggestion explicitly accepted**; HTTPS relaxed for local http fixtures;
+   **no blocking override**.
+4. Locked: propose + approval by the buyer approver (content hash bound).
+5. Broken page → **FAIL** (`contact_form_works` fail `NO_SUBMISSION_TO_SINK`; accessibility
+   `manual_review_required`). AI: form found and filled, `sink_requests` empty,
+   `sink_receipts_in_db` 0, success text not seen; root cause not visible in the
+   measurements; remediation for the submit handler. Accessibility marked unresolved.
+6. Fixed page → **NEEDS_MANUAL_REVIEW** (`verified_pass: false`): 4 automated criteria pass
+   (sink 201, 1 receipt, success text, Lighthouse 100); accessibility unresolved. AI: "The
+   work should therefore not be considered fully verified."
+7. `pending_human_review`: `website_accessible` — *awaiting authorized human review*,
+   `decision: null`. No human decision fabricated, verdict unchanged, no payment action.
 
-**Finding from demo run 1 (fixed):** the grounding validator accepted only keys *inside*
-`measured`; for the manual-review result (no measurements) the model cited the result's
-own `measured` field, which exists, and was rejected — so both analyses were
-`partially_rejected`. The validator now accepts real top-level fields of the result
-packet; regression test `test_refs_to_real_top_level_result_fields_are_grounded`. Run 1's
-transcript is kept: [`runs/ai-demo-20261015T131618Z.json`](integration/runs/ai-demo-20261015T131618Z.json).
+### Findings from real-model runs (both fixed, both transcripts kept)
+
+1. **Grounding validator too strict** (`ai-demo-20261015T131618Z.json`): references to a
+   result's own `measured` field (empty for manual review) were rejected. Fixed;
+   regression tests `test_refs_to_real_top_level_result_fields_are_grounded`,
+   `test_measured_field_reference_regression`.
+2. **Success-claim check ignored negation** (`ai-demo-canonical-20261015T134325Z.json`):
+   "should not be considered fully verified" was treated as a success claim and the
+   correct summary replaced. Fixed with clause-level negation detection; tests
+   `test_summary_success_claims_respect_negation` (negated accepted, real claims rejected).
+
+### Alternative scenario (not canonical)
+
+[`runs/ai-demo-20261015T131921Z.json`](integration/runs/ai-demo-20261015T131921Z.json):
+`claude-opus-5`, the buyer **explicitly made accessibility non-blocking** (audited), so the
+fixed page was PASS. Valid only as a buyer-approved relaxed-criteria scenario.
 
 ## How to reproduce
 

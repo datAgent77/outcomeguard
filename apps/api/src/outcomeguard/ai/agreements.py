@@ -60,14 +60,42 @@ def _norm(s: str) -> str:
     return re.sub(r"\s+", " ", s).strip().lower()
 
 
+# Words that must appear in a quote for it to *state* a criterion of that kind. A "stated"
+# criterion whose quote lacks them is an inference and is downgraded to a suggestion.
+KIND_TERMS = {
+    "http_availability": re.compile(
+        r"\b(availab\w*|reachab\w*|online|uptime|up and running|be live|go live|loads?|"
+        r"respond\w*|url|domain|hosted|deployed)\b"
+    ),
+    "mobile_viewport": re.compile(r"\b(mobile\w*|responsive|phones?|smartphones?|tablets?)\b"),
+    "contact_form": re.compile(r"\b(contact|forms?|enquir\w*|inquir\w*)\b"),
+    "lighthouse_performance": re.compile(
+        r"\b(lighthouse|performance|page ?speed|speed|fast|load time)\b"
+    ),
+}
+MANDATORY = re.compile(r"\b(must|shall|required?|has to|have to|needs? to)\b")
+
+
 def review_draft(requirements: str, draft: AgreementDraftOut) -> dict[str, Any]:
-    """Deterministic checks on the model's proposal. Pure function."""
+    """Deterministic checks on the model's proposal. Pure function.
+
+    * stated criteria must quote the request verbatim AND the quote must express the
+      criterion's kind; otherwise they become suggestions (never a "buyer instruction");
+    * suggestions are listed separately and only enter an agreement if the buyer
+      explicitly accepts them;
+    * a stated requirement phrased as mandatory ("must", "shall", ...) stays blocking —
+      the model cannot weaken it;
+    * thresholds the buyer did not write are removed and asked for.
+    """
     text = _norm(requirements)
     numbers = set(re.findall(r"\d+", requirements))
-    kept, rejected = [], []
+    kept: list[dict[str, Any]] = []
+    suggestions: list[dict[str, Any]] = []
+    rejected: list[dict[str, Any]] = []
     seen: set[str] = set()
     for c in draft.criteria:
         reasons: list[str] = []
+        notes: list[str] = []
         quote = _norm(c.source_quote)
         if not quote or quote not in text:
             reasons.append("SOURCE_QUOTE_NOT_IN_REQUEST")
@@ -76,12 +104,23 @@ def review_draft(requirements: str, draft: AgreementDraftOut) -> dict[str, Any]:
             key = f"c_{key}"[:50]
         if key in seen:
             reasons.append("DUPLICATE_KEY")
+        origin = c.origin
+        terms = KIND_TERMS.get(c.kind)
+        if origin == "stated" and terms is not None and not terms.search(quote):
+            origin = "suggested"
+            notes.append("KIND_NOT_STATED_IN_QUOTE: reclassified as a suggestion")
+        blocking = c.blocking
+        if origin == "stated" and MANDATORY.search(quote) and not blocking:
+            blocking = True
+            notes.append("BLOCKING_RESTORED: the buyer phrased this as mandatory")
         needs = list(dict.fromkeys(c.needs_configuration))
         expected = c.expected.model_dump(exclude_none=True)
         if c.kind == "lighthouse_performance":
             score = c.expected.min_performance_score
             if score is None or str(score) not in numbers or not 0 <= score <= 100:
                 # A threshold the buyer did not write is not accepted from the model.
+                if score is not None:
+                    notes.append(f"THRESHOLD_NOT_IN_REQUEST: {score} removed")
                 expected.pop("min_performance_score", None)
                 needs.append("lighthouse minimum performance score")
         if c.kind == "contact_form":
@@ -91,25 +130,30 @@ def review_draft(requirements: str, draft: AgreementDraftOut) -> dict[str, Any]:
             ):
                 if not any(item.split()[0] in n.lower() for n in needs):
                     needs.append(item)
-        if c.kind == "manual_review" and not (c.manual_review_instructions or "").strip():
-            c = c.model_copy(update={"manual_review_instructions": c.source_quote})
+        instructions = c.manual_review_instructions
+        if c.kind == "manual_review" and not (instructions or "").strip():
+            instructions = c.source_quote
         entry = {
             "key": key,
             "title": c.title[:200],
             "kind": c.kind,
-            "blocking": c.blocking,
+            "origin": origin,
+            "blocking": blocking,
             "source_quote": c.source_quote,
+            "rationale": c.rationale,
             "expected": expected,
             "needs_configuration": needs,
-            "manual_review_instructions": c.manual_review_instructions,
+            "manual_review_instructions": instructions,
+            "review_notes": notes,
         }
         if reasons:
             rejected.append({**entry, "reasons": reasons})
-        else:
-            seen.add(key)
-            kept.append(entry)
+            continue
+        seen.add(key)
+        (kept if origin == "stated" else suggestions).append(entry)
     return {
         "criteria": kept,
+        "suggestions": suggestions,
         "rejected_criteria": rejected,
         "ambiguities": [a.model_dump() for a in draft.ambiguities],
         "manual_review_items": [m.model_dump() for m in draft.manual_review_items],
@@ -160,7 +204,7 @@ class AgreementIntelligence:
                 buyer_organization_id=buyer_organization_id,
                 created_by_user_id=principal.user_id,
                 requirements_text=requirements_text,
-                ai_call_id=result.call.id,
+                ai_call_id=result.call.id if result.call else None,
                 status=DraftStatus.PROPOSED,
                 ai_output=result.parsed.model_dump(),
                 review=review_draft(requirements_text, result.parsed),
@@ -191,8 +235,13 @@ class AgreementIntelligence:
         use_standard_form_fields: bool = False,
         include_keys: list[str] | None = None,
         blocking_overrides: dict[str, bool] | None = None,
+        accept_suggestions: list[str] | None = None,
     ) -> Agreement:
-        """Buyer review: choose criteria, supply configuration, create a DRAFT agreement."""
+        """Buyer review: choose criteria, supply configuration, create a DRAFT agreement.
+
+        Stated criteria are included unless left out of `include_keys`; AI suggestions are
+        included only when named in `accept_suggestions`. Any blocking change is explicit
+        (`blocking_overrides`) and audited."""
         draft = self.session.get(AgreementDraft, draft_id, with_for_update=True)
         if draft is None or not principal.member_of(draft.buyer_organization_id):
             raise AgreementError("NOT_FOUND", "draft not found", http_status=404)
@@ -201,9 +250,17 @@ class AgreementIntelligence:
         if draft.status is not DraftStatus.PROPOSED:
             raise AgreementError("DRAFT_NOT_PROPOSED", f"draft is {draft.status.value}")
 
+        suggestions = {c["key"]: c for c in draft.review.get("suggestions", [])}
+        bad_suggestions = set(accept_suggestions or []) - set(suggestions)
+        if bad_suggestions:
+            raise AgreementError(
+                "UNKNOWN_SUGGESTION",
+                f"no such suggestions: {sorted(bad_suggestions)}",
+                http_status=422,
+            )
         chosen = [
             c for c in draft.review["criteria"] if include_keys is None or c["key"] in include_keys
-        ]
+        ] + [suggestions[k] for k in (accept_suggestions or [])]
         if not chosen:
             raise AgreementError("NO_CRITERIA", "select at least one criterion", http_status=422)
         blocking_overrides = blocking_overrides or {}
@@ -285,6 +342,7 @@ class AgreementIntelligence:
             criteria_source=CriterionSource.AI_PROPOSED,
         )
         draft = self.session.get(AgreementDraft, draft_id, with_for_update=True)
+        assert draft is not None
         draft.status = DraftStatus.ACCEPTED
         draft.accepted_agreement_id = agreement.id
         record_audit(
@@ -298,6 +356,12 @@ class AgreementIntelligence:
                 "criteria": [c.key for c in criteria],
                 "standard_form_fields": use_standard_form_fields,
                 "blocking_overrides": blocking_overrides,
+                "weakened_blocking": sorted(
+                    k
+                    for k, v in blocking_overrides.items()
+                    if v is False and any(c["key"] == k and c["blocking"] for c in chosen)
+                ),
+                "accepted_suggestions": accept_suggestions or [],
             },
         )
         self.session.commit()

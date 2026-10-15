@@ -40,9 +40,17 @@ class DraftCriterion(_Strict):
     key: str = Field(description="snake_case identifier, e.g. contact_form_works")
     title: str = Field(description="One-line human-readable criterion")
     kind: SupportedKind
+    origin: Literal["stated", "suggested"] = Field(
+        description="stated: the buyer explicitly asked for this. suggested: your own "
+        "recommendation that the buyer did not ask for"
+    )
     blocking: bool = Field(description="True if the promise depends on it")
     source_quote: str = Field(
-        description="Exact, verbatim words from the buyer's request that this criterion is based on"
+        description="Exact, verbatim words from the buyer's request that this criterion is "
+        "based on (for suggestions: the words that motivated the suggestion)"
+    )
+    rationale: str | None = Field(
+        default=None, description="For suggestions: why it would help the buyer"
     )
     expected: ExpectedValues
     needs_configuration: list[str] = Field(

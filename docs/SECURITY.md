@@ -58,7 +58,9 @@
 | AI fabricating test claims | every claim must cite existing result ids, measurement fields, artifact ids; stored outcome always displayed | implemented, tested |
 | AI-generated code / selectors executed | schema forbids selectors/URLs/code; AI package has no exec/eval/subprocess/SQL (static test); criteria validated by P03 spec schemas | implemented, tested |
 | AI key leakage | key only in API settings (`SecretStr`); verifier and runner refuse `ANTHROPIC_*`; `ai_calls` stores error class names and a prompt hash only | implemented, tested |
-| AI cost runaway | per-call `max_tokens`, SDK timeout/retries, daily token budget checked before every call | implemented, tested |
+| AI cost runaway | per-call `max_tokens`, bounded retries, worst-case USD reservation under an advisory lock before every call, settlement from usage, fail closed on unknown price/usage; Console spend limit recommended | implemented, tested (incl. 6 concurrent requests) |
+| AI presented as human approval | `pending_human_review.decision` is never set by AI code; human decisions are a separate P06 record | implemented (pending list); decision flow designed in P06 |
+| Inferred requirements shown as buyer instructions | stated/suggested origin; kind-keyword check downgrades inferences; suggestions require explicit acceptance | implemented, tested |
 
 ## Operational rules
 

@@ -8,8 +8,8 @@ Deadline: **2026-11-12 23:00 GMT+3** (PayPal AI Hackathon). Spec: [BUILD_PROMPT_
 | P02 | PayPal Sandbox proof | ✅ core lifecycle accepted (live Sandbox 2026-10-15) · ⏳ **live webhook verification open** — procedure in WEBHOOKS.md, needs a public URL (approval) |
 | P03 | Agreement domain | ✅ accepted (gate re-run before P04: 47/47) |
 | P04 | Verification engine (Playwright, Lighthouse, SSRF guard) | ✅ conditionally accepted — see [VERIFICATION.md](VERIFICATION.md), open items in [TECH_DEBT.md](TECH_DEBT.md) |
-| P05 | AI contract and evidence intelligence | 🟡 implemented + real-model tested; **awaiting review** — see [AI_VERIFICATION.md](AI_VERIFICATION.md) |
-| P06 | Deterministic policy, human approval, auth/RBAC | ⏳ |
+| P05 | AI contract and evidence intelligence | 🟡 final corrections done, real-model canonical demo run; **awaiting acceptance** — see [AI_VERIFICATION.md](AI_VERIFICATION.md) |
+| P06 | Deterministic policy, human approval, auth/RBAC | 📝 design ready: [architecture/P06_POLICY_PLAN.md](architecture/P06_POLICY_PLAN.md) — not started |
 | P07 | Product UI + AG Grid ledger | ⏳ |
 | P08 | Resolution and refunds | ⏳ (payment-level refund done in P02) |
 | P09 | Security and integration hardening | ⏳ |
@@ -99,6 +99,21 @@ Deadline: **2026-11-12 23:00 GMT+3** (PayPal AI Hackathon). Spec: [BUILD_PROMPT_
       attempts, no code execution, import isolation) + 2 real-model tests
 - [x] Demo with the real model on the real fixtures (broken → FAIL, fixed → PASS, both explained)
 - [x] Technical debt register created: [TECH_DEBT.md](TECH_DEBT.md)
+
+### P05 final corrections (2026-10-15)
+
+- [x] Canonical demo keeps accessibility a **blocking** manual review: broken → FAIL, fixed →
+      NEEDS_MANUAL_REVIEW, pending authorized human review shown, nothing fabricated
+- [x] Default model `claude-sonnet-5-5` (verified via Models API + pricing page), Opus
+      selectable, server-side fallback off, actual model ID recorded
+- [x] USD spending controls: price table with source/date, atomic worst-case reservation
+      under an advisory lock, settlement from usage, fail closed on unknown price/usage
+- [x] Stated vs suggested criteria; mandatory requirements stay blocking; suggestions need
+      explicit acceptance; weakening only via audited buyer overrides
+- [x] Deterministic uncertainty statements and `pending_human_review` in every analysis;
+      cross-run references rejected; negation-aware success-claim check
+- [x] Two real-model bugs found and fixed with regression tests; all transcripts labeled
+      ([runs/README.md](integration/runs/README.md))
 
 ## Verified vs unverified
 

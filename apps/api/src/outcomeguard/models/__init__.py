@@ -13,9 +13,11 @@ from outcomeguard.models.agreements import (
 from outcomeguard.models.ai import (
     AgreementDraft,
     AICall,
+    AISpendReservation,
     AnalysisStatus,
     DraftStatus,
     EvidenceAnalysis,
+    ReservationStatus,
 )
 from outcomeguard.models.audit import AuditEvent
 from outcomeguard.models.base import Base
@@ -54,6 +56,8 @@ from outcomeguard.models.verification import (
 
 __all__ = [
     "AICall",
+    "AISpendReservation",
+    "ReservationStatus",
     "AgreementDraft",
     "AnalysisStatus",
     "DraftStatus",

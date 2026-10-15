@@ -37,11 +37,23 @@ REQUEST = (
 )
 
 
-def crit(key, kind, quote, blocking=True, score=None, needs=(), instructions=None):
+def crit(
+    key,
+    kind,
+    quote,
+    blocking=True,
+    score=None,
+    needs=(),
+    instructions=None,
+    origin="stated",
+    rationale=None,
+):
     return {
         "key": key,
         "title": key.replace("_", " "),
         "kind": kind,
+        "origin": origin,
+        "rationale": rationale,
         "blocking": blocking,
         "source_quote": quote,
         "expected": {"min_performance_score": score},
@@ -120,7 +132,7 @@ def test_valid_draft_is_reviewed_deterministically(session, ids, who, settings):
     assert kinds["contact_form_works"]["needs_configuration"]
     assert d.review["rejected_criteria"] == []
     call = session.get(AICall, d.ai_call_id)
-    assert call.outcome == "ok" and call.prompt_version == "agreement-draft/v1"
+    assert call.outcome == "ok" and call.prompt_version == "agreement-draft/v2"
     # The prompt carried the request as data, not the request text in the system prompt.
     system, user = provider.prompts[0]
     assert REQUEST not in system and user.startswith("<buyer_request>")
@@ -679,6 +691,7 @@ def provider_with(monkeypatch, behaviour):
         max_retries=0,
     )
     monkeypatch.setattr(p._client.beta.messages, "parse", behaviour)
+    monkeypatch.setattr(p._client.messages, "parse", behaviour)
     return p
 
 
@@ -765,18 +778,31 @@ def test_provider_success_records_usage_and_model(monkeypatch):
     )
 
 
-def test_provider_sends_fallbacks_effort_and_schema(monkeypatch):
+def test_provider_default_has_no_server_fallback(monkeypatch):
     seen = {}
 
     def capture(**kw):
         seen.update(kw)
         return fake_response()
 
-    provider_with(monkeypatch, capture).complete(
-        system="s", user="u", schema=AICallSchema, max_tokens=10
-    )
-    assert seen["fallbacks"] == "default" and seen["betas"] == ["server-side-fallback-2026-07-01"]
+    p = provider_with(monkeypatch, capture)
+    p._client.beta.messages.parse = lambda **kw: (_ for _ in ()).throw(AssertionError("beta"))
+    p.complete(system="s", user="u", schema=AICallSchema, max_tokens=10)
+    assert "fallbacks" not in seen and "betas" not in seen
     assert seen["output_format"] is AICallSchema and seen["output_config"] == {"effort": "high"}
+
+
+def test_provider_server_fallback_is_explicit_opt_in(monkeypatch):
+    seen = {}
+
+    def capture(**kw):
+        seen.update(kw)
+        return fake_response()
+
+    p = provider_with(monkeypatch, capture)
+    p.server_fallback = True
+    p.complete(system="s", user="u", schema=AICallSchema, max_tokens=10)
+    assert seen["fallbacks"] == "default" and seen["betas"] == ["server-side-fallback-2026-07-01"]
 
 
 @pytest.mark.parametrize("stop,outcome", [("refusal", "refusal"), ("max_tokens", "error")])

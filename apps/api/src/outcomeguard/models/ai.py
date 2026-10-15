@@ -7,11 +7,12 @@ the draft's review status (proposed → accepted/discarded), enforced by trigger
 
 from __future__ import annotations
 
-from datetime import datetime
+from datetime import date, datetime
+from decimal import Decimal
 from enum import StrEnum
 from typing import Any
 
-from sqlalchemy import DateTime, ForeignKey, Integer, String, Text, text
+from sqlalchemy import Date, DateTime, ForeignKey, Integer, Numeric, String, Text, text
 from sqlalchemy.dialects.postgresql import JSONB
 from sqlalchemy.orm import Mapped, mapped_column
 
@@ -35,12 +36,45 @@ class AICall(IdMixin, Base):
     output_tokens: Mapped[int | None] = mapped_column(Integer)
     cache_read_tokens: Mapped[int | None] = mapped_column(Integer)
     request_id: Mapped[str | None] = mapped_column(String(100))
+    cache_write_tokens: Mapped[int | None] = mapped_column(Integer)
+    # Local estimates (USD) from usage x configured price — not Anthropic billing data.
+    reserved_cost_usd: Mapped[Decimal | None] = mapped_column(Numeric(12, 6))
+    estimated_cost_usd: Mapped[Decimal | None] = mapped_column(Numeric(12, 6))
+    pricing: Mapped[dict[str, Any] | None] = mapped_column(JSONB)
+    reservation_id: Mapped[str | None] = mapped_column(String(36))
     prompt_sha256: Mapped[str] = mapped_column(String(64))
     error: Mapped[str | None] = mapped_column(String(500))
     actor: Mapped[str] = mapped_column(String(200))
     created_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True), server_default=text("now()"), index=True
     )
+
+
+class ReservationStatus(StrEnum):
+    RESERVED = "reserved"  # held before the call; counts at its full amount
+    SETTLED = "settled"  # reconciled with reported usage (or kept at reserve if unknown)
+
+
+class AISpendReservation(IdMixin, Base):
+    """Budget ledger. A reservation for the worst-case cost is inserted under an advisory
+    lock *before* the model call, so concurrent requests cannot jointly overspend; it is
+    settled afterwards. A reservation never settled (crash) keeps counting — fail closed."""
+
+    __tablename__ = "ai_spend_reservations"
+
+    day: Mapped[date] = mapped_column(Date, index=True)
+    model: Mapped[str] = mapped_column(String(80))
+    task: Mapped[str] = mapped_column(String(40))
+    reserved_usd: Mapped[Decimal] = mapped_column(Numeric(12, 6))
+    settled_usd: Mapped[Decimal | None] = mapped_column(Numeric(12, 6))
+    status: Mapped[ReservationStatus] = mapped_column(
+        enum_col(ReservationStatus, "ai_reservation_status")
+    )
+    settlement_basis: Mapped[str | None] = mapped_column(String(40))  # usage | reserve_kept
+    created_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), server_default=text("now()")
+    )
+    settled_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
 
 
 class DraftStatus(StrEnum):

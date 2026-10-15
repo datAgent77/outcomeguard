@@ -40,7 +40,8 @@ DROP_FIELDS = {"runs"}
 _PASS_CLAIM = re.compile(
     r"\b(all (criteria|checks|tests) (passed|pass)|verification (passed|succeeded)|"
     r"(ready|eligible|approved) for (payment|capture|release)|release (the )?payment|"
-    r"capture (the )?payment)\b",
+    r"capture (the )?payment|fully verified|completely verified|all requirements (are )?met|"
+    r"nothing (remains|left) to (check|review))\b",
     re.IGNORECASE,
 )
 
@@ -98,6 +99,55 @@ def evidence_packet(session: Session, run: VerificationRun) -> dict[str, Any]:
     }
 
 
+_NEGATION = re.compile(
+    r"\b(not|never|no|nothing|none|cannot|can't|isn't|aren't|wasn't|won't|nor|until|before|without|"
+    r"unless|yet to)\b|n't\b",
+    re.IGNORECASE,
+)
+
+
+def claims_success(summary: str) -> bool:
+    """True if the summary asserts success/payment readiness. A phrase preceded by a
+    negation in the same clause ("should not be considered fully verified") is not a claim.
+    Errs on the side of flagging: only an explicit nearby negation exempts a phrase."""
+    for m in _PASS_CLAIM.finditer(summary):
+        clause = re.split(r"[.;:!?]", summary[: m.start()])[-1]
+        window = " ".join(clause.split()[-6:])
+        if not _NEGATION.search(window):
+            return True
+    return False
+
+
+def uncertainty_for(result: dict[str, Any]) -> str | None:
+    if result["outcome"] == "manual_review_required":
+        return (
+            "Not verifiable by the automated tools; it remains unresolved until an "
+            "authorized human reviewer records a decision."
+        )
+    if result["outcome"] in ("error", "not_run"):
+        return (
+            f"The check produced no usable measurement ({result['reason_code']}); no "
+            "conclusion about this criterion can be drawn from this run."
+        )
+    return None
+
+
+def pending_human_review(packet: dict[str, Any]) -> list[dict[str, Any]]:
+    """Blocking criteria that only an authorized human can resolve (P06 decision flow).
+    AI commentary never counts as that decision."""
+    return [
+        {
+            "criterion_key": r["criterion_key"],
+            "result_id": r["result_id"],
+            "instructions": (r.get("expected") or {}).get("instructions"),
+            "status": "awaiting authorized human review",
+            "decision": None,
+        }
+        for r in packet["results"]
+        if r["blocking"] and r["outcome"] == "manual_review_required"
+    ]
+
+
 def deterministic_summary(packet: dict[str, Any]) -> dict[str, Any]:
     """Fallback that states only stored facts — used when AI is unavailable or rejected."""
     res = packet["results"]
@@ -152,6 +202,7 @@ def ground(packet: dict[str, Any], out: EvidenceAnalysisOut) -> dict[str, Any]:
                 }
             )
             continue
+        assert actual is not None  # no reasons → the result exists
         covered.add(item.result_id)
         kept.append(
             {
@@ -170,10 +221,26 @@ def ground(packet: dict[str, Any], out: EvidenceAnalysisOut) -> dict[str, Any]:
         )
     summary = out.summary
     summary_rejected = None
-    if packet["run"]["verdict"] != "pass" and _PASS_CLAIM.search(summary):
+    if packet["run"]["verdict"] != "pass" and claims_success(summary):
         summary_rejected = "SUMMARY_CONTRADICTS_VERDICT"
         summary = deterministic_summary(packet)["summary"]
     unexplained = [r["criterion_key"] for rid, r in results.items() if rid not in covered]
+    # Deterministic uncertainty: wherever there is no positive measurement, say so — no
+    # matter what the model wrote.
+    for e in kept:
+        note = uncertainty_for(results[e["result_id"]])
+        if note:
+            e["insufficient_evidence"] = True
+            e["uncertainty"] = note
+    uncertainties = [
+        {
+            "criterion_key": r["criterion_key"],
+            "statement": uncertainty_for(r)
+            or "No AI explanation survived grounding; see the stored result.",
+        }
+        for rid, r in results.items()
+        if rid not in covered
+    ]
     return {
         "verdict": packet["run"]["verdict"],
         "summary": summary,
@@ -181,6 +248,8 @@ def ground(packet: dict[str, Any], out: EvidenceAnalysisOut) -> dict[str, Any]:
         "explanations": kept,
         "rejected_claims": rejected,
         "unexplained_criteria": unexplained,
+        "uncertainties": uncertainties,
+        "pending_human_review": pending_human_review(packet),
         "missing_evidence": out.missing_evidence,
         "limitations": out.limitations,
     }
@@ -210,6 +279,8 @@ class EvidenceIntelligence:
                     "verdict": verdict,
                     "explanations": [],
                     "unexplained_criteria": [],
+                    "uncertainties": [],
+                    "pending_human_review": [],
                 },
                 actor,
             )
@@ -233,6 +304,14 @@ class EvidenceIntelligence:
                     "ai_outcome": result.outcome,
                     "explanations": [],
                     "unexplained_criteria": [r["criterion_key"] for r in packet["results"]],
+                    "uncertainties": [
+                        {
+                            "criterion_key": r["criterion_key"],
+                            "statement": "AI explanation unavailable; see the stored result.",
+                        }
+                        for r in packet["results"]
+                    ],
+                    "pending_human_review": pending_human_review(packet),
                 },
                 actor,
             )

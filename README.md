@@ -22,9 +22,11 @@ PayPal **Sandbox only** — no real money moves.
 > live webhook delivery not verified yet), the agreement domain (versioned agreements,
 > typed acceptance criteria, buyer approval and locking, RBAC), and real evidence
 > verification (Chromium, Lighthouse, controlled contact-form sink, SSRF-guarded egress,
-> container network isolation), and the AI layer (Claude drafts acceptance criteria from
-> plain language and explains real verification evidence — grounded, no financial
-> authority). The product UI (P07) is not built yet. See
+> container network isolation), and the AI layer (Claude Sonnet 5.5 drafts acceptance
+> criteria from plain language and explains real verification evidence — grounded, budget-
+> capped, no financial authority). A fixed page with an unresolved blocking manual review
+> is reported as NEEDS_MANUAL_REVIEW, never as verified. Payment governance (P06) and the
+> product UI (P07) are not built yet. See
 > [docs/IMPLEMENTATION_PROGRESS.md](docs/IMPLEMENTATION_PROGRESS.md) and
 > [docs/INTEGRATION_PROOF.md](docs/INTEGRATION_PROOF.md) for what is verified.
 

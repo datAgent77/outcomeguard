@@ -279,8 +279,9 @@ class Orchestrator:
         import httpx
 
         workdir = Path(spec["artifacts_dir"])
+        runner_url = self.settings.verifier_runner_url or ""
         resp = httpx.post(
-            f"{self.settings.verifier_runner_url.rstrip('/')}/run",
+            f"{runner_url.rstrip('/')}/run",
             json={**spec, "artifacts_dir": "/tmp"},  # noqa: S108 — remote side
             timeout=self.settings.runner_timeout_seconds,
         )

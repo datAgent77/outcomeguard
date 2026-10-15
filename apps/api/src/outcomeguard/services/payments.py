@@ -302,7 +302,8 @@ class PaymentService:
         if status == "APPROVED":
             try:
                 resp = self.gateway.authorize_order(
-                    order.paypal_order_id, request_id=f"og-auth-{order.id}"
+                    _require(order.paypal_order_id, "paypal_order_id"),
+                    request_id=f"og-auth-{order.id}",
                 )
             except PayPalUncertainError:
                 raise PaymentUncertain("payment_order", order.id) from None
@@ -770,9 +771,8 @@ class PaymentService:
         # Expire the identity map so relationships (order.authorization, auth.capture,
         # capture.refunds) are re-read inside this locked transaction, not served stale.
         self.session.expire_all()
-        row = self.session.scalar(
-            select(model).where(model.id == pk).with_for_update()  # type: ignore[attr-defined]
-        )
+        stmt: Any = select(model).where(model.id == pk).with_for_update()  # type: ignore[attr-defined]
+        row = self.session.scalar(stmt)
         if row is None:
             self.session.rollback()
             raise PaymentRuleViolation(

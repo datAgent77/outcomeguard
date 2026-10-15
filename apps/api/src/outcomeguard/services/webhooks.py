@@ -86,8 +86,9 @@ def handle_webhook(svc: PaymentService, headers: dict[str, str], event: Json) ->
         return WebhookResult("rejected", f"signature {verification}")
 
     result = _process(svc, row)
-    row = session.get(WebhookEvent, row.id)
-    assert row is not None
+    stored = session.get(WebhookEvent, row.id)
+    assert stored is not None
+    row = stored
     row.processed_at = utcnow()
     row.processing_result = f"{result.status}: {result.detail}"[:200]
     record_audit(
