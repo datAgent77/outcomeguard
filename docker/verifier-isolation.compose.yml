@@ -1,0 +1,54 @@
+# Container-level isolation test topology for the verification runner.
+#   scripts/container_isolation_test.sh
+#
+#   sandbox (internal, no internet):  runner, proxy, worker
+#   egress  (internet):               proxy, fixtures
+#   data    (internal):               internal-svc (stands in for Postgres / internal API)
+#
+# The runner's only reachable peer is the egress proxy. Even a browser that ignores proxy
+# settings has no route to the internet, to `data`, or to the fixtures directly.
+name: og-isolation
+
+networks:
+  sandbox:
+    internal: true
+  data:
+    internal: true
+  egress:
+    ipam:
+      config:
+        - subnet: 172.31.250.0/24
+
+services:
+  proxy:
+    image: outcomeguard-verifier:dev
+    command: ["python", "-m", "outcomeguard.verification.proxy", "--listen", "0.0.0.0:3128"]
+    environment:
+      VERIFIER_DEV_ALLOW: "172.31.250.10:8020"
+    networks: [sandbox, egress]
+
+  fixtures:
+    image: outcomeguard-verifier:dev
+    command: ["python", "/fixtures/serve.py", "--host", "0.0.0.0", "--port", "8020",
+              "--sink-url", "http://172.31.250.10:9/sinks/default"]
+    volumes: ["../fixtures:/fixtures:ro"]
+    networks:
+      egress:
+        ipv4_address: 172.31.250.10
+
+  internal-svc:
+    image: outcomeguard-verifier:dev
+    command: ["python", "-m", "http.server", "8000"]
+    networks: [data]
+
+  runner:
+    image: outcomeguard-verifier:dev
+    networks: [sandbox]
+    volumes: ["../scripts:/probe:ro"]
+
+  worker:
+    # Stand-in for the verification worker: the only service on both data and sandbox.
+    image: outcomeguard-verifier:dev
+    command: ["sleep", "infinity"]
+    networks: [sandbox, data]
+    volumes: ["../scripts:/probe:ro"]

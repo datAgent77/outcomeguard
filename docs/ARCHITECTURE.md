@@ -46,6 +46,9 @@ but no AI output is an input to a function that moves money.
 | `…/models/` | Identity, payments, webhooks, idempotency, hash-chained audit log |
 | `apps/api/migrations/` | Alembic migrations (schema is never created implicitly) |
 | `apps/api/scripts/paypal_sandbox_proof.py` | P02 live feasibility gate |
+| `…/domain/verdict.py` | Pure, deterministic criterion outcomes and run verdict |
+| `…/verification/` | SSRF policy, egress proxy, runner, orchestrator/queue, evidence store, worker (see VERIFICATION.md) |
+| `fixtures/` | Real broken/fixed/exfil landing pages used by tests and the demo |
 | `apps/web/` | Next.js 16 App Router (Cache Components on). Talks only to the API, server-side |
 
 ## Data model (P01/P02)

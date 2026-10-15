@@ -27,14 +27,82 @@ Legend: ✅ yes · ❌ not yet · — not applicable
 | Rehearsal mode (simulated, labeled) | ✅ | ✅ | — | — |
 | Agreement domain (versions, locking, approval, RBAC) | ✅ | ✅ (real Postgres, no external service) | — | — |
 | AI criteria / evidence intelligence | ❌ (P05) | ❌ | — | ❌ |
-| Playwright / Lighthouse verification | ❌ (P04) | ❌ | — | — |
+| Verification: real Chromium checks (mobile, contact form) | ✅ | ✅ verdict logic | — (real Chromium 156, local) | — |
+| Verification: Lighthouse with adaptive retry | ✅ | ✅ | — (real Lighthouse 13.5.0, local + container) | — |
+| SSRF policy / egress proxy | ✅ | ✅ + real sockets + real Chromium | — | — |
+| Runner network isolation in a container | ✅ | — | — (Docker, `scripts/container_isolation_test.sh`, 17/17 probes) | — |
 
-Last updated: 2026-10-15 — unit suite 101 passed; Sandbox suite (`-m sandbox`) 2 passed;
+Last updated: 2026-10-15 (P04) — API suite 205 passed (incl. 4 real-browser tests); Sandbox suite (`-m sandbox`) 2 passed;
 full lifecycle run passed against the live PayPal Sandbox (see Runs).
 
 **P02 core gate: PASSED** (OAuth → Create Order → Buyer Approval → Authorize → Capture →
 Partial Refund, real Sandbox responses). **Still open:** live webhook delivery and
 signature verification, and the lost-response reconcile path (mocks only).
+
+## Verification evidence (P04, 2026-10-15)
+
+All results below were produced by real tools; nothing is simulated. Local runs used
+macOS + Chromium 156.0.8078.4 (Chromium sandbox **on**), Lighthouse 13.5.0 on
+`chrome-headless-shell`, PostgreSQL 17. Fixtures are served over http://127.0.0.1, so the
+demo agreement sets `require_https: false`.
+
+### Broken / fixed demo — [`runs/verification-demo-20261015T123029Z.json`](integration/runs/verification-demo-20261015T123029Z.json)
+
+| Fixture | Verdict | site_available | mobile_layout | contact_form_works | lighthouse_performance | Wall time |
+|---|---|---|---|---|---|---|
+| landing-page-broken | **FAIL** | pass | pass (390/390 px) | **fail `NO_SUBMISSION_TO_SINK`** (no sink request, 0 receipts, success text not shown) | pass (100, 10.1 s, 1 run) | 25.2 s |
+| landing-page-fixed | **PASS** (`verified_pass: true`) | pass | pass | pass (sink 201, 1 receipt in DB, success text shown) | pass (100, 10.2 s, 1 run) | 12.1 s |
+
+Each run stored 5 artifacts (HTTP trace, mobile screenshot, post-submit screenshot,
+gzipped Lighthouse report, egress decision log) with SHA-256 hashes listed in the
+transcript. Artifacts were downloaded through `GET /verification/artifacts/{id}` as the
+buyer approver and re-hashed: match. A user from another organisation got 404.
+
+### End-to-end test (`tests/test_verification_e2e.py`, in CI)
+
+broken → FAIL `NO_SUBMISSION_TO_SINK`; fixed → PASS; exfil → FAIL
+`FORM_POSTS_TO_UNAPPROVED_DESTINATION` with the third-party collector receiving **0
+requests** (aborted in the browser before transmission).
+
+### Lighthouse adaptive retry (real Lighthouse, `test_lighthouse_adaptive_retry_with_real_lighthouse`)
+
+Threshold 50 vs score 100 → 1 run (≈10.1 s). Threshold 97 (within ±5) → 3 runs
+[100, 100, 100] (≈9.9 s each), median decides.
+
+### SSRF / browser isolation on the host (proxy layer)
+
+Real Chromium loading a page whose JavaScript tries 9 vectors (fetch to a local
+non-allow-listed port, `[::1]`, `localhost`, decimal IP, 169.254.169.254, 10.0.0.1,
+`sendBeacon`, XHR, WebSocket, plus `<img>`/`<iframe>`): the internal canary server
+received **0 requests**; the proxy logged `PORT_NOT_ALLOWED`, `METADATA_ADDRESS`,
+`PRIVATE_ADDRESS`. Real-socket proxy tests cover CONNECT to internal, Host-header
+smuggling, absolute https URIs and DNS rebinding.
+
+### Container isolation — [`runs/container-isolation-20261015T122912Z.json`](integration/runs/container-isolation-20261015T122912Z.json)
+
+Docker 29.5.2 (Docker Desktop, linux/arm64), topology `docker/verifier-isolation.compose.yml`.
+Probes run **inside the runner container**:
+
+| Probe | Result |
+|---|---|
+| Direct TCP to 1.1.1.1:443 / fixture IP | `Network is unreachable` |
+| Direct DNS / TCP to `internal-svc` (data network) | name resolution failure |
+| Direct HTTP to example.com | name resolution failure |
+| Chromium with `--no-proxy-server` (bypass attempt) → fixture / internet | `ERR_ADDRESS_UNREACHABLE` / `ERR_NAME_NOT_RESOLVED` |
+| Via proxy → fixture (dev-allow-listed) / example.com | 200 / 200 |
+| Via proxy → internal-svc, metadata, gateway, other port, proxy loopback | 403 `DNS_FAILURE`, `METADATA_ADDRESS`, `PRIVATE_ADDRESS`, `PORT_NOT_ALLOWED`, `PORT_NOT_ALLOWED` |
+| Real verification job in the container (HTTP + Chromium + Lighthouse via proxy) | 200; 390/390 px; Lighthouse 100 in 9.9 s |
+| Worker container → runner job server | 200 with measurement + artifact |
+
+In the container Chromium's own sandbox is **off** (`VERIFIER_CHROMIUM_SANDBOX=0`; no user
+namespaces); the container boundary and the internal network are the isolation there.
+*(A first container run on 2026-10-15 reported Lighthouse as passing although Lighthouse
+had failed to start — the probe returned the error inside its result. The assertion was
+tightened to require a score from every tool, the cause (Chromium sandbox in a
+container) was fixed, and that run's output was discarded.)*
+
+**Not verified:** the full `docker-compose.yml` stack (API + worker + runner + DB in
+containers) end-to-end, and any hosted (Render) environment.
 
 ## How to reproduce
 

@@ -164,7 +164,7 @@ class PaymentCapture(IdMixin, TimestampMixin, Base):
     paypal_fee_minor: Mapped[int | None] = mapped_column(BigInteger)
     net_minor: Mapped[int | None] = mapped_column(BigInteger)
     approval_id: Mapped[str | None] = mapped_column(ForeignKey("approvals.id"))
-    verification_run_id: Mapped[str | None] = mapped_column(String(36))
+    verification_run_id: Mapped[str | None] = mapped_column(ForeignKey("verification_runs.id"))
     policy_decision_id: Mapped[str | None] = mapped_column(String(36))
 
     authorization: Mapped[PaymentAuthorization] = relationship(back_populates="capture")

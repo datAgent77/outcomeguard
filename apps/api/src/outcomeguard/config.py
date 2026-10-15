@@ -9,6 +9,7 @@ from __future__ import annotations
 
 from enum import StrEnum
 from functools import lru_cache
+from pathlib import Path
 
 from pydantic import Field, SecretStr, field_validator, model_validator
 from pydantic_settings import BaseSettings, SettingsConfigDict
@@ -56,6 +57,11 @@ class Settings(BaseSettings):
     operator_token: SecretStr | None = Field(default=None)
     # Signs session tokens. Must be stable across restarts (else everyone is logged out).
     session_secret: SecretStr | None = None
+
+    # Verification (P04): the API hosts the controlled form sink and serves artifacts.
+    sink_secret: SecretStr | None = None
+    verifier_form_sinks: str = "default"
+    evidence_dir: str = str(Path(__file__).resolve().parents[2] / ".evidence")
 
     log_level: str = "INFO"
 

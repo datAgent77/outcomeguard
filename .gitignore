@@ -20,3 +20,6 @@ next-env.d.ts
 .vscode/
 # local artifacts
 *.log
+
+# verification evidence (local content-addressed store)
+apps/api/.evidence/

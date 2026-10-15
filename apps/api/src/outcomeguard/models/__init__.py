@@ -33,8 +33,28 @@ from outcomeguard.models.payments import (
     RefundStatus,
     WebhookEvent,
 )
+from outcomeguard.models.verification import (
+    ArtifactKind,
+    EvidenceArtifact,
+    EvidenceSubmission,
+    FormSinkReceipt,
+    JobState,
+    RunStatus,
+    VerificationJob,
+    VerificationResult,
+    VerificationRun,
+)
 
 __all__ = [
+    "ArtifactKind",
+    "EvidenceArtifact",
+    "EvidenceSubmission",
+    "FormSinkReceipt",
+    "JobState",
+    "RunStatus",
+    "VerificationJob",
+    "VerificationResult",
+    "VerificationRun",
     "AcceptanceCriterion",
     "Agreement",
     "AgreementStatus",

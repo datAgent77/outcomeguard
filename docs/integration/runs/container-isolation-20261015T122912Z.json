@@ -1,0 +1,131 @@
+{
+ "direct_tcp_internet_1.1.1.1_443": {
+  "ok": false,
+  "detail": "OSError: [Errno 101] Network is unreachable",
+  "ms": 4
+ },
+ "direct_tcp_fixture_172.31.250.10_8020": {
+  "ok": false,
+  "detail": "OSError: [Errno 101] Network is unreachable",
+  "ms": 0
+ },
+ "direct_tcp_internal_svc_8000": {
+  "ok": false,
+  "detail": "gaierror: [Errno -3] Temporary failure in name resolution",
+  "ms": 0
+ },
+ "direct_http_example_com": {
+  "ok": false,
+  "detail": "ConnectError: [Errno -3] Temporary failure in name resolution",
+  "ms": 42
+ },
+ "dns_resolve_internal_svc": {
+  "ok": false,
+  "detail": "gaierror: [Errno -3] Temporary failure in name resolution",
+  "ms": 0
+ },
+ "tcp_proxy_3128_reachable": {
+  "ok": true,
+  "detail": "connected",
+  "ms": 0
+ },
+ "proxy_fixture_allowed": {
+  "ok": true,
+  "detail": "200 blocked=None",
+  "ms": 35
+ },
+ "proxy_internet_example_com": {
+  "ok": true,
+  "detail": "200 blocked=None",
+  "ms": 89
+ },
+ "proxy_internal_svc": {
+  "ok": true,
+  "detail": "403 blocked=DNS_FAILURE",
+  "ms": 60
+ },
+ "proxy_metadata": {
+  "ok": true,
+  "detail": "403 blocked=METADATA_ADDRESS",
+  "ms": 29
+ },
+ "proxy_gateway_private": {
+  "ok": true,
+  "detail": "403 blocked=PRIVATE_ADDRESS",
+  "ms": 27
+ },
+ "proxy_fixture_other_port": {
+  "ok": true,
+  "detail": "403 blocked=PORT_NOT_ALLOWED",
+  "ms": 27
+ },
+ "proxy_loopback_of_proxy": {
+  "ok": true,
+  "detail": "403 blocked=PORT_NOT_ALLOWED",
+  "ms": 27
+ },
+ "chromium_with_proxy_fixture": {
+  "ok": true,
+  "detail": "status=200 title='Northwind Trail Co. \u2014 Spring Campaign'",
+  "ms": 425
+ },
+ "chromium_no_proxy_bypass_fixture": {
+  "ok": false,
+  "detail": "Error: Page.goto: net::ERR_ADDRESS_UNREACHABLE at http://172.31.250.10:8020/landing-page-fixed/\nCall log:\n  - navigating to \"http://172.31.250.10:8020/landing-page-fix",
+  "ms": 240
+ },
+ "chromium_no_proxy_bypass_internet": {
+  "ok": false,
+  "detail": "Error: Page.goto: net::ERR_NAME_NOT_RESOLVED at http://example.com/\nCall log:\n  - navigating to \"http://example.com/\", waiting until \"load\"\n",
+  "ms": 219
+ },
+ "real_verification_job": {
+  "ok": true,
+  "detail": {
+   "http": [
+    {
+     "url": "http://172.31.250.10:8020/landing-page-fixed/",
+     "status": 200,
+     "location": null
+    }
+   ],
+   "mobile": {
+    "scroll_width": 390,
+    "viewport_width": 390,
+    "selectors_visible": {
+     "form": true
+    },
+    "error": null
+   },
+   "lighthouse_scores": [
+    100
+   ],
+   "lighthouse_error": null,
+   "lighthouse_ms": [
+    9903
+   ],
+   "tool_versions": {
+    "httpx": "0.28.1",
+    "chromium": "156.0.8078.4",
+    "chromium_sandbox": false,
+    "lighthouse": "13.5.0",
+    "playwright": "1.64.0"
+   },
+   "artifacts": [
+    [
+     "http-trace.json",
+     192
+    ],
+    [
+     "mobile-viewport.png",
+     84788
+    ],
+    [
+     "lighthouse-run-1.json.gz",
+     65844
+    ]
+   ]
+  },
+  "ms": 10682
+ }
+}

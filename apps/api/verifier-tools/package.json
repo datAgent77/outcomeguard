@@ -1,0 +1,9 @@
+{
+  "name": "outcomeguard-verifier-tools",
+  "private": true,
+  "description": "Pinned Lighthouse CLI used by the OutcomeGuard verification runner",
+  "license": "MIT",
+  "dependencies": {
+    "lighthouse": "13.5.0"
+  }
+}

@@ -1,0 +1,231 @@
+{
+  "kind": "p04-verification-demo",
+  "started_at": "2026-10-15T12:29:52.232077+00:00",
+  "agreement_id": "ff88826b-d355-49ad-955b-ef496064cb7c",
+  "agreement_version_id": "0838a19e-0601-4696-9ed4-1585bc273429",
+  "agreement_content_hash": "6c8d7c6188d8cbde4d63366d3e6e45bc543bd83bf5b6d7a84c25cd21b1b8eaf5",
+  "runs": [
+    {
+      "fixture": "landing-page-broken",
+      "delivery_url": "http://127.0.0.1:8020/landing-page-broken/",
+      "run_id": "7a54180c-0121-4d29-83a0-3d61e565d72e",
+      "status": "completed",
+      "verdict": "fail",
+      "verified_pass": false,
+      "wall_seconds": 25.2,
+      "tool_versions": {
+        "httpx": "0.28.1",
+        "chromium": "156.0.8078.4",
+        "lighthouse": "13.5.0",
+        "playwright": "1.64.0",
+        "chromium_sandbox": true
+      },
+      "results": [
+        {
+          "criterion": "site_available",
+          "blocking": true,
+          "outcome": "pass",
+          "reason": "OK",
+          "duration_ms": 139,
+          "measured": {
+            "chain": [
+              {
+                "url": "http://127.0.0.1:8020/landing-page-broken/",
+                "status": 200,
+                "location": null
+              }
+            ]
+          },
+          "lighthouse_run_ms": null
+        },
+        {
+          "criterion": "mobile_layout",
+          "blocking": true,
+          "outcome": "pass",
+          "reason": "OK",
+          "duration_ms": 1517,
+          "measured": {
+            "scroll_width": 390,
+            "viewport_width": 390
+          },
+          "lighthouse_run_ms": null
+        },
+        {
+          "criterion": "contact_form_works",
+          "blocking": true,
+          "outcome": "fail",
+          "reason": "NO_SUBMISSION_TO_SINK",
+          "duration_ms": 10747,
+          "measured": {
+            "success_text_seen": false,
+            "sink_requests": [],
+            "prohibited_requests": [],
+            "sink_receipts_in_db": 0
+          },
+          "lighthouse_run_ms": null
+        },
+        {
+          "criterion": "lighthouse_performance",
+          "blocking": true,
+          "outcome": "pass",
+          "reason": "OK",
+          "duration_ms": 10096,
+          "measured": {
+            "scores": [
+              100
+            ],
+            "adaptive_retry": false
+          },
+          "lighthouse_run_ms": [
+            10071
+          ]
+        }
+      ],
+      "artifacts": [
+        {
+          "label": "http-trace.json",
+          "kind": "http_trace",
+          "sha256": "0695f42e61d7671105fe31bd989d0051d707fe0adfd2955969eb6aa180c96c02",
+          "size_bytes": 140
+        },
+        {
+          "label": "mobile-viewport.png",
+          "kind": "screenshot",
+          "sha256": "2147b0f2df6ee5afe5f57e6cc8fb7c3005edb348ece8e3af3eaf1c09544a9f87",
+          "size_bytes": 66740
+        },
+        {
+          "label": "contact-form-after-submit.png",
+          "kind": "screenshot",
+          "sha256": "794bfe49c61af1f48269ae9015e732e5c693eea1983a4887b63f1407cb734f1f",
+          "size_bytes": 85050
+        },
+        {
+          "label": "lighthouse-run-1.json.gz",
+          "kind": "lighthouse_json",
+          "sha256": "955bed26d4f55c919f7dcca6ee7ac57981a5e0f4dfe074a7423193c312715a22",
+          "size_bytes": 67657
+        },
+        {
+          "label": "egress-decisions.json",
+          "kind": "network_log",
+          "sha256": "b19af9bad4c673a1e084f283a0cf8f3ffe224519b5351b98682fbbb5168224f2",
+          "size_bytes": 1679
+        }
+      ]
+    },
+    {
+      "fixture": "landing-page-fixed",
+      "delivery_url": "http://127.0.0.1:8020/landing-page-fixed/",
+      "run_id": "ddccae4f-eafe-43bf-a2e8-50c9fc3c7e28",
+      "status": "completed",
+      "verdict": "pass",
+      "verified_pass": true,
+      "wall_seconds": 12.1,
+      "tool_versions": {
+        "httpx": "0.28.1",
+        "chromium": "156.0.8078.4",
+        "lighthouse": "13.5.0",
+        "playwright": "1.64.0",
+        "chromium_sandbox": true
+      },
+      "results": [
+        {
+          "criterion": "site_available",
+          "blocking": true,
+          "outcome": "pass",
+          "reason": "OK",
+          "duration_ms": 48,
+          "measured": {
+            "chain": [
+              {
+                "url": "http://127.0.0.1:8020/landing-page-fixed/",
+                "status": 200,
+                "location": null
+              }
+            ]
+          },
+          "lighthouse_run_ms": null
+        },
+        {
+          "criterion": "mobile_layout",
+          "blocking": true,
+          "outcome": "pass",
+          "reason": "OK",
+          "duration_ms": 436,
+          "measured": {
+            "scroll_width": 390,
+            "viewport_width": 390
+          },
+          "lighthouse_run_ms": null
+        },
+        {
+          "criterion": "contact_form_works",
+          "blocking": true,
+          "outcome": "pass",
+          "reason": "OK",
+          "duration_ms": 897,
+          "measured": {
+            "success_text_seen": true,
+            "sink_requests": [
+              {
+                "status": 201
+              }
+            ],
+            "prohibited_requests": [],
+            "sink_receipts_in_db": 1
+          },
+          "lighthouse_run_ms": null
+        },
+        {
+          "criterion": "lighthouse_performance",
+          "blocking": true,
+          "outcome": "pass",
+          "reason": "OK",
+          "duration_ms": 10195,
+          "measured": {
+            "scores": [
+              100
+            ],
+            "adaptive_retry": false
+          },
+          "lighthouse_run_ms": [
+            10169
+          ]
+        }
+      ],
+      "artifacts": [
+        {
+          "label": "http-trace.json",
+          "kind": "http_trace",
+          "sha256": "f7ec1bb775e46042153ee8a293cba4708c8807561c078ad8eba6556f5aaec047",
+          "size_bytes": 138
+        },
+        {
+          "label": "mobile-viewport.png",
+          "kind": "screenshot",
+          "sha256": "2147b0f2df6ee5afe5f57e6cc8fb7c3005edb348ece8e3af3eaf1c09544a9f87",
+          "size_bytes": 66740
+        },
+        {
+          "label": "contact-form-after-submit.png",
+          "kind": "screenshot",
+          "sha256": "0dcf646dc1415ad55f52013816de0ff6cc70a6dccc1f4971a5194bfb2dd12b98",
+          "size_bytes": 75330
+        },
+        {
+          "label": "lighthouse-run-1.json.gz",
+          "kind": "lighthouse_json",
+          "sha256": "7739593dcef8438bbe3274f52875b0581073d5ae1a03299afb605cfeb59b70e7",
+          "size_bytes": 68967
+        },
+        {
+          "label": "egress-decisions.json",
+          "kind": "network_log",
+          "sha256": "2e4c0184f409e4528a5e0391d028e3f053e8e25c2f677602a587d2551155a74e",
+          "size_bytes": 1806
+        }
+      ]
+    }
+  ]
+}

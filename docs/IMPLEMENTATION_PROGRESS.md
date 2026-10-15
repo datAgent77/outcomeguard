@@ -6,8 +6,8 @@ Deadline: **2026-11-12 23:00 GMT+3** (PayPal AI Hackathon). Spec: [BUILD_PROMPT_
 |---|---|---|
 | P01 | Repository foundation | ✅ done (Docker images not built locally — daemon was off) |
 | P02 | PayPal Sandbox proof | ✅ core lifecycle accepted (live Sandbox 2026-10-15) · ⏳ **live webhook verification open** — procedure in WEBHOOKS.md, needs a public URL (approval) |
-| P03 | Agreement domain | 🟡 implemented + tested; **awaiting review** (built in parallel while P02 is blocked) |
-| P04 | Verification engine (Playwright, Lighthouse, SSRF guard) | 📝 plan ready for review: [architecture/P04_VERIFICATION_PLAN.md](architecture/P04_VERIFICATION_PLAN.md) — not started |
+| P03 | Agreement domain | ✅ accepted (gate re-run before P04: 47/47) |
+| P04 | Verification engine (Playwright, Lighthouse, SSRF guard) | 🟡 implemented + tested; **awaiting review** — see [VERIFICATION.md](VERIFICATION.md) |
 | P05 | AI contract and evidence intelligence | ⏳ |
 | P06 | Deterministic policy, human approval, auth/RBAC | ⏳ |
 | P07 | Product UI + AG Grid ledger | ⏳ |
@@ -66,6 +66,23 @@ Deadline: **2026-11-12 23:00 GMT+3** (PayPal AI Hackathon). Spec: [BUILD_PROMPT_
       columns reserved — FKs and enforcement land with P04/P06
 - [x] Audit event for every material change; rejected attempts leave no trace or partial write
 - [x] 47 new tests (97 total at P03; 101 after P02 financial fixes), migration up/down/up verified, `alembic check` clean
+
+## P04 — Evidence verification (2026-10-15)
+
+- [x] P03 gate re-run first: 47/47 P03 tests, full suite green, no open P03 defects
+- [x] P04a: evidence_submissions, verification_runs/results/jobs, evidence_artifacts,
+      form_sink_receipts (migration `d35b10aa71f2`) + immutability triggers; Postgres
+      queue (SKIP LOCKED, leases, max attempts); pure verdict engine
+- [x] P04b: single SSRF policy (`netpolicy.py`), egress guard proxy with IP pinning,
+      HTTP check, content-addressed evidence store with hash-verified reads
+- [x] P04c: real Chromium mobile + contact-form checks, controlled sink (HMAC run token,
+      limits, hashed values), browser-level blocking of unapproved destinations
+- [x] P04d: Lighthouse 13.5.0 via chrome-headless-shell, 1 run, +2 when within ±5 of the
+      threshold, median of 3
+- [x] P04e: real fixtures (broken / fixed / exfil), end-to-end test and demo transcript
+- [x] Credential isolation: verifier never loads PayPal settings; runner env allow-listed
+- [x] Container topology (`docker/verifier-isolation.compose.yml`) — see INTEGRATION_PROOF
+- [x] PayPal Sandbox suite still green after P04 (2/2)
 
 ## Verified vs unverified
 

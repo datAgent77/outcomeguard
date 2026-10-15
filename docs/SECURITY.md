@@ -46,7 +46,14 @@
 | Session forgery | HMAC-SHA256 tokens, constant-time compare, expiry; roles never in token | implemented, tested |
 | Real login / credential handling | password or SSO login, secure cookies | **planned P06** (interim: operator-issued demo tokens) |
 | Rate abuse on sensitive endpoints | rate limiting | **planned P09** |
-| SSRF from verifier (internal IPs, metadata 169.254.169.254, DNS rebinding, redirects) | resolve-then-pin IP, block private/link-local/loopback ranges, re-check every redirect, egress-restricted worker | **planned P04** |
+| SSRF from verifier (internal IPs, metadata, DNS rebinding, redirects, IP-encoding tricks) | single policy (`netpolicy.py`) enforced by the egress proxy for HTTPX, Chromium (incl. `<-loopback>`) and Lighthouse; resolve once, reject if any answer is non-public, connect to the checked IP; every redirect is a new proxied request | implemented; unit + real-socket + real-Chromium tests |
+| Browser ignoring proxy settings / direct network access | runner container on an internal network whose only peer is the proxy | implemented; **verified only in the container topology** (`scripts/container_isolation_test.sh`), not on a bare host |
+| Submitted page JS reaching internal services | proxy policy + (in containers) no route; WebSockets mocked; service workers blocked | implemented; real Chromium test (9 attack vectors, canary received 0 requests) |
+| Contact-form data sent to third parties | browser-level abort of every non-sink submission before transmission; FAIL with reason | implemented; e2e test (collector received 0 requests) |
+| Form sink abused as a public endpoint | per-run HMAC token added by the verifier, run must be `running`, size/type/count limits, values hashed not stored | implemented, tested |
+| Verifier holding PayPal credentials | settings class without PayPal fields; worker and runner refuse PAYPAL_* env; runner env allow-listed | implemented, tested |
+| Silent edits of verification results | append-only + run-immutability triggers; PASS requires completed run (DB check) | implemented, tested with raw SQL |
+| Tampered evidence files | content-addressed store, hash re-verified on every read | implemented, tested |
 | Prompt injection via evidence | evidence passed as data; AI cannot change test results or policy | **planned P05** |
 
 ## Operational rules

@@ -6,13 +6,20 @@ from fastapi import FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
 
-from outcomeguard.api import routes_agreements, routes_payments, routes_session, routes_system
+from outcomeguard.api import (
+    routes_agreements,
+    routes_payments,
+    routes_session,
+    routes_system,
+    routes_verification,
+)
 from outcomeguard.auth import AuthError, Forbidden
 from outcomeguard.config import get_settings
 from outcomeguard.logs import configure_logging
 from outcomeguard.paypal.gateway import PayPalAPIError, PayPalNotConfiguredError
 from outcomeguard.services.agreements import AgreementError
 from outcomeguard.services.payments import PaymentRuleViolation, PaymentUncertain
+from outcomeguard.verification.service import VerificationError
 
 log = logging.getLogger("outcomeguard")
 
@@ -61,6 +68,10 @@ def create_app() -> FastAPI:
     def _agreement(_: Request, exc: AgreementError) -> JSONResponse:
         return JSONResponse({"code": exc.code, "message": exc.message}, status_code=exc.http_status)
 
+    @app.exception_handler(VerificationError)
+    def _verification(_: Request, exc: VerificationError) -> JSONResponse:
+        return JSONResponse({"code": exc.code, "message": exc.message}, status_code=exc.http_status)
+
     @app.exception_handler(AuthError)
     def _auth(_: Request, exc: AuthError) -> JSONResponse:
         return JSONResponse(
@@ -78,6 +89,8 @@ def create_app() -> FastAPI:
     app.include_router(routes_system.router)
     app.include_router(routes_session.router)
     app.include_router(routes_agreements.router)
+    app.include_router(routes_verification.router)
+    app.include_router(routes_verification.sink_router)
     app.include_router(routes_payments.public)
     app.include_router(routes_payments.dev)
     log.info("api started", extra={"data": settings.public_summary()})

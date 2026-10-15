@@ -8,6 +8,7 @@ os.environ.setdefault("PAYMENT_MODE", "rehearsal")
 os.environ["ENABLE_SANDBOX_PROOF"] = "true"
 os.environ["OPERATOR_TOKEN"] = "test-operator-token"
 os.environ["SESSION_SECRET"] = "test-session-secret"
+os.environ["SINK_SECRET"] = "test-sink-secret"
 
 from collections.abc import Iterator  # noqa: E402
 from pathlib import Path  # noqa: E402
@@ -116,3 +117,40 @@ def who(session, ids):
 
     emails = {e.split("@")[0]: e for e in ids.users}
     return lambda name: load_principal(session, ids.users[emails[name]])
+
+
+# ---------------------------------------------------------------- P04 fixtures
+
+
+@pytest.fixture
+def locked_agreement(session, ids, who):
+    """A locked landing-page agreement. HTTPS is not required because the local
+    fixtures are served over http://127.0.0.1 (hosted fixtures will use https)."""
+    from datetime import UTC, datetime, timedelta
+
+    from outcomeguard.domain.criteria import landing_page_template
+    from outcomeguard.services.agreements import AgreementService, DraftContent
+
+    criteria = landing_page_template()
+    criteria[0] = criteria[0].model_copy(
+        update={"spec": criteria[0].spec.model_copy(update={"require_https": False})}
+    )
+    svc = AgreementService(session=session)
+    a = svc.create(
+        who("alice"),
+        buyer_organization_id=ids.buyer_org_id,
+        merchant_account_id=ids.merchant.id,
+        content=DraftContent(
+            title="Spring campaign landing page",
+            description="",
+            requirements_text="Responsive landing page; working contact form; Lighthouse >= 90",
+            amount=Money(50000, "USD"),
+            delivery_deadline=datetime.now(UTC) + timedelta(days=7),
+        ),
+        criteria=criteria,
+    )
+    v = a.versions[0]
+    p = svc.propose(who("alice"), a.id, 1, expected_revision=v.revision)
+    svc.approve(who("bob"), a.id, 1, content_hash_seen=p.content_hash)
+    session.expire_all()
+    return svc.get(who("alice"), a.id)

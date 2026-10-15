@@ -18,13 +18,22 @@ jobs:
     defaults: { run: { working-directory: apps/api } }
     env:
       TEST_DATABASE_URL: postgresql+psycopg://postgres:postgres@localhost:5432/outcomeguard_test
+      # Ubuntu 24.04 runners restrict unprivileged user namespaces (AppArmor), so
+      # Chromium's own sandbox cannot start; the runner VM is ephemeral.
+      VERIFIER_CHROMIUM_SANDBOX: "0"
     steps:
       - uses: actions/checkout@v4
       - uses: astral-sh/setup-uv@v6
       - run: uv sync --frozen
+      - uses: actions/setup-node@v4
+        with: { node-version: 22, cache: npm, cache-dependency-path: apps/api/verifier-tools/package-lock.json }
+      - name: Install Lighthouse (pinned) and Playwright Chromium
+        run: |
+          (cd verifier-tools && npm ci)
+          uv run playwright install --with-deps chromium
       - run: uv run ruff check src tests scripts --ignore E501
       - run: uv run ruff format --check src tests scripts
-      # Unit tests only; the opt-in `-m sandbox` suite needs real credentials.
+      # Unit + real-browser tests; the opt-in `-m sandbox` suite needs real credentials.
       - run: uv run pytest
 
   web:

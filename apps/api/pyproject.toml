@@ -9,6 +9,7 @@ dependencies = [
     "alembic>=1.20.0",
     "fastapi>=0.143.1",
     "httpx>=0.28.1",
+    "playwright>=1.64.0",
     "psycopg[binary]>=3.3.6",
     "pydantic>=2.9",
     "pydantic-settings>=2.16.0",
@@ -28,6 +29,7 @@ testpaths = ["tests"]
 addopts = "-q -m 'not sandbox'"
 markers = [
   "sandbox: opt-in tests that call the real PayPal Sandbox (need credentials)",
+  "browser: tests that drive real Chromium (and Lighthouse) via Playwright",
 ]
 
 [tool.ruff]
@@ -39,7 +41,7 @@ select = ["E", "F", "I", "B", "UP", "S", "ASYNC"]
 ignore = ["S101"]
 
 [tool.ruff.lint.per-file-ignores]
-"tests/**" = ["S105", "S106"]
+"tests/**" = ["S105", "S106", "S104", "S108"]
 
 [dependency-groups]
 dev = [
