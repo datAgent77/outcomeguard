@@ -1,0 +1,34 @@
+# Local stack: Postgres + API + web.  `docker compose up --build`
+# Reads secrets from ./.env (git-ignored). PayPal is always the Sandbox.
+services:
+  db:
+    image: postgres:17-alpine
+    environment:
+      POSTGRES_USER: outcomeguard
+      POSTGRES_PASSWORD: outcomeguard
+      POSTGRES_DB: outcomeguard
+    ports: ["5433:5432"]
+    volumes: [pgdata:/var/lib/postgresql/data]
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U outcomeguard"]
+      interval: 3s
+      retries: 20
+
+  api:
+    build: ./apps/api
+    env_file: [.env]
+    environment:
+      DATABASE_URL: postgresql+psycopg://outcomeguard:outcomeguard@db:5432/outcomeguard
+    ports: ["8000:8000"]
+    depends_on:
+      db: { condition: service_healthy }
+
+  web:
+    build: ./apps/web
+    environment:
+      OUTCOMEGUARD_API_URL: http://api:8000
+    ports: ["3000:3000"]
+    depends_on: [api]
+
+volumes:
+  pgdata:

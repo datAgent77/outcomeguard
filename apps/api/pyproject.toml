@@ -1,0 +1,50 @@
+[project]
+name = "outcomeguard-api"
+version = "0.1.0"
+description = "OutcomeGuard API — evidence-bound payment authorization on PayPal"
+readme = "README.md"
+license = "MIT"
+requires-python = ">=3.12"
+dependencies = [
+    "alembic>=1.20.0",
+    "fastapi>=0.143.1",
+    "httpx>=0.28.1",
+    "psycopg[binary]>=3.3.6",
+    "pydantic>=2.9",
+    "pydantic-settings>=2.16.0",
+    "sqlalchemy>=2.0",
+    "uvicorn[standard]>=0.54.0",
+]
+
+[build-system]
+requires = ["uv_build>=0.11.15,<0.12.0"]
+build-backend = "uv_build"
+
+[tool.uv.build-backend]
+module-name = "outcomeguard"
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+addopts = "-q -m 'not sandbox'"
+markers = [
+  "sandbox: opt-in tests that call the real PayPal Sandbox (need credentials)",
+]
+
+[tool.ruff]
+line-length = 100
+target-version = "py312"
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "B", "UP", "S", "ASYNC"]
+ignore = ["S101"]
+
+[tool.ruff.lint.per-file-ignores]
+"tests/**" = ["S105", "S106"]
+
+[dependency-groups]
+dev = [
+    "httpx>=0.28.1",
+    "pytest>=9.1.1",
+    "respx>=0.23.1",
+    "ruff>=0.17.0",
+]

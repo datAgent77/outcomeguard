@@ -1,0 +1,65 @@
+from __future__ import annotations
+
+import logging
+
+from fastapi import FastAPI, Request
+from fastapi.middleware.cors import CORSMiddleware
+from fastapi.responses import JSONResponse
+
+from outcomeguard.api import routes_payments, routes_system
+from outcomeguard.config import get_settings
+from outcomeguard.logs import configure_logging
+from outcomeguard.paypal.gateway import PayPalAPIError, PayPalNotConfiguredError
+from outcomeguard.services.payments import PaymentRuleViolation, PaymentUncertain
+
+log = logging.getLogger("outcomeguard")
+
+
+def create_app() -> FastAPI:
+    settings = get_settings()
+    configure_logging(settings.log_level)
+    app = FastAPI(
+        title="OutcomeGuard API",
+        version="0.1.0",
+        description="Evidence-bound payment authorization on PayPal (Sandbox only).",
+    )
+    app.add_middleware(
+        CORSMiddleware,
+        allow_origins=[settings.web_url],
+        allow_credentials=True,
+        allow_methods=["GET", "POST"],
+        allow_headers=["Content-Type", "X-Operator-Token", "Idempotency-Key"],
+    )
+
+    @app.exception_handler(PaymentRuleViolation)
+    def _rule(_: Request, exc: PaymentRuleViolation) -> JSONResponse:
+        return JSONResponse({"code": exc.code, "message": exc.message}, status_code=exc.http_status)
+
+    @app.exception_handler(PaymentUncertain)
+    def _uncertain(_: Request, exc: PaymentUncertain) -> JSONResponse:
+        return JSONResponse(
+            {
+                "code": "OUTCOME_UNKNOWN",
+                "message": str(exc),
+                "entity": exc.entity,
+                "entity_id": exc.entity_id,
+            },
+            status_code=503,
+        )
+
+    @app.exception_handler(PayPalAPIError)
+    def _paypal(_: Request, exc: PayPalAPIError) -> JSONResponse:
+        return JSONResponse({"code": "PAYPAL_REJECTED", "paypal": exc.to_record()}, status_code=502)
+
+    @app.exception_handler(PayPalNotConfiguredError)
+    def _nocfg(_: Request, exc: PayPalNotConfiguredError) -> JSONResponse:
+        return JSONResponse({"code": "PAYPAL_NOT_CONFIGURED", "message": str(exc)}, status_code=503)
+
+    app.include_router(routes_system.router)
+    app.include_router(routes_payments.public)
+    app.include_router(routes_payments.dev)
+    log.info("api started", extra={"data": settings.public_summary()})
+    return app
+
+
+app = create_app()

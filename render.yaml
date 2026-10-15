@@ -1,0 +1,40 @@
+# Render Blueprint (not deployed automatically). Secrets are set in the Render
+# dashboard (sync: false) and never committed.
+databases:
+  - name: outcomeguard-db
+    plan: basic-256mb
+    databaseName: outcomeguard
+
+services:
+  - type: web
+    name: outcomeguard-api
+    runtime: docker
+    rootDir: apps/api
+    healthCheckPath: /ready
+    envVars:
+      - key: DATABASE_URL
+        fromDatabase: { name: outcomeguard-db, property: connectionString }
+      - key: PAYMENT_MODE
+        value: sandbox
+      - key: PAYPAL_CLIENT_ID
+        sync: false
+      - key: PAYPAL_CLIENT_SECRET
+        sync: false
+      - key: PAYPAL_WEBHOOK_ID
+        sync: false
+      - key: PUBLIC_API_URL
+        sync: false
+      - key: WEB_URL
+        sync: false
+      - key: ENABLE_SANDBOX_PROOF
+        value: "false"
+
+  - type: web
+    name: outcomeguard-web
+    runtime: node
+    rootDir: apps/web
+    buildCommand: npm ci && npm run build
+    startCommand: npm start
+    envVars:
+      - key: OUTCOMEGUARD_API_URL
+        sync: false
