@@ -103,9 +103,12 @@ Each step fails on any browser console error or uncaught page error.
 
 `e2e/integration/sandbox-prep.spec.ts` (opt-in) prepared, against the API in
 `PAYMENT_MODE=sandbox`, a locked agreement with the fixed page verified and the scripted
-review recorded — and stops before any payment action. The checkout, PayPal buyer
-approval, authorization, capture approval and capture are to be performed by a person in
-the UI. **Status: pending (see INTEGRATION_PROOF.md).**
+review recorded — and stops before any payment action. A person then performed the
+checkout, the PayPal Sandbox buyer approval, authorization, capture approval and capture in
+the UI (2026-10-16): order `3PE754440H8280847`, authorization `7HU39463K8073954H`,
+capture `70F43933LT884351X` ($500.00, COMPLETED, confirmed by re-reading PayPal). The
+accessibility review in that run was the scripted preparation decision, labelled as such.
+Full record: INTEGRATION_PROOF.md, "Real PayPal Sandbox through the UI".
 
 ## Accessibility
 

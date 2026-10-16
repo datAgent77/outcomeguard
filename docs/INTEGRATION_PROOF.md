@@ -263,13 +263,45 @@ for them (unapproved orders expired). Their approval links were not reused.
 | Broken page → FAIL | — | ✅ real Chromium + Lighthouse | — |
 | Fixed page → NEEDS_MANUAL_REVIEW, artifacts from evidence store | ✅ | ✅ | ✅ preparation run |
 | Manual review (authorized account, attestation, confirmation) | ✅ incl. stale evidence | ✅ **scripted test decision, labelled** | ✅ preparation run, **scripted, labelled** |
-| Checkout → buyer approval → authorize | ✅ | ✅ SIMULATED (rehearsal page) | ⏳ pending — needs a person at PayPal |
-| Policy blocks capture (review pending / already captured) | ✅ | ✅ | ⏳ pending |
-| Capture approval + capture as separate confirmed actions | ✅ | ✅ SIMULATED | ⏳ pending |
+| Checkout → buyer approval → authorize | ✅ | ✅ SIMULATED (rehearsal page) | ✅ person in the UI + PayPal Sandbox |
+| Policy blocks capture (review pending / already captured) | ✅ | ✅ | ✅ already captured |
+| Capture approval + capture as separate confirmed actions | ✅ | ✅ SIMULATED | ✅ real Sandbox capture |
 | UNKNOWN outcome → guarded reconcile, no retry | ✅ | — | — (proven at API level in P06) |
 | Ledger + activity timeline from persisted events | ✅ | ✅ | — |
 | Layout 1440 / 1280 / 768 / 390 / 375 px | ✅ | ✅ 1440 + 390 | — |
 | axe-core WCAG 2 A/AA (no serious/critical) | ✅ | — | — |
+
+### Real PayPal Sandbox through the UI (2026-10-16)
+
+Agreement `68e67b4c-3105-483a-85b3-e587b23adc79`, prepared by `sandbox-prep.spec.ts`
+(real AI draft, locked, fixed page verified → NEEDS_MANUAL_REVIEW). **The accessibility
+review in this run is a scripted demo decision** (rita@acme.demo, rationale starts with
+`SCRIPTED DEMO DECISION`). Every payment step was then performed **by a person in the
+web UI** (signed in as the demo buyer admin alice@acme.demo), including the buyer
+approval on PayPal's Sandbox page. No script touched the payment.
+
+| t (UTC) | Event (audit log) | Actor |
+|---|---|---|
+| 08:28:07 | order requested | alice@acme.demo (UI, person) |
+| 08:28:09 | PayPal order created | system |
+| 08:28:32 | buyer approved at PayPal (read server-side) | person at PayPal Sandbox |
+| 08:28:52 | authorization created | alice@acme.demo (UI, person) |
+| 08:29:06 | policy `eligible_for_approval` → capture approval `eb7902f6…` bound to inputs `770894d9…` | alice@acme.demo (UI, person) |
+| 08:31:16 | capture-time policy `capture_approved` (decision `4059050a…`), capture requested | alice@acme.demo (UI, person) |
+| 08:31:17 | capture completed | system |
+
+PayPal Sandbox objects, re-read from PayPal after the run:
+
+| Object | ID | PayPal state |
+|---|---|---|
+| Order ($500.00 USD, AUTHORIZE) | `3PE754440H8280847` | `COMPLETED`, one authorization, one capture |
+| Authorization | `7HU39463K8073954H` | `CAPTURED` |
+| Capture | `70F43933LT884351X` | `COMPLETED`, $500.00, `final_capture: true`, invoice `og_f99b29d277154e3e90d98e6b`; PayPal fee 17.94, net 482.06 (PayPal-reported) |
+
+DB: capture `completed` (request id `og-cap-ba4e06f3-…`), authorization `captured`,
+approval consumed by the capture; the payment tab then shows the fresh policy blocked with
+`AUTH_NOT_CAPTURABLE` + `ALREADY_CAPTURED` and no capture action. Audit hash chain
+verified intact (`verify_chain` → ok).
 
 Details, screenshots and commands: [P07_UI_VERIFICATION.md](P07_UI_VERIFICATION.md). The
 simulated-payment run made no PayPal call; its order/authorization/capture ids start with

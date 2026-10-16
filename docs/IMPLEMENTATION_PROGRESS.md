@@ -10,7 +10,7 @@ Deadline: **2026-11-12 23:00 GMT+3** (PayPal AI Hackathon). Spec: [BUILD_PROMPT_
 | P04 | Verification engine (Playwright, Lighthouse, SSRF guard) | ✅ conditionally accepted — see [VERIFICATION.md](VERIFICATION.md), open items in [TECH_DEBT.md](TECH_DEBT.md) |
 | P05 | AI contract and evidence intelligence | ✅ accepted — see [AI_VERIFICATION.md](AI_VERIFICATION.md) |
 | P06 | Deterministic policy, human approval, auth/RBAC | ✅ accepted (real Sandbox governance run 2026-10-16) — see [GOVERNANCE.md](GOVERNANCE.md) |
-| P07 | Product UI + AG Grid ledger | 🟡 **partial** — implemented and browser-tested (mocked + real API with simulated payments); real PayPal Sandbox run through the UI pending (TD-13) — see [P07_UI_VERIFICATION.md](P07_UI_VERIFICATION.md) |
+| P07 | Product UI + AG Grid ledger | 🟡 implemented + tested; real PayPal Sandbox flow through the UI ✅ 2026-10-16; **awaiting review** — see [P07_UI_VERIFICATION.md](P07_UI_VERIFICATION.md) |
 | P08 | Resolution and refunds | ⏳ (payment-level refund done in P02) |
 | P09 | Security and integration hardening | ⏳ |
 | P10 | Hackathon delivery | ⏳ |
@@ -146,7 +146,7 @@ Deadline: **2026-11-12 23:00 GMT+3** (PayPal AI Hackathon). Spec: [BUILD_PROMPT_
 - [x] AG Grid Community ledger (server search/filters, sort, pagination, drawer, timeline on mobile) + per-agreement activity timeline
 - [x] Read-only API additions + `accept_suggestions` route fix + payment `Idempotency-Key` (tests: `test_workspace_api.py`)
 - [x] Browser tests: 36 mocked (CI) incl. axe and 5 viewport widths; 8-step real-API flow (rehearsal payments)
-- [ ] Real PayPal Sandbox flow through the UI (needs a person to approve at PayPal) — TD-13
+- [x] Real PayPal Sandbox flow through the UI, performed by a person (order `3PE754440H8280847` → capture `70F43933LT884351X`)
 
 ## Verified vs unverified
 
