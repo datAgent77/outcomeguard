@@ -10,7 +10,7 @@ Deadline: **2026-11-12 23:00 GMT+3** (PayPal AI Hackathon). Spec: [BUILD_PROMPT_
 | P04 | Verification engine (Playwright, Lighthouse, SSRF guard) | ✅ conditionally accepted — see [VERIFICATION.md](VERIFICATION.md), open items in [TECH_DEBT.md](TECH_DEBT.md) |
 | P05 | AI contract and evidence intelligence | ✅ accepted — see [AI_VERIFICATION.md](AI_VERIFICATION.md) |
 | P06 | Deterministic policy, human approval, auth/RBAC | ✅ accepted (real Sandbox governance run 2026-10-16) — see [GOVERNANCE.md](GOVERNANCE.md) |
-| P07 | Product UI + AG Grid ledger | 🟡 implemented + tested; real PayPal Sandbox flow through the UI ✅ 2026-10-16; **awaiting review** — see [P07_UI_VERIFICATION.md](P07_UI_VERIFICATION.md) |
+| P07 | Product UI + AG Grid ledger | ✅ accepted (real PayPal Sandbox flow through the UI 2026-10-16) — see [P07_UI_VERIFICATION.md](P07_UI_VERIFICATION.md) |
 | P08 | Resolution and refunds | ⏳ (payment-level refund done in P02) |
 | P09 | Security and integration hardening | ⏳ |
 | P10 | Hackathon delivery | ⏳ |
