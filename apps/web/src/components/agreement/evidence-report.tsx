@@ -9,6 +9,7 @@ import { dateTime, humanize } from "@/lib/format";
 import { Badge, Button, Card, cx, Hash, Notice } from "../ui";
 import { ArtifactButton, ArtifactViewer } from "./artifacts";
 import { ManualReviewPanel } from "./manual-review";
+import { summarize, TOOL } from "./result-summary";
 
 export function EvidenceReport({
   run,
@@ -83,6 +84,12 @@ export function EvidenceReport({
           </div>
         )}
       </Card>
+
+      <div className="flex flex-wrap gap-2 text-xs" aria-label="Who decides what">
+        <span className="rounded-full border border-ink-200 bg-white px-3 py-1"><strong>Measured</strong> — deterministic tools decide PASS / FAIL</span>
+        <span className="rounded-full border border-brand-100 bg-brand-50 px-3 py-1 text-brand-700"><strong>AI interpretation</strong> — explains, never decides</span>
+        <span className="rounded-full border border-review-100 bg-review-50 px-3 py-1 text-review-800"><strong>Human decision</strong> — only for what no tool can measure</span>
+      </div>
 
       <Card>
         <div className="flex flex-wrap items-start justify-between gap-3 px-4 py-4 sm:px-5">
@@ -245,16 +252,25 @@ function ResultCard({
         </div>
         <Badge tone={o.tone}>{o.label}</Badge>
       </div>
-      <div className="grid gap-4 border-t border-ink-100 px-4 py-3 text-sm sm:px-5 md:grid-cols-2">
-        <div>
-          <p className="mb-1.5 text-xs font-semibold uppercase tracking-wider text-ink-500">Expected</p>
-          <Values obj={r.expected} />
-        </div>
-        <div>
-          <p className="mb-1.5 text-xs font-semibold uppercase tracking-wider text-ink-500">Actual measurement</p>
-          <Values obj={r.measured} />
-        </div>
+      <div className="border-t border-ink-100 px-4 py-3 sm:px-5">
+        <p className="text-[11px] font-semibold uppercase tracking-wider text-ink-500">
+          {r.kind === "manual_review" ? "Human decision required" : `Measured · ${TOOL[r.kind] ?? "tool"}`}
+        </p>
+        <p className="mt-1 text-[15px] leading-relaxed text-ink-900">{summarize(r)}</p>
       </div>
+      <details className="border-t border-ink-100 px-4 py-2 text-sm sm:px-5">
+        <summary className="cursor-pointer py-1 text-xs font-medium text-ink-600">Technical measurements (expected vs actual)</summary>
+        <div className="grid gap-4 py-2 md:grid-cols-2">
+          <div>
+            <p className="mb-1.5 text-xs font-semibold uppercase tracking-wider text-ink-500">Expected</p>
+            <Values obj={r.expected} />
+          </div>
+          <div>
+            <p className="mb-1.5 text-xs font-semibold uppercase tracking-wider text-ink-500">Actual measurement</p>
+            <Values obj={r.measured} />
+          </div>
+        </div>
+      </details>
       {artifacts.length > 0 && (
         <div className="flex flex-wrap gap-2 border-t border-ink-100 px-4 py-3 sm:px-5">
           {artifacts.map((a) => (

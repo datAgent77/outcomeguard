@@ -53,6 +53,8 @@ test("evidence report shows verdict, measurements, separate statuses and labelle
   const form = page.getByTestId("result-contact_form_works");
   await expect(form.getByText("FAIL")).toBeVisible();
   await expect(form.getByText("SUCCESS_TEXT_MISSING")).toBeVisible();
+  await expect(form.getByText("The submission reached the test endpoint, but “Thank you” never appeared.").or(form.getByText(/no submission reached the test endpoint/))).toBeVisible();
+  await form.getByText("Technical measurements (expected vs actual)").click();
   await expect(form.getByText("Success text seen")).toBeVisible();
   await expect(form.getByText("AI interpretation")).toBeVisible();
   await expect(form.getByText("Suggested remediation:")).toBeVisible();

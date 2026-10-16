@@ -125,3 +125,20 @@ test.describe("empty and error states (mocked API)", () => {
     await expect(page.getByRole("link", { name: "Failed one" })).toHaveCount(0);
   });
 });
+
+test("rehearsal mode is announced: new payments are SIMULATED (never shown as Sandbox)", async ({ page, context, baseURL }) => {
+  await fakeCookie(context, baseURL!);
+  await mockApi(page, "alice", { "GET /ready": { status: "ready", config: { payment_mode: "rehearsal" } }, "GET /workspace/agreements": [] });
+  await page.goto("/dashboard");
+  const banner = page.getByTestId("mode-banner");
+  await expect(banner).toContainText("REHEARSAL MODE");
+  await expect(banner).toContainText("SIMULATED");
+  await expect(banner).not.toContainText("test money only");
+});
+
+test("sandbox mode banner says test money only", async ({ page, context, baseURL }) => {
+  await fakeCookie(context, baseURL!);
+  await mockApi(page, "alice", { "GET /ready": { status: "ready", config: { payment_mode: "sandbox" } }, "GET /workspace/agreements": [] });
+  await page.goto("/dashboard");
+  await expect(page.getByTestId("mode-banner")).toContainText("PayPal Sandbox — test money only");
+});

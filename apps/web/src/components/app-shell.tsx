@@ -7,6 +7,7 @@ import { Logo } from "./logo";
 import { ROLE_LABEL, SessionProvider, useSession } from "./session";
 import { cx, Skeleton } from "./ui";
 import { sessionRequest } from "@/lib/client/api";
+import { useApi } from "@/lib/client/hooks";
 
 export function AppShell({ children }: { children: ReactNode }) {
   return (
@@ -43,6 +44,9 @@ function Chrome({ children }: { children: ReactNode }) {
     ...(isProvider ? [{ href: "/provider", label: "Provider workspace" }] : []),
     { href: "/ledger", label: "Ledger" },
   ];
+  // The banner states the API's actual payment mode — never "Sandbox" when payments are simulated.
+  const ready = useApi<{ config: { payment_mode: "sandbox" | "rehearsal" } }>("/ready");
+  const mode = ready.data?.config.payment_mode;
   const roles = [...new Set(user.organizations.flatMap((o) => o.roles.map((r) => ROLE_LABEL[r] ?? r)))];
   const logout = async () => {
     setLeaving(true);
@@ -54,10 +58,19 @@ function Chrome({ children }: { children: ReactNode }) {
       <a href="#main" className="sr-only focus:not-sr-only focus:absolute focus:left-3 focus:top-3 focus:z-50 focus:rounded focus:bg-white focus:px-3 focus:py-2">
         Skip to content
       </a>
-      {user.demo_account && (
-        <div className="bg-ink-900 px-4 py-1.5 text-center text-xs text-ink-100">
-          <strong className="font-semibold text-white">Demo workspace</strong> · PayPal Sandbox only — no real money · signed in with a
-          seeded demo account
+      {(user.demo_account || mode === "rehearsal") && (
+        <div className={cx("px-4 py-1.5 text-center text-xs", mode === "rehearsal" ? "bg-review-700 text-white" : "bg-ink-900 text-ink-100")} data-testid="mode-banner">
+          {mode === "rehearsal" ? (
+            <>
+              <strong className="font-semibold">REHEARSAL MODE</strong> · new payments are SIMULATED — no PayPal call is made · payments recorded earlier on
+              PayPal Sandbox are labelled “PayPal Sandbox”
+            </>
+          ) : (
+            <>
+              <strong className="font-semibold text-white">Demo workspace</strong> · PayPal Sandbox — test money only, no real money
+            </>
+          )}
+          {user.demo_account && " · signed in with a seeded demo account"}
         </div>
       )}
       <header className="sticky top-0 z-30 border-b border-ink-200 bg-white/95 backdrop-blur">
@@ -128,7 +141,8 @@ function Chrome({ children }: { children: ReactNode }) {
         {children}
       </main>
       <footer className="border-t border-ink-200 bg-white px-4 py-4 text-center text-xs text-ink-500">
-        PayPal Sandbox only · AI explains evidence and never authorizes payments · Capture requires deterministic policy + human approval
+        PayPal Sandbox or simulated rehearsal — never real money · AI explains evidence and never authorizes payments · Capture requires deterministic policy + human
+        approval
       </footer>
     </div>
   );

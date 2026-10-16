@@ -17,7 +17,7 @@ AI interprets the promise → Tools verify the evidence → Policy determines el
 Built for the [PayPal AI Hackathon](https://paypalaihackathon.devpost.com/) (2026).
 PayPal **Sandbox only** — no real money moves.
 
-> **Status: build in progress (P08 of P10).** Implemented and tested: the PayPal payment
+> **Status: hackathon demo ready (P09 of P10).** Implemented and tested: the PayPal payment
 > core (authorize → capture → partial refund **run against the live PayPal Sandbox**;
 > live webhook delivery not verified yet), the agreement domain (versioned agreements,
 > typed acceptance criteria, buyer approval and locking, RBAC), and real evidence
@@ -76,6 +76,17 @@ password). Full local demo and test instructions:
 
 Or with Docker: `docker compose up --build`.
 
+### Demo in one command
+
+```bash
+scripts/demo/start.sh                     # rehearsal mode (simulated payments), web on :3010
+DEMO_PASSWORD=… uv run --directory apps/api python scripts/prepare_demo.py
+scripts/demo/stop.sh
+```
+
+Walkthrough: [docs/hackathon/GOLDEN_DEMO.md](docs/hackathon/GOLDEN_DEMO.md) ·
+checklist: [docs/hackathon/DEMO_CHECKLIST.md](docs/hackathon/DEMO_CHECKLIST.md).
+
 ### No PayPal credentials? Rehearsal mode
 
 Set `PAYMENT_MODE=rehearsal`. No PayPal calls are made; every id starts with `SIM-`,
@@ -107,6 +118,7 @@ E2E_BASE_URL=… DEMO_PASSWORD=… npm run test:e2e:integration   # real local s
 - [Payment governance (P06)](docs/GOVERNANCE.md)
 - [Product UI verification (P07)](docs/P07_UI_VERIFICATION.md)
 - [Resolution, void and refund governance (P08)](docs/RESOLUTION_AND_REFUNDS.md)
+- [Hackathon demo readiness (P09)](docs/hackathon/DEMO_READINESS_REPORT.md)
 - [Technical debt register](docs/TECH_DEBT.md)
 - [Webhooks: go-live procedure](docs/WEBHOOKS.md)
 - [P04 verification worker plan](docs/architecture/P04_VERIFICATION_PLAN.md)

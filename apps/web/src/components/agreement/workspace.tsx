@@ -17,6 +17,7 @@ import { EvidenceReport } from "./evidence-report";
 import { LockPanel } from "./lock-panel";
 import { PaymentWorkspace } from "./payment";
 import { ResolutionPanel } from "../resolution/resolution-panel";
+import { ProofPipeline } from "./proof-pipeline";
 
 const TABS = ["overview", "criteria", "delivery", "evidence", "payment", "resolution", "activity"] as const;
 type Tab = (typeof TABS)[number];
@@ -89,7 +90,10 @@ export function AgreementWorkspace({ params }: { params: Promise<{ id: string }>
             <div className="text-xs text-ink-500">contract amount · v{current.version_number}</div>
           </div>
         </div>
-        <div className="mt-5 grid grid-cols-1 gap-4 rounded-xl border border-ink-200 bg-white p-4 sm:grid-cols-3">
+        <div className="mt-5">
+          <ProofPipeline s={s} />
+        </div>
+        <div className="mt-3 grid grid-cols-1 gap-4 rounded-xl border border-ink-200 bg-white p-4 sm:grid-cols-3">
           <StatusField label="Agreement" tone={vs.tone} value={vs.label} />
           <StatusField label="Verification" tone={ver.tone} value={ver.label} />
           <StatusField label="Payment" tone={pay.tone} value={pay.label} />

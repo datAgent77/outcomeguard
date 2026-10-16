@@ -49,7 +49,7 @@ from outcomeguard.models.verification import (
 )
 from outcomeguard.verification import sinktoken
 from outcomeguard.verification.netpolicy import PolicyViolation, validate_url
-from outcomeguard.verification.settings import VerifierSettings
+from outcomeguard.verification.settings import VerifierSettings, get_verifier_settings
 from outcomeguard.verification.store import EvidenceStore
 
 SUBMIT_ROLES = (Role.PROVIDER, Role.MERCHANT_ADMIN)
@@ -97,6 +97,14 @@ def submit_evidence(
         validate_url(delivery_url)
     except PolicyViolation as exc:
         raise VerificationError(exc.code, "delivery URL rejected", http_status=422) from exc
+    if _targets_platform(delivery_url):
+        # The dev allow-list must include the API (form sink); a delivery may never point
+        # the verifier's browser at OutcomeGuard itself.
+        raise VerificationError(
+            "DELIVERY_TARGETS_PLATFORM",
+            "delivery URL points at OutcomeGuard itself",
+            http_status=422,
+        )
 
     canonical = json.dumps(
         {
@@ -439,3 +447,28 @@ def is_verified_pass(session: Session, run_id: str) -> bool:
 
 def new_worker_id() -> str:
     return f"{os.uname().nodename[:40]}-{os.getpid()}-{uuid.uuid4().hex[:6]}"
+
+
+_LOOPBACK = {"localhost", "127.0.0.1", "::1"}
+
+
+def _endpoint(url: str) -> tuple[str, int] | None:
+    from urllib.parse import urlsplit
+
+    try:
+        u = urlsplit(url)
+        host = (u.hostname or "").lower()
+        port = u.port or (443 if u.scheme == "https" else 80)
+    except ValueError:
+        return None
+    return ("loopback" if host in _LOOPBACK else host, port)
+
+
+def _targets_platform(delivery_url: str) -> bool:
+    from outcomeguard.config import get_settings
+
+    platform = {
+        _endpoint(get_settings().public_api_url),
+        _endpoint(get_verifier_settings().sink_base_url),
+    } - {None}
+    return _endpoint(delivery_url) in platform

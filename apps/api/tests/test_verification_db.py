@@ -419,3 +419,25 @@ def test_remote_runner_client_writes_inline_artifacts_locally(session, tmp_path)
     assert b"/tmp" in sent and str(tmp_path).encode() not in sent  # local paths not leaked
     assert out["artifacts"][0]["file"] == "evil.png"  # path traversal stripped
     assert (tmp_path / "evil.png").read_bytes() == b"img"
+
+
+def test_delivery_url_may_not_point_at_outcomeguard_itself(
+    session, who, locked_agreement, monkeypatch
+):
+    """P09 demo hardening: the dev allow-list includes the API (form sink), so a provider
+    must not be able to aim the verifier's browser at OutcomeGuard's own endpoints."""
+    import pytest
+
+    from outcomeguard.config import get_settings
+    from outcomeguard.verification import service as vs
+    from outcomeguard.verification.service import VerificationError, submit_evidence
+
+    monkeypatch.setattr(get_settings(), "public_api_url", "http://localhost:8010")
+    # As in the demo environment: the API is on the allow-list (form sink).
+    monkeypatch.setenv("VERIFIER_DEV_ALLOW", "127.0.0.1:8010,127.0.0.1:8020")
+    for url in ("http://127.0.0.1:8010/ready", "http://localhost:8010/paypal/return?token=x"):
+        with pytest.raises(VerificationError) as ei:
+            submit_evidence(session, who("maya"), locked_agreement, delivery_url=url)
+        assert ei.value.code == "DELIVERY_TARGETS_PLATFORM"
+    assert vs._targets_platform("http://localhost:8010/x") is True
+    assert vs._targets_platform("http://127.0.0.1:8020/landing-page-fixed/") is False

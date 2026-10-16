@@ -11,8 +11,8 @@ Deadline: **2026-11-12 23:00 GMT+3** (PayPal AI Hackathon). Spec: [BUILD_PROMPT_
 | P05 | AI contract and evidence intelligence | ✅ accepted — see [AI_VERIFICATION.md](AI_VERIFICATION.md) |
 | P06 | Deterministic policy, human approval, auth/RBAC | ✅ accepted (real Sandbox governance run 2026-10-16) — see [GOVERNANCE.md](GOVERNANCE.md) |
 | P07 | Product UI + AG Grid ledger | ✅ accepted (real PayPal Sandbox flow through the UI 2026-10-16) — see [P07_UI_VERIFICATION.md](P07_UI_VERIFICATION.md) |
-| P08 | Resolution, void and refund governance | 🟡 implemented + tested; real Sandbox refund ($100 of $500) and void ✅ 2026-10-16; **awaiting final review** — see [RESOLUTION_AND_REFUNDS.md](RESOLUTION_AND_REFUNDS.md) |
-| P09 | Security and integration hardening | ⏳ |
+| P08 | Resolution, void and refund governance | ✅ accepted (real Sandbox refund $100 of $500 and void, 2026-10-16) — see [RESOLUTION_AND_REFUNDS.md](RESOLUTION_AND_REFUNDS.md) |
+| P09 | Hackathon demo readiness (scope changed from hardening by the user) | 🟡 done, **awaiting review** — see [hackathon/DEMO_READINESS_REPORT.md](hackathon/DEMO_READINESS_REPORT.md) |
 | P10 | Hackathon delivery | ⏳ |
 
 ## P01 — Repository foundation (2026-10-15)

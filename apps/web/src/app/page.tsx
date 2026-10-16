@@ -77,6 +77,54 @@ export default function Landing() {
           <DecisionIllustration />
         </section>
 
+        <section className="border-t border-ink-100 py-14" aria-labelledby="proof-h">
+          <div className="mx-auto max-w-6xl px-4 sm:px-6">
+            <h2 id="proof-h" className="text-2xl font-semibold tracking-tight text-ink-950">
+              Proven end-to-end on PayPal Sandbox
+            </h2>
+            <p className="mt-2 max-w-3xl text-ink-600">
+              Recorded runs, not a mock-up: every ID below was read back from PayPal&apos;s Sandbox API (test money). Full audit trails are in the
+              repository&apos;s integration proof.
+            </p>
+            <div className="mt-8 grid gap-4 md:grid-cols-3">
+              <ProofCard
+                title="Proof-governed capture"
+                date="Oct 16"
+                lines={[
+                  ["Authorization", "7HU39463K8073954H"],
+                  ["Capture · $500.00", "70F43933LT884351X"],
+                ]}
+                note="Captured only after verification, a recorded review decision, a fresh policy check and a separate buyer approval."
+              />
+              <ProofCard
+                title="Two-party refund"
+                date="Oct 16"
+                lines={[
+                  ["Capture · $500.00", "95Y56941P3956690M"],
+                  ["Refund · $100.00", "2DF34389JE394200F"],
+                ]}
+                note="Refunded only after buyer and provider approved the same proposal; $400.00 remained refundable."
+              />
+              <ProofCard
+                title="Cancelled before capture"
+                date="Oct 16"
+                lines={[
+                  ["Authorization · $500.00", "32284282MB448210R"],
+                  ["PayPal status", "VOIDED"],
+                ]}
+                note="A void is not a refund: the buyer was never charged and the provider received nothing."
+              />
+            </div>
+            <p className="mt-4 text-xs text-ink-500">
+              Source:{" "}
+              <a className="underline" href="https://github.com/datAgent77/outcomeguard/blob/main/docs/INTEGRATION_PROOF.md">
+                docs/INTEGRATION_PROOF.md
+              </a>
+              . Sandbox only — production PayPal is not used.
+            </p>
+          </div>
+        </section>
+
         <section id="how" className="border-t border-ink-100 bg-ink-50 py-16">
           <div className="mx-auto max-w-6xl px-4 sm:px-6">
             <h2 className="text-2xl font-semibold tracking-tight text-ink-950">How it works</h2>
@@ -114,6 +162,26 @@ export default function Landing() {
       <footer className="border-t border-ink-100 py-8 text-center text-xs text-ink-500">
         OutcomeGuard · PayPal AI Hackathon build · Sandbox only — production PayPal is not available.
       </footer>
+    </div>
+  );
+}
+
+function ProofCard({ title, date, lines, note }: { title: string; date: string; lines: [string, string][]; note: string }) {
+  return (
+    <div className="rounded-xl border border-ink-200 p-5">
+      <div className="flex items-center justify-between gap-2">
+        <h3 className="font-semibold text-ink-900">{title}</h3>
+        <span className="shrink-0 whitespace-nowrap rounded-full bg-pass-50 px-2 py-0.5 text-[11px] font-medium text-pass-700 ring-1 ring-pass-100">Sandbox · {date}</span>
+      </div>
+      <dl className="mt-3 space-y-1.5 text-sm">
+        {lines.map(([k, v]) => (
+          <div key={k} className="flex flex-wrap justify-between gap-2">
+            <dt className="text-ink-600">{k}</dt>
+            <dd className="font-mono text-xs text-ink-900">{v}</dd>
+          </div>
+        ))}
+      </dl>
+      <p className="mt-3 text-sm text-ink-600">{note}</p>
     </div>
   );
 }
