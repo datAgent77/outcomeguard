@@ -112,8 +112,9 @@ Current as of P07. Each item is either planned (phase noted) or a deliberate sco
 - **Internal cases are not PayPal disputes.** Disputes and chargebacks opened at PayPal are
   not imported, prevented or synchronised; refund availability is not guaranteed.
 - **Both parties must approve every refund.** There is no administrator override.
-- **Lost refunds older than 6 h** are not replayed automatically; they become
-  `reconciliation_required` and wait for an operator (no tooling yet, TD-18).
+- **Lost refunds are never re-sent automatically.** If PayPal shows no matching refund, the
+  refund stays `reconciliation_required` (amount held, new refunds blocked) until a later
+  read finds it or an operator resolves it (no tooling yet, TD-18).
 - **No notifications** (TD-19). **No AI** in resolution.
 - Voids are buyer-initiated; once P06 reports the delivery verified, a two-sided
   `cancel_authorization` proposal is required.

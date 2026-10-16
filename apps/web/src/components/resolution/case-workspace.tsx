@@ -282,8 +282,8 @@ function Financials({ c, onChange, reload }: { c: ResolutionCase; onChange: (c: 
         )}
         {f.refunds.some((r) => r.status === "unknown" || r.status === "reconciliation_required") && (
           <Notice tone="review" title="A refund's outcome is unknown">
-            PayPal&apos;s answer was lost. Do not retry: reconciliation reads PayPal first and reuses the original request key. The amount stays reserved until it is resolved;
-            “operator reconciliation required” means it is too old for a safe automatic replay.
+            PayPal&apos;s answer was lost. Do not retry: reconciliation only reads PayPal and never sends the refund again. The amount stays reserved until it is resolved;
+            “operator reconciliation required” means PayPal shows no matching refund yet — reconcile again later, or an operator checks PayPal.
           </Notice>
         )}
         {accepted && (

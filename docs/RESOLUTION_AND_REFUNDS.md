@@ -84,7 +84,7 @@ the proposal's current content hash.
 | — | 0 | 500.00 | partial 100.00 | allowed |
 | 100.00 completed, 300.00 completed | 0 | 100.00 | partial 100.01 | `REFUND_EXCEEDS_REMAINING` (rejected already at proposal time) |
 | 100.00 + 300.00 completed | 0 | 100.00 | full refund | amount computed by the server = 100.00 |
-| 200.00 unknown | 200.00 | 300.00 | partial 50.00 | `REFUND_OUTCOME_UNKNOWN` until reconciled |
+| 200.00 unknown / reconciliation_required | 200.00 | 300.00 | partial 50.00 | `REFUND_OUTCOME_UNKNOWN` until reconciled |
 | 500.00 failed (PayPal 4xx) | 0 | 500.00 | retry same proposal, new key | allowed (failed moved no money) |
 
 ## Policy reason codes
@@ -132,10 +132,16 @@ Refund (`PaymentService.reconcile_refund`):
 1. a persisted PayPal refund id → `GET /v2/payments/refunds/{id}`;
 2. otherwise `GET` the order and match `payments.refunds[*].invoice_id` = our invoice id
    (`{order reference}-r-{refund id prefix}`); exactly one match → settle, no POST;
-3. not found and younger than 6 h → replay with the **same** `PayPal-Request-Id`
-   (PayPal returns the original refund if it was processed);
-4. otherwise `reconciliation_required`: an operator checks the PayPal dashboard and records
-   the outcome; the amount remains held. A new key is never used.
+3. otherwise `reconciliation_required`: **nothing is re-sent**, the amount remains held and
+   new refunds on the capture are blocked. The state is not terminal: reconciling again
+   re-reads PayPal (an eventually consistent read may show the refund later). If PayPal
+   never shows it, an operator checks the PayPal dashboard (TD-18).
+
+Why no automatic re-send, not even with the same `PayPal-Request-Id` (TD-17, checked
+2026-10-16): PayPal's idempotency guide says retention is defined per API, and the v2
+"Refund captured payment" reference does not state how long the key is honoured (the
+30/45-day figures in PayPal's docs belong to the v1 API). A replay outside an unknown
+window could create a second refund, so the system stops instead.
 
 Void (`reconcile_void`): read the authorization; `VOIDED` → completed; still `CREATED` →
 replay the same request id; anything else → failed and the capture path reconciles money.
@@ -174,5 +180,6 @@ Mocked and simulated tests are not PayPal evidence. Real Sandbox evidence:
   PayPal are not imported or prevented, and refund availability is not guaranteed.
 - No administrator override policy: every refund needs both parties.
 - One capture per agreement payment; multi-capture and partial capture remain out of scope.
-- The 6-hour replay window is a conservative assumption, not a PayPal-documented limit.
+- A refund whose PayPal outcome cannot be read stays `reconciliation_required` until PayPal
+  shows it or an operator resolves it; there is no operator tooling yet (TD-18).
 - Notifications (email etc.) do not exist; parties see changes when they open the case.

@@ -317,7 +317,7 @@ simulated-payment run made no PayPal call; its order/authorization/capture ids s
 | Full refund / multiple partials / over-refund / wrong currency | ✅ | — | — | — |
 | Duplicate + concurrent refund safe | ✅ | ✅ (same key) | ✅ (double click) | — |
 | PayPal 5xx, lost response → UNKNOWN → read-first reconcile | ✅ | — | ✅ mocked UI | — |
-| Operator boundary (old UNKNOWN → reconciliation_required) | ✅ | — | — | — |
+| No automatic re-send: not found at PayPal → reconciliation_required, later read settles | ✅ | — | — | — |
 | PayPal-reported refund figures, nothing invented | ✅ | — | — | ⏳ |
 | Void: valid, idempotent, unauthorized, captured, UNKNOWN capture, timeout, race with capture | ✅ | ✅ (valid, idempotent, roles) | ✅ (valid) | ⏳ |
 | Ledger shows case + refund/void trail | — | ✅ | ✅ | ⏳ |

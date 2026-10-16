@@ -66,7 +66,7 @@ Remedies: `rework`, `new_verification`, `partial_refund`, `full_refund`,
 
 Refund operation (existing `payment_refunds.status`): `requested` (reserved and committed;
 the PayPal call follows) → `completed | pending | failed | unknown`; `unknown →
-reconciliation_required` when a safe automatic replay is no longer possible. Mapping to
+reconciliation_required` when PayPal shows no matching refund (no automatic re-send). Mapping to
 the P08 brief: REQUESTED/RESERVED/SUBMITTED = `requested`, PENDING = `pending`,
 COMPLETED = `completed`, FAILED = `failed` (PayPal rejected, no money moved), UNKNOWN =
 `unknown`, RECONCILIATION_REQUIRED = `reconciliation_required`.
@@ -151,9 +151,10 @@ Reconcile (read first):
 1. persisted PayPal refund id → `GET /v2/payments/refunds/{id}`;
 2. otherwise `GET` the order and match `payments.refunds[*].invoice_id` = our refund
    invoice id (exactly one match) → settle from `GET refund`;
-3. no match and the operation is younger than the replay window (6 h, conservative) →
-   replay with the **same** `PayPal-Request-Id`;
-4. otherwise → `reconciliation_required` (operator; balance stays held). Never a new key.
+3. otherwise → `reconciliation_required` (balance stays held; a later reconcile reads
+   again; operator otherwise). Never a new key and — after the TD-17 check — no automatic
+   replay of the same key either, because PayPal does not document its retention for v2
+   refunds.
 
 Void response lost → `unknown`; reconcile reads the authorization: `VOIDED` → completed;
 `CAPTURED` → void failed, capture is reconciled; still `CREATED` → replay the same request

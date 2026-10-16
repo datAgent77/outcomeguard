@@ -113,9 +113,10 @@ class VoidRefs:
 
 VoidGate = Callable[["PaymentAuthorization"], VoidRefs]
 
-# A lost refund is replayed with its original PayPal-Request-Id only while PayPal is
-# certain to still recognise the key. Conservative: older operations go to an operator.
-REFUND_REPLAY_WINDOW = timedelta(hours=6)
+# A lost refund is NEVER re-sent automatically. PayPal does not document how long the
+# v2 refund endpoint honours a PayPal-Request-Id (TD-17, checked 2026-10-16), so a replay
+# could become a second refund. Reconciliation only reads; if PayPal shows no matching
+# refund, the operation stops in RECONCILIATION_REQUIRED (amount held) for an operator.
 
 
 class PaymentUncertain(Exception):
@@ -866,15 +867,14 @@ class PaymentService:
         return refund
 
     def reconcile_refund(self, refund_id: str) -> PaymentRefund:
-        """Resolve a refund whose outcome is not final. Read first, never a new key:
+        """Resolve a refund whose outcome is not final. Read only — never a POST:
 
         1. a persisted PayPal refund id → GET the refund;
         2. otherwise find our refund on the PayPal order (`invoice_id`, exactly one
-           match) → settle from it, no POST;
-        3. otherwise, while the original PayPal-Request-Id is certainly still honoured
-           (REFUND_REPLAY_WINDOW), replay it — PayPal returns the original refund if it
-           was processed;
-        4. otherwise RECONCILIATION_REQUIRED (operator); the amount stays held."""
+           match) → settle from it;
+        3. otherwise RECONCILIATION_REQUIRED: the amount stays held and an operator
+           decides. The state is not terminal — a later reconcile reads PayPal again
+           (covers eventually consistent reads) and settles if the refund appears."""
         refund = self._get(PaymentRefund, refund_id)
         self.last_reconcile_method = None
         if refund.paypal_refund_id:
@@ -892,12 +892,11 @@ class PaymentService:
         if found is not None:
             self.last_reconcile_method = "read_existing_refund"
             return self._settle_refund(refund_id, self.gateway.get_refund(found))
-        if utcnow() - refund.created_at > REFUND_REPLAY_WINDOW:
-            return self._needs_operator(
-                refund_id, "not found on the PayPal order and too old to replay safely"
-            )
-        self.last_reconcile_method = "replay_same_request_id"
-        return self._send_refund(refund_id)
+        return self._needs_operator(
+            refund_id,
+            "no matching refund on the PayPal order; automatic re-sending is disabled "
+            "because PayPal does not document how long it honours the request id",
+        )
 
     def _find_remote_refund(self, refund: PaymentRefund) -> str | None:
         order = refund.capture.authorization.order

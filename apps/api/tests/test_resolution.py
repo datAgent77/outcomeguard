@@ -565,10 +565,13 @@ def test_paypal_rejection_fails_honestly_and_allows_a_retry(res, who, world, ses
     assert session.get(ResolutionCase, case.id).status is CaseStatus.RESOLVED
 
 
-def test_paypal_5xx_is_unknown_and_replay_uses_the_same_request_id(
+def test_paypal_5xx_is_unknown_and_reconcile_stops_safely_without_resending(
     res, who, world, session, gateway
 ):
-    case = open_refund_case(res, who, world[0])
+    """TD-17: PayPal does not document how long it honours PayPal-Request-Id on v2
+    refunds, so nothing is ever re-sent automatically — not even with the same key."""
+    agreement, auth, cap, run = world
+    case = open_refund_case(res, who, agreement)
     p = agree_refund(res, who, case)
     gateway.fail_before["refund_capture"] = PayPalUncertainError("POST refund -> 503")
     with pytest.raises(PaymentUncertain):
@@ -578,9 +581,53 @@ def test_paypal_5xx_is_unknown_and_replay_uses_the_same_request_id(
     session.expire_all()
     assert session.get(ResolutionCase, case.id).status is CaseStatus.ACTION_REQUIRED
     r = res.reconcile_refund(who("alice"), refund.id)
-    assert r.status is RefundStatus.COMPLETED
-    assert res.payments.last_reconcile_method == "replay_same_request_id"
-    assert gateway.request_ids["refund_capture"] == ["og-ref-refund-key-0001"] * 2
+    assert r.status is RefundStatus.RECONCILIATION_REQUIRED
+    assert res.payments.last_reconcile_method == "operator_required"
+    assert gateway.calls["refund_capture"] == 1  # no POST from reconciliation
+    assert gateway.calls["get_order"] >= 1  # it read PayPal first
+    # Reconciling again still only reads; the amount stays held; the case waits.
+    r = res.reconcile_refund(who("maya"), refund.id)
+    assert r.status is RefundStatus.RECONCILIATION_REQUIRED and gateway.calls["refund_capture"] == 1
+    session.refresh(cap)
+    assert res.payments.refundable_balance(cap).minor == 40000
+    session.expire_all()
+    assert session.get(ResolutionCase, case.id).status is CaseStatus.ACTION_REQUIRED
+    pol = res.refund_policy(who("alice"), case.id, None)
+    assert "REFUND_OUTCOME_UNKNOWN" in [x["code"] for x in pol.reasons]
+    with pytest.raises(GovernanceError) as ei:  # no new refund with a new key either
+        res.execute_refund(who("alice"), case.id, p.id, "refund-key-0002")
+    assert "REFUND_OUTCOME_UNKNOWN" in codes(ei)
+    assert session.scalar(
+        select(AuditEvent).where(AuditEvent.action == "payment.refund.reconciliation_required")
+    )
+
+
+def test_refund_that_appears_late_at_paypal_is_settled_by_a_later_read(
+    res, who, world, session, gateway
+):
+    """Eventually consistent read: the first reconcile sees no refund and stops in
+    RECONCILIATION_REQUIRED; once PayPal shows it, the next reconcile settles — still one POST."""
+    agreement, auth, cap, run = world
+    case = open_refund_case(res, who, agreement)
+    p = agree_refund(res, who, case)
+    gateway.fail_after["refund_capture"] = PayPalUncertainError("response lost")
+    with pytest.raises(PaymentUncertain):
+        res.execute_refund(who("alice"), case.id, p.id, "refund-key-0001")
+    refund = session.scalar(select(PaymentRefund))
+
+    def hide_refunds(order):
+        pu = dict(order["purchase_units"][0])
+        pu["payments"] = {k: v for k, v in pu.get("payments", {}).items() if k != "refunds"}
+        return {**order, "purchase_units": [pu]}
+
+    gateway.override["get_order"] = hide_refunds
+    r = res.reconcile_refund(who("alice"), refund.id)
+    assert r.status is RefundStatus.RECONCILIATION_REQUIRED
+    del gateway.override["get_order"]
+    r = res.reconcile_refund(who("alice"), refund.id)
+    assert r.status is RefundStatus.COMPLETED and r.paypal_refund_id
+    assert res.payments.last_reconcile_method == "read_existing_refund"
+    assert gateway.calls["refund_capture"] == 1
     session.expire_all()
     assert session.get(ResolutionCase, case.id).status is CaseStatus.RESOLVED
 
@@ -607,28 +654,6 @@ def test_lost_response_holds_balance_and_reconciles_read_first_without_a_second_
     assert gateway.calls["refund_capture"] == 1
     order = gateway.get_order(auth.order.paypal_order_id)
     assert len(order["purchase_units"][0]["payments"]["refunds"]) == 1
-
-
-def test_old_unknown_refund_needs_an_operator_and_keeps_the_balance_held(
-    res, who, world, session, gateway
-):
-    agreement, auth, cap, run = world
-    case = open_refund_case(res, who, agreement)
-    p = agree_refund(res, who, case)
-    gateway.fail_before["refund_capture"] = PayPalUncertainError("timeout")
-    with pytest.raises(PaymentUncertain):
-        res.execute_refund(who("alice"), case.id, p.id, "refund-key-0001")
-    refund = session.scalar(select(PaymentRefund))
-    session.execute(
-        text("UPDATE payment_refunds SET created_at = now() - interval '7 hours' WHERE id = :i"),
-        {"i": refund.id},
-    )
-    session.commit()
-    r = res.reconcile_refund(who("alice"), refund.id)
-    assert r.status is RefundStatus.RECONCILIATION_REQUIRED
-    assert gateway.calls["refund_capture"] == 1  # no replay
-    session.refresh(cap)
-    assert res.payments.refundable_balance(cap).minor == 40000
 
 
 def test_settlement_figures_are_paypal_reported(res, who, world, session, gateway):
