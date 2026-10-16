@@ -154,7 +154,7 @@ def paypal_return(token: str, svc: PaymentServiceDep) -> HTMLResponse:
         f"<b>{html.escape(order.paypal_status or 'unknown')}</b>{label}.</p>"
         "<p>No money has moved. The funds are authorized (held) only after OutcomeGuard "
         "authorizes the order server-side, and captured only after verification and human "
-        "approval. You can close this tab.</p>",
+        "approval. You can close this tab and continue in OutcomeGuard.</p>",
     )
 
 

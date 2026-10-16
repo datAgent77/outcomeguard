@@ -1,6 +1,6 @@
 # Known limitations
 
-Current as of P02. Each item is either planned (phase noted) or a deliberate scope cut.
+Current as of P07. Each item is either planned (phase noted) or a deliberate scope cut.
 
 ## Payments
 
@@ -32,16 +32,36 @@ Current as of P02. Each item is either planned (phase noted) or a deliberate sco
 
 ## Platform
 
-- **Interim authentication.** Sessions are HMAC-signed bearer tokens issued by the
-  operator-gated `/dev/session` endpoint for seeded demo users — there is no password or
-  SSO login yet (P06). RBAC itself is enforced from database memberships on every request.
+- **Authentication** is password + server-side session (P06); the web UI keeps the session
+  token in an HttpOnly cookie via its BFF (P07). No MFA, password reset, self sign-up or SSO.
 - The P02 payment driver endpoints are operator-token protected and disabled by default.
 - **No rate limiting yet** (planned P09).
 - **Audit log is tamper-evident, not tamper-proof**: someone with database write access
   can rewrite the whole hash chain.
 - **Rehearsal mode keeps simulated PayPal objects in memory**; restarting the API forgets
   them (our database rows remain and will fail to reconcile).
-- **No product UI yet** (P07).
+
+## Product UI (P07)
+
+- **Policy previews are persisted.** Opening the payment tab (and "Re-evaluate") runs a
+  fresh P06 evaluation, which is stored as a `preview` policy decision by design. The
+  ledger hides previews unless asked.
+- **Dashboard payment eligibility is the last stored evaluation**, shown with its
+  timestamp; it is not re-evaluated for the list view.
+- **Ledger scale.** The ledger resolves the organization's entity ids and filters the
+  audit log with an `IN` list — fine for demo volumes, not for large tenants (TD-14).
+- **Provenance is only as good as the record.** The ledger distinguishes human accounts,
+  demo accounts, service accounts and the system. It can mark a decision as *scripted* only
+  when the persisted rationale carries the `SCRIPTED DEMO DECISION` marker; actions taken
+  through demo accounts in the UI are shown as "Demo account", never as a human decision.
+- **Sessions do not slide.** The cookie lives as long as the API session (8 h) and is not
+  refreshed; afterwards the user signs in again.
+- **No in-app PayPal return.** After approving at PayPal the buyer lands on the API's
+  confirmation page and returns to the OutcomeGuard tab, which polls the order (bounded,
+  6 min) or re-checks on demand.
+- **Light theme only**; no dark mode. English only.
+- **Accessibility**: automated axe scans pass (no serious/critical issues) and keyboard
+  flows are tested; no manual screen-reader audit.
 
 ## AI (P05)
 

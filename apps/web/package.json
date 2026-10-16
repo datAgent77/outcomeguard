@@ -6,14 +6,21 @@
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
-    "lint": "eslint"
+    "lint": "eslint",
+    "typecheck": "tsc --noEmit",
+    "test:e2e": "playwright test --project=mocked-desktop --project=mocked-mobile",
+    "test:e2e:integration": "playwright test --project=integration"
   },
   "dependencies": {
+    "ag-grid-community": "^36.2.0",
+    "ag-grid-react": "^36.2.0",
     "next": "16.4.1",
     "react": "19.3.0",
     "react-dom": "19.3.0"
   },
   "devDependencies": {
+    "@axe-core/playwright": "^4.14.0",
+    "@playwright/test": "^1.64.0",
     "@tailwindcss/turbopack": "^4",
     "@types/node": "^20",
     "@types/react": "^19",

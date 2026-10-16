@@ -81,6 +81,8 @@ class AcceptIn(BaseModel):
     currency: str = Field(default="USD", pattern=r"^[A-Z]{3}$")
     delivery_deadline: datetime
     include_keys: list[str] | None = None
+    # AI suggestions enter the agreement only when the buyer names them here (opt-in).
+    accept_suggestions: list[str] = Field(default_factory=list)
     configuration: dict[str, dict[str, Any]] = Field(default_factory=dict)
     use_standard_form_fields: bool = False
     # Buyer decision, audited: e.g. a manual-review item checked outside OutcomeGuard.
@@ -160,6 +162,7 @@ def accept_draft(
         include_keys=body.include_keys,
         use_standard_form_fields=body.use_standard_form_fields,
         blocking_overrides=body.blocking_overrides,
+        accept_suggestions=body.accept_suggestions,
     )
     # The agreement is a DRAFT: the buyer must still propose and approve it to lock.
     return {

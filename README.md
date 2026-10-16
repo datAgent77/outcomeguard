@@ -17,7 +17,7 @@ AI interprets the promise → Tools verify the evidence → Policy determines el
 Built for the [PayPal AI Hackathon](https://paypalaihackathon.devpost.com/) (2026).
 PayPal **Sandbox only** — no real money moves.
 
-> **Status: build in progress (P04 of P10).** Implemented and tested: the PayPal payment
+> **Status: build in progress (P07 of P10).** Implemented and tested: the PayPal payment
 > core (authorize → capture → partial refund **run against the live PayPal Sandbox**;
 > live webhook delivery not verified yet), the agreement domain (versioned agreements,
 > typed acceptance criteria, buyer approval and locking, RBAC), and real evidence
@@ -27,7 +27,10 @@ PayPal **Sandbox only** — no real money moves.
 > capped, no financial authority). A fixed page with an unresolved blocking manual review
 > is reported as NEEDS_MANUAL_REVIEW, never as verified. Payment governance (P06): a
 > deterministic policy, evidence-bound human reviews and a separate buyer capture approval,
-> re-checked at the moment of capture. The product UI (P07) is not built yet. See
+> re-checked at the moment of capture. Product UI (P07): role-aware buyer/provider
+> workspaces, an AI agreement wizard, an evidence-first verification report, manual-review
+> and payment workspaces and an AG Grid ledger, served through a same-origin BFF with
+> HttpOnly session cookies. See
 > [docs/IMPLEMENTATION_PROGRESS.md](docs/IMPLEMENTATION_PROGRESS.md) and
 > [docs/INTEGRATION_PROOF.md](docs/INTEGRATION_PROOF.md) for what is verified.
 
@@ -60,8 +63,14 @@ uv run uvicorn outcomeguard.main:app --reload --port 8000
 ```
 
 ```bash
-cd apps/web && npm install && npm run dev   # http://localhost:3000
+cd apps/web && npm install
+OUTCOMEGUARD_API_URL=http://localhost:8000 npm run dev   # http://localhost:3000
 ```
+
+The web app talks to the API only from the server (BFF); the browser never sees an API
+token. Demo users: `DEMO_PASSWORD=… uv run python scripts/seed_demo.py` (operator-chosen
+password). Full local demo and test instructions:
+[docs/P07_UI_VERIFICATION.md](docs/P07_UI_VERIFICATION.md).
 
 Or with Docker: `docker compose up --build`.
 
@@ -78,6 +87,11 @@ cd apps/api
 createdb outcomeguard_test      # once
 uv run pytest                   # unit tests, mocked PayPal
 uv run pytest -m sandbox        # opt-in, real PayPal Sandbox (needs credentials)
+
+cd apps/web
+npm run lint && npm run typecheck && npm run build
+npm run test:e2e                # browser tests, MOCKED API (runs in CI)
+E2E_BASE_URL=… DEMO_PASSWORD=… npm run test:e2e:integration   # real local stack
 ```
 
 ## Documentation
@@ -89,6 +103,7 @@ uv run pytest -m sandbox        # opt-in, real PayPal Sandbox (needs credentials
 - [Evidence verification (P04)](docs/VERIFICATION.md)
 - [AI contract & evidence intelligence (P05)](docs/AI_VERIFICATION.md)
 - [Payment governance (P06)](docs/GOVERNANCE.md)
+- [Product UI verification (P07)](docs/P07_UI_VERIFICATION.md)
 - [Technical debt register](docs/TECH_DEBT.md)
 - [Webhooks: go-live procedure](docs/WEBHOOKS.md)
 - [P04 verification worker plan](docs/architecture/P04_VERIFICATION_PLAN.md)

@@ -9,8 +9,8 @@ Deadline: **2026-11-12 23:00 GMT+3** (PayPal AI Hackathon). Spec: [BUILD_PROMPT_
 | P03 | Agreement domain | ✅ accepted (gate re-run before P04: 47/47) |
 | P04 | Verification engine (Playwright, Lighthouse, SSRF guard) | ✅ conditionally accepted — see [VERIFICATION.md](VERIFICATION.md), open items in [TECH_DEBT.md](TECH_DEBT.md) |
 | P05 | AI contract and evidence intelligence | ✅ accepted — see [AI_VERIFICATION.md](AI_VERIFICATION.md) |
-| P06 | Deterministic policy, human approval, auth/RBAC | 🟡 implemented + tested; real Sandbox governance run ✅ 2026-10-16; **awaiting final review** — see [GOVERNANCE.md](GOVERNANCE.md) |
-| P07 | Product UI + AG Grid ledger | ⏳ |
+| P06 | Deterministic policy, human approval, auth/RBAC | ✅ accepted (real Sandbox governance run 2026-10-16) — see [GOVERNANCE.md](GOVERNANCE.md) |
+| P07 | Product UI + AG Grid ledger | 🟡 **partial** — implemented and browser-tested (mocked + real API with simulated payments); real PayPal Sandbox run through the UI pending (TD-13) — see [P07_UI_VERIFICATION.md](P07_UI_VERIFICATION.md) |
 | P08 | Resolution and refunds | ⏳ (payment-level refund done in P02) |
 | P09 | Security and integration hardening | ⏳ |
 | P10 | Hackathon delivery | ⏳ |
@@ -133,6 +133,20 @@ Deadline: **2026-11-12 23:00 GMT+3** (PayPal AI Hackathon). Spec: [BUILD_PROMPT_
 - [x] Reconcile is read-first (find the capture on the PayPal order before replaying the same
       `PayPal-Request-Id`); demo polling bounded (timeout, transient-failure budget)
 - [x] Access logs redact the query string of `/paypal/*` and `/rehearsal/*` (order token, PayerID)
+
+## P07 — Product UI (2026-10-16)
+
+- [x] Same-origin BFF: HttpOnly session cookie, CSRF (Origin + custom header), path allow-list, 401 → re-login
+- [x] Landing page, login/logout, role-aware navigation, buyer dashboard, provider workspace
+- [x] AI agreement wizard (stated vs suggested, opt-in, blocking protection, configuration, propose + approve/lock)
+- [x] Agreement workspace with six tabs; separate agreement / verification / payment statuses
+- [x] Delivery submission with bounded polling; evidence report with real measurements and artifact viewers (screenshot, gzip Lighthouse JSON, HTTP trace, egress log, form-sink receipts); AI explanation labelled as interpretation
+- [x] Manual-review panel (authorized buyer reviewers, rationale + attestation + confirmation, stale-evidence rejection, scripted decisions labelled)
+- [x] Payment workspace: Sandbox checkout (idempotent order creation), bounded approval polling, authorize, live policy with plain-English reasons, capture approval and capture as separate confirmed actions, UNKNOWN + guarded reconcile
+- [x] AG Grid Community ledger (server search/filters, sort, pagination, drawer, timeline on mobile) + per-agreement activity timeline
+- [x] Read-only API additions + `accept_suggestions` route fix + payment `Idempotency-Key` (tests: `test_workspace_api.py`)
+- [x] Browser tests: 36 mocked (CI) incl. axe and 5 viewport widths; 8-step real-API flow (rehearsal payments)
+- [ ] Real PayPal Sandbox flow through the UI (needs a person to approve at PayPal) — TD-13
 
 ## Verified vs unverified
 

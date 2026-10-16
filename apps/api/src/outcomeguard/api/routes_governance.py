@@ -4,21 +4,25 @@ policy evaluation and a human capture approval bound to the evaluated facts."""
 
 from __future__ import annotations
 
+import hashlib
 from datetime import datetime
-from typing import Any
+from typing import Annotated, Any
 
-from fastapi import APIRouter
+from fastapi import APIRouter, Header
 from pydantic import BaseModel, ConfigDict, Field
 from sqlalchemy import select
+from sqlalchemy.exc import IntegrityError
 
 from outcomeguard.api.deps import AgreementServiceDep, PaymentServiceDep, PrincipalDep
 from outcomeguard.api.schemas import CaptureOut, OrderOut
 from outcomeguard.auth import Forbidden
 from outcomeguard.models import (
+    IdempotencyRecord,
     ManualReviewDecision,
     PaymentOrder,
     ReviewDecision,
     Role,
+    User,
     VerificationRun,
 )
 from outcomeguard.services.governance import Governance, GovernanceError
@@ -52,6 +56,7 @@ class ReviewOut(BaseModel):
     decision: str
     rationale: str
     reviewer_user_id: str
+    reviewer_email: str | None = None
     reviewer_role: str
     evidence_snapshot_sha256: str
     decided_at: datetime
@@ -85,7 +90,7 @@ def _policy_out(row) -> PolicyOut:
     )
 
 
-def _review_out(d: ManualReviewDecision) -> ReviewOut:
+def _review_out(d: ManualReviewDecision, email: str | None = None) -> ReviewOut:
     return ReviewOut(
         id=d.id,
         criterion_id=d.criterion_id,
@@ -93,6 +98,7 @@ def _review_out(d: ManualReviewDecision) -> ReviewOut:
         decision=d.decision.value,
         rationale=d.rationale,
         reviewer_user_id=d.reviewer_user_id,
+        reviewer_email=email,
         reviewer_role=d.reviewer_role,
         evidence_snapshot_sha256=d.evidence_snapshot_sha256,
         decided_at=d.decided_at,
@@ -126,9 +132,13 @@ def create_payment(
     principal: PrincipalDep,
     agreements: AgreementServiceDep,
     payments: PaymentServiceDep,
+    idempotency_key: Annotated[str | None, Header(pattern=r"^[A-Za-z0-9_-]{8,64}$")] = None,
 ) -> OrderOut:
     """PayPal order (intent AUTHORIZE) for the agreement's current LOCKED version. Amount,
-    currency and merchant come from the version, never from the client."""
+    currency and merchant come from the version, never from the client.
+
+    With an `Idempotency-Key` header, a repeated request (double click, retry after a
+    timeout) returns the order the first request created instead of creating another."""
     principal.require_human("starting a payment")
     agreement = agreements.get(principal, agreement_id)
     principal.require(
@@ -138,9 +148,57 @@ def create_payment(
         raise GovernanceError("AGREEMENT_NOT_LOCKED", "lock the agreement before paying")
     from outcomeguard.models import AgreementVersion
 
-    version = payments.session.get(AgreementVersion, agreement.current_locked_version_id)
+    s = payments.session
+    record = None
+    if idempotency_key:
+        scope = f"agreement_payment:{principal.user_id}"
+        request_hash = hashlib.sha256(agreement_id.encode()).hexdigest()
+        existing = s.scalar(
+            select(IdempotencyRecord).where(
+                IdempotencyRecord.scope == scope, IdempotencyRecord.key == idempotency_key
+            )
+        )
+        if existing is None:
+            record = IdempotencyRecord(key=idempotency_key, scope=scope, request_hash=request_hash)
+            s.add(record)
+            try:
+                s.commit()
+            except IntegrityError:
+                s.rollback()
+                existing = s.scalar(
+                    select(IdempotencyRecord).where(
+                        IdempotencyRecord.scope == scope, IdempotencyRecord.key == idempotency_key
+                    )
+                )
+        if existing is not None:
+            if existing.request_hash != request_hash:
+                raise GovernanceError(
+                    "IDEMPOTENCY_KEY_REUSED",
+                    "key was used for a different request",
+                    http_status=422,
+                )
+            order_id = (existing.response_body or {}).get("order_id")
+            if order_id is None:
+                raise GovernanceError(
+                    "REQUEST_IN_PROGRESS", "the first request with this key has not finished"
+                )
+            return _order_out(payments, payments._get(PaymentOrder, order_id))
+
+    version = s.get(AgreementVersion, agreement.current_locked_version_id)
     assert version is not None
-    order = payments.create_order_for_agreement(version, actor=principal.label)
+    try:
+        order = payments.create_order_for_agreement(version, actor=principal.label)
+    except Exception:
+        if record is not None:  # let the client retry with the same key
+            s.rollback()
+            s.delete(s.merge(record))
+            s.commit()
+        raise
+    if record is not None:
+        record = s.merge(record)
+        record.response_status = 201
+        record.response_body = {"order_id": order.id}
+        s.commit()
     return _order_out(payments, order)
 
 
@@ -214,10 +272,12 @@ def list_manual_reviews(
     version = s.get(AgreementVersion, run.agreement_version_id)
     assert version is not None
     agreements.get(principal, version.agreement_id)
-    rows = s.scalars(
-        select(ManualReviewDecision).where(ManualReviewDecision.verification_run_id == run_id)
+    rows = s.execute(
+        select(ManualReviewDecision, User.email)
+        .join(User, User.id == ManualReviewDecision.reviewer_user_id)
+        .where(ManualReviewDecision.verification_run_id == run_id)
     ).all()
-    return [_review_out(d) for d in rows]
+    return [_review_out(d, email) for d, email in rows]
 
 
 # ------------------------------------------------------------------- capture

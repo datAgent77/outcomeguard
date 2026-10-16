@@ -44,6 +44,7 @@ class EvidenceIn(BaseModel):
 
 
 class ResultOut(BaseModel):
+    criterion_id: str
     criterion_key: str
     kind: str
     blocking: bool
@@ -64,6 +65,17 @@ class ArtifactOut(BaseModel):
     content_type: str
 
 
+class FormReceiptOut(BaseModel):
+    """Form-sink receipt: field names and a hash of the values — never the values."""
+
+    id: str
+    sink_ref: str
+    field_names: list[str]
+    values_sha256: str
+    content_length: int
+    received_at: datetime
+
+
 class RunOut(BaseModel):
     id: str
     status: str
@@ -81,11 +93,17 @@ class RunOut(BaseModel):
     error: str | None
     results: list[ResultOut]
     artifacts: list[ArtifactOut]
+    form_receipts: list[FormReceiptOut]
 
 
 def _run_out(session, run: VerificationRun) -> RunOut:
     sub = session.get(EvidenceSubmission, run.submission_id)
     arts = session.scalars(select(EvidenceArtifact).where(EvidenceArtifact.run_id == run.id)).all()
+    receipts = session.scalars(
+        select(FormSinkReceipt)
+        .where(FormSinkReceipt.run_id == run.id)
+        .order_by(FormSinkReceipt.received_at)
+    ).all()
     return RunOut(
         id=run.id,
         status=run.status.value,
@@ -104,6 +122,7 @@ def _run_out(session, run: VerificationRun) -> RunOut:
         error=run.error,
         results=[
             ResultOut(
+                criterion_id=r.criterion_id,
                 criterion_key=r.criterion_key,
                 kind=r.kind,
                 blocking=r.blocking,
@@ -126,6 +145,17 @@ def _run_out(session, run: VerificationRun) -> RunOut:
                 content_type=a.content_type,
             )
             for a in arts
+        ],
+        form_receipts=[
+            FormReceiptOut(
+                id=f.id,
+                sink_ref=f.sink_ref,
+                field_names=f.field_names,
+                values_sha256=f.values_sha256,
+                content_length=f.content_length,
+                received_at=f.received_at,
+            )
+            for f in receipts
         ],
     )
 

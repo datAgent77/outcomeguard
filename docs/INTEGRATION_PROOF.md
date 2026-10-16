@@ -35,7 +35,7 @@ Legend: ✅ yes · ❌ not yet · — not applicable
 | SSRF policy / egress proxy | ✅ | ✅ + real sockets + real Chromium | — | — |
 | Runner network isolation in a container | ✅ | — | — (Docker, `scripts/container_isolation_test.sh`, 17/17 probes) | — |
 
-Last updated: 2026-10-16 (P06 final) — API suite 338 passed (incl. 4 real-browser tests; AI and governance tests use mocked providers/gateways); `-m ai_live` 2 passed; `-m sandbox` 2 passed; `mypy` clean; P06 governance run completed against the live PayPal Sandbox;
+Last updated: 2026-10-16 (P07) — API suite 341 passed (incl. 4 real-browser tests); `-m ai_live` 2 passed; `-m sandbox` 2 passed; `mypy` clean; web: lint, typecheck, build clean; 36 mocked browser tests + 8-step real-API browser flow passed; P06 governance run completed against the live PayPal Sandbox;
 full lifecycle run passed against the live PayPal Sandbox (see Runs).
 
 **P02 core gate: PASSED** (OAuth → Create Order → Buyer Approval → Authorize → Capture →
@@ -252,6 +252,28 @@ Earlier attempts (2026-10-15): orders `0J671308PH8748725` and `3XF69583SJ739070F
 before authorization (transient `502` while polling; approval timeout). Both are verified
 unauthorized and uncaptured in the DB (0 authorizations, 0 captures); PayPal now returns 404
 for them (unapproved orders expired). Their approval links were not reused.
+
+## Product UI evidence (P07, 2026-10-16)
+
+| Scenario | Mocked API (browser, CI) | Real API, simulated payments (browser) | Real PayPal Sandbox (browser) |
+|---|---|---|---|
+| Login / logout / expired session | ✅ | ✅ login + role switching | — |
+| Role-aware navigation and actions | ✅ | ✅ (provider has no review action) | — |
+| AI wizard → review → configure → propose → lock | ✅ (canned draft) | ✅ real `claude-sonnet-5-5` draft | ✅ preparation run (real model, Sandbox-mode API) |
+| Broken page → FAIL | — | ✅ real Chromium + Lighthouse | — |
+| Fixed page → NEEDS_MANUAL_REVIEW, artifacts from evidence store | ✅ | ✅ | ✅ preparation run |
+| Manual review (authorized account, attestation, confirmation) | ✅ incl. stale evidence | ✅ **scripted test decision, labelled** | ✅ preparation run, **scripted, labelled** |
+| Checkout → buyer approval → authorize | ✅ | ✅ SIMULATED (rehearsal page) | ⏳ pending — needs a person at PayPal |
+| Policy blocks capture (review pending / already captured) | ✅ | ✅ | ⏳ pending |
+| Capture approval + capture as separate confirmed actions | ✅ | ✅ SIMULATED | ⏳ pending |
+| UNKNOWN outcome → guarded reconcile, no retry | ✅ | — | — (proven at API level in P06) |
+| Ledger + activity timeline from persisted events | ✅ | ✅ | — |
+| Layout 1440 / 1280 / 768 / 390 / 375 px | ✅ | ✅ 1440 + 390 | — |
+| axe-core WCAG 2 A/AA (no serious/critical) | ✅ | — | — |
+
+Details, screenshots and commands: [P07_UI_VERIFICATION.md](P07_UI_VERIFICATION.md). The
+simulated-payment run made no PayPal call; its order/authorization/capture ids start with
+`SIM-` and every screen and ledger row marks them SIMULATED.
 
 ## How to reproduce
 

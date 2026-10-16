@@ -15,6 +15,7 @@ from outcomeguard.api import (
     routes_session,
     routes_system,
     routes_verification,
+    routes_workspace,
 )
 from outcomeguard.auth import AuthError, Forbidden
 from outcomeguard.config import get_settings
@@ -108,6 +109,7 @@ def create_app() -> FastAPI:
     app.include_router(routes_governance.router)
     app.include_router(routes_verification.router)
     app.include_router(routes_verification.sink_router)
+    app.include_router(routes_workspace.router)
     app.include_router(routes_payments.public)
     app.include_router(routes_payments.dev)
     log.info("api started", extra={"data": settings.public_summary()})
