@@ -83,7 +83,23 @@ class Api:
             sys.exit("--api must be an http(s) URL")
         self.base, self.token = base.rstrip("/"), None
 
-    def call(self, method: str, path: str, body: dict | None = None) -> dict:
+    def post_form(self, path: str) -> int:
+        """POST without a body and without following the redirect (rehearsal approval)."""
+
+        class NoRedirect(urllib.request.HTTPRedirectHandler):
+            def redirect_request(self, *a, **k):  # type: ignore[no-untyped-def]
+                return None
+
+        opener = urllib.request.build_opener(NoRedirect)
+        try:
+            req = urllib.request.Request(self.base + path, method="POST", data=b"")  # noqa: S310
+            return opener.open(req).status
+        except urllib.error.HTTPError as e:
+            return e.code
+
+    def call(
+        self, method: str, path: str, body: dict | None = None, headers: dict | None = None
+    ) -> dict:
         req = urllib.request.Request(  # noqa: S310 — scheme validated in __init__
             self.base + path,
             method=method,
@@ -91,6 +107,7 @@ class Api:
             headers={
                 "content-type": "application/json",
                 **({"authorization": f"Bearer {self.token}"} if self.token else {}),
+                **(headers or {}),
             },
         )
         try:
@@ -119,6 +136,12 @@ def main() -> None:
     ap = argparse.ArgumentParser()
     ap.add_argument("--api", default="http://localhost:8010")
     ap.add_argument("--web", default="http://localhost:3010")
+    ap.add_argument(
+        "--ready",
+        action="store_true",
+        help="rehearsal only: also create a SIMULATED order, approve it on the rehearsal page "
+        "and authorize it, so the presenter only approves and captures (SIMULATED) on stage",
+    )
     args = ap.parse_args()
     password = os.environ.get("DEMO_PASSWORD")
     if not password:
@@ -126,6 +149,8 @@ def main() -> None:
     api = Api(args.api)
     mode = api.call("GET", "/ready")["config"]["payment_mode"]
     print(f"API {args.api} · payment mode {mode}")
+    if args.ready and mode != "rehearsal":
+        sys.exit("--ready creates a payment and is allowed only in rehearsal mode (SIMULATED)")
 
     env = {**os.environ}
     if mode == "rehearsal":
@@ -192,6 +217,23 @@ def main() -> None:
         },
     )
     print("✔ accessibility review recorded — SCRIPTED demo decision (labelled)")
+    if args.ready:
+        api.login("alice@acme.demo", password)
+        order = api.call(
+            "POST",
+            f"/agreements/{a['id']}/payments",
+            {},
+            {"idempotency-key": f"demo-{a['id'][:8]}"},
+        )
+        assert order["simulated"] and order["paypal_order_id"].startswith("SIM-")
+        status = api.post_form(f"/rehearsal/approve/{order['paypal_order_id']}")
+        if status != 303:
+            sys.exit(f"rehearsal approval failed: {status}")
+        auth = api.call("POST", f"/payments/orders/{order['id']}/authorize")["authorization"]
+        print(
+            f"✔ SIMULATED order {order['paypal_order_id']} approved (rehearsal page) and authorized "
+            f"{auth['paypal_authorization_id']} — do not restart the API before the capture"
+        )
     print(
         json.dumps(
             {
@@ -203,7 +245,10 @@ def main() -> None:
             indent=2,
         )
     )
-    print("No PayPal order was created. Payment steps are performed by the presenter.")
+    if args.ready:
+        print("Only a SIMULATED rehearsal order was created; no PayPal call was made.")
+    else:
+        print("No PayPal order was created. Payment steps are performed by the presenter.")
 
 
 if __name__ == "__main__":

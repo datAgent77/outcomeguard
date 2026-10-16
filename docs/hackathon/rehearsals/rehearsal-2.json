@@ -1,0 +1,71 @@
+{
+  "label": "rehearsal-2",
+  "kind": "human-paced automated rehearsal (estimate, NOT a human run)",
+  "wpm": 130,
+  "think_ms": 1800,
+  "total_s": 159.8,
+  "measured": {
+    "ai_draft_s": 17.2,
+    "verification_fixed_s": 17.2
+  },
+  "segments": [
+    {
+      "name": "1 hook — landing",
+      "seconds": 22.6,
+      "narration_s": 22.6,
+      "words": 49,
+      "started_at_s": 0
+    },
+    {
+      "name": "2 AI criteria (live Claude)",
+      "seconds": 23.7,
+      "narration_s": 21.7,
+      "words": 47,
+      "started_at_s": 22.6
+    },
+    {
+      "name": "3 configure + lock",
+      "seconds": 18,
+      "narration_s": 12.9,
+      "words": 28,
+      "started_at_s": 46.3
+    },
+    {
+      "name": "4 provider delivers (live Chromium + Lighthouse)",
+      "seconds": 25.8,
+      "narration_s": 15.7,
+      "words": 34,
+      "started_at_s": 64.3
+    },
+    {
+      "name": "5 evidence report",
+      "seconds": 17.1,
+      "narration_s": 17.1,
+      "words": 37,
+      "started_at_s": 90
+    },
+    {
+      "name": "6 broken FAIL (recorded earlier)",
+      "seconds": 14.5,
+      "narration_s": 12.5,
+      "words": 27,
+      "started_at_s": 107.1
+    },
+    {
+      "name": "7 policy + approve + capture (SIMULATED)",
+      "seconds": 17.7,
+      "narration_s": 15.7,
+      "words": 34,
+      "started_at_s": 121.6
+    },
+    {
+      "name": "8 real Sandbox proof + close",
+      "seconds": 20.5,
+      "narration_s": 18.5,
+      "words": 40,
+      "started_at_s": 139.3
+    }
+  ],
+  "new_agreement": "/agreements/f8a77c4e-5a0b-4fa3-a8a1-e9ef397a4ef4",
+  "prepared_agreement": "d8726733-238b-4608-8be4-f8c098b5fc2e"
+}
