@@ -19,6 +19,7 @@ export function verificationState(a: AgreementSummary): { label: string; tone: T
 export function paymentState(a: AgreementSummary): { label: string; tone: Tone } {
   const p = a.payment;
   if (!p) return { label: "No payment yet", tone: "neutral" };
+  if (p.capture_status === "completed" && p.refunded) return { label: `Captured · ${money(p.refunded, a.currency)} refunded`, tone: "info" };
   if (p.capture_status) return CAPTURE_STATUS[p.capture_status] ?? { label: p.capture_status, tone: "neutral" };
   if (p.authorization_status) return AUTH_STATUS[p.authorization_status] ?? { label: p.authorization_status, tone: "neutral" };
   return ORDER_STATUS[p.order_status] ?? { label: p.order_status, tone: "neutral" };

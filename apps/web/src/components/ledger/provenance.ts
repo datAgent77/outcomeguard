@@ -36,6 +36,30 @@ const EVENT: Record<string, string> = {
   "payment.capture.unknown": "Capture outcome unknown",
   "payment.capture.completed": "Payment captured",
   "payment.capture.failed": "Capture rejected",
+  "payment.refund.requested": "Refund requested",
+  "payment.refund.completed": "Refund completed",
+  "payment.refund.pending": "Refund pending at PayPal",
+  "payment.refund.unknown": "Refund outcome unknown",
+  "payment.refund.failed": "Refund rejected by PayPal",
+  "payment.refund.reconciliation_required": "Refund needs operator reconciliation",
+  "payment.void.requested": "Authorization cancellation requested",
+  "payment.void.completed": "Authorization cancelled (voided)",
+  "payment.void.unknown": "Cancellation outcome unknown",
+  "payment.void.failed": "Cancellation refused by PayPal",
+  "resolution.opened": "Resolution case opened",
+  "resolution.message": "Resolution message",
+  "resolution.evidence_linked": "Evidence linked to case",
+  "resolution.proposal_submitted": "Proposal submitted",
+  "resolution.proposal_approved": "Proposal approved",
+  "resolution.proposal_rejected": "Proposal rejected",
+  "resolution.proposal_withdrawn": "Proposal withdrawn",
+  "resolution.refund_requested": "Case: refund sent to PayPal",
+  "resolution.refund_completed": "Case: refund completed",
+  "resolution.refund_unknown": "Case: refund outcome unknown",
+  "resolution.refund_failed": "Case: refund rejected",
+  "resolution.void_requested": "Case: cancellation sent",
+  "resolution.void_completed": "Case: authorization cancelled",
+  "resolution.closed": "Resolution case closed",
 };
 
 export function eventLabel(t: string): string {
@@ -48,7 +72,9 @@ export function eventLabel(t: string): string {
 
 export function eventTone(r: LedgerRow): Tone {
   if (r.event_type.endsWith(".blocked") || r.event_type.endsWith(".failed") || r.event_type === "manual_review.not_satisfied") return "fail";
-  if (r.event_type.endsWith(".unknown") || r.event_type.endsWith(".needs_review")) return "review";
+  if (r.event_type.endsWith(".unknown") || r.event_type.endsWith("_unknown") || r.event_type.endsWith(".needs_review") || r.event_type.endsWith("reconciliation_required") || r.event_type === "resolution.opened") return "review";
+  if (r.event_type.endsWith(".rejected") || r.event_type.endsWith("_rejected") || r.event_type === "policy.refund.blocked" || r.event_type === "policy.void.blocked") return "fail";
+  if (["payment.refund.completed", "payment.void.completed", "resolution.proposal_approved", "policy.refund.allowed", "policy.void.allowed"].includes(r.event_type)) return "pass";
   if (["payment.capture.completed", "agreement.version.approved_and_locked", "manual_review.satisfied", "capture.approved"].includes(r.event_type))
     return "pass";
   if (r.event_type === "verification.completed") {

@@ -13,7 +13,7 @@ Current as of P07. Each item is either planned (phase noted) or a deliberate sco
 - **One full capture per authorization.** No partial or multiple captures.
 - **No reauthorization.** After the 3-day honor period a capture may still succeed, but
   OutcomeGuard does not reauthorize; after 29 days the authorization is expired and blocked.
-- **No void flow in the product yet** (gateway method exists; product use planned P06/P08).
+- **Void (P08)** is governed and buyer-initiated; once the delivery is verified it needs the provider's agreement through a resolution case.
 - **Reversals/chargebacks** (`PAYMENT.CAPTURE.REVERSED`) are recorded via `paypal_status`
   but not modelled as their own state.
 - **Refund webhooks for refunds issued outside OutcomeGuard** (e.g. in the PayPal
@@ -106,3 +106,14 @@ Current as of P07. Each item is either planned (phase noted) or a deliberate sco
   is the isolation; in CI the runner VM is ephemeral.
 - **The full `docker-compose.yml` stack has not been run end-to-end in containers**; the
   isolation topology (`docker/verifier-isolation.compose.yml`) has.
+
+## Resolution and refunds (P08)
+
+- **Internal cases are not PayPal disputes.** Disputes and chargebacks opened at PayPal are
+  not imported, prevented or synchronised; refund availability is not guaranteed.
+- **Both parties must approve every refund.** There is no administrator override.
+- **Lost refunds older than 6 h** are not replayed automatically; they become
+  `reconciliation_required` and wait for an operator (no tooling yet, TD-18).
+- **No notifications** (TD-19). **No AI** in resolution.
+- Voids are buyer-initiated; once P06 reports the delivery verified, a two-sided
+  `cancel_authorization` proposal is required.

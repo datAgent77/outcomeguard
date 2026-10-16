@@ -11,7 +11,7 @@ Deadline: **2026-11-12 23:00 GMT+3** (PayPal AI Hackathon). Spec: [BUILD_PROMPT_
 | P05 | AI contract and evidence intelligence | ✅ accepted — see [AI_VERIFICATION.md](AI_VERIFICATION.md) |
 | P06 | Deterministic policy, human approval, auth/RBAC | ✅ accepted (real Sandbox governance run 2026-10-16) — see [GOVERNANCE.md](GOVERNANCE.md) |
 | P07 | Product UI + AG Grid ledger | ✅ accepted (real PayPal Sandbox flow through the UI 2026-10-16) — see [P07_UI_VERIFICATION.md](P07_UI_VERIFICATION.md) |
-| P08 | Resolution and refunds | ⏳ (payment-level refund done in P02) |
+| P08 | Resolution, void and refund governance | 🟡 **partial** — implemented and tested (mocked + real API with simulated payments); real PayPal Sandbox refund + void demonstration pending (waits for READY) — see [RESOLUTION_AND_REFUNDS.md](RESOLUTION_AND_REFUNDS.md) |
 | P09 | Security and integration hardening | ⏳ |
 | P10 | Hackathon delivery | ⏳ |
 
@@ -147,6 +147,18 @@ Deadline: **2026-11-12 23:00 GMT+3** (PayPal AI Hackathon). Spec: [BUILD_PROMPT_
 - [x] Read-only API additions + `accept_suggestions` route fix + payment `Idempotency-Key` (tests: `test_workspace_api.py`)
 - [x] Browser tests: 36 mocked (CI) incl. axe and 5 viewport widths; 8-step real-API flow (rehearsal payments)
 - [x] Real PayPal Sandbox flow through the UI, performed by a person (order `3PE754440H8280847` → capture `70F43933LT884351X`)
+
+## P08 — Resolution, void and refund governance (2026-10-16)
+
+- [x] Plan before code: `docs/architecture/P08_RESOLUTION_PLAN.md`
+- [x] Migration `9884007a0cc7`: cases, events, proposals, approvals, financial policy decisions, voids; refund governance columns; triggers (append-only, immutable snapshot/proposal content, approval side/hash check, refund and void governance); up/down/up verified
+- [x] Pure refund/void policy with reason codes and case state machine
+- [x] Refunds only through an agreed two-sided proposal + fresh policy under the capture lock; P02 operator bypass closed (service + trigger, regression tests)
+- [x] Read-first refund reconciliation (PayPal refund id → order refunds → same-key replay within 6 h → operator)
+- [x] Governed void under the authorization lock, capture/void mutual exclusion, provider consent once delivery is verified, VOIDED webhook
+- [x] API, ledger and overview extensions; Resolution tab, case wizard + workspace, refund confirmation, UNKNOWN reconciliation, Cancel authorization
+- [x] Tests: 78 backend (pure, mocked fault injection, HTTP), 9 mocked browser, 7-step real-API browser flow with simulated payments
+- [ ] Real PayPal Sandbox: resolution-governed partial refund + separate authorization void (needs a person at PayPal; waits for READY)
 
 ## Verified vs unverified
 

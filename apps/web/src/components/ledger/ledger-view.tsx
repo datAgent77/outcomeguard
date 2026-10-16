@@ -26,6 +26,7 @@ const CATEGORIES = [
   ["policy", "Policy"],
   ["approval", "Capture approval"],
   ["payment", "Payment"],
+  ["resolution", "Resolution"],
 ] as const;
 
 const PAGE = 500;

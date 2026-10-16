@@ -16,8 +16,9 @@ import { DeliveryPanel } from "./delivery";
 import { EvidenceReport } from "./evidence-report";
 import { LockPanel } from "./lock-panel";
 import { PaymentWorkspace } from "./payment";
+import { ResolutionPanel } from "../resolution/resolution-panel";
 
-const TABS = ["overview", "criteria", "delivery", "evidence", "payment", "activity"] as const;
+const TABS = ["overview", "criteria", "delivery", "evidence", "payment", "resolution", "activity"] as const;
 type Tab = (typeof TABS)[number];
 
 export function AgreementWorkspace({ params }: { params: Promise<{ id: string }> }) {
@@ -105,6 +106,7 @@ export function AgreementWorkspace({ params }: { params: Promise<{ id: string }>
           { id: "delivery", label: "Delivery & Verification" },
           { id: "evidence", label: "Evidence", badge: (s.latest_completed_run?.awaiting_review ?? 0) > 0 ? <Badge tone="review">review</Badge> : undefined },
           { id: "payment", label: "Payment" },
+          { id: "resolution", label: "Resolution", badge: s.open_resolution ? <Badge tone="review">open</Badge> : undefined },
           { id: "activity", label: "Activity" },
         ]}
       />
@@ -178,6 +180,15 @@ export function AgreementWorkspace({ params }: { params: Promise<{ id: string }>
             <EmptyState title="No verification report yet">Reports appear here once a submitted delivery has been verified.</EmptyState>
           ))}
         {tab === "payment" && <PaymentWorkspace agreement={agreement} latestRun={s.latest_completed_run} onChange={() => summaryQ.reload()} />}
+        {tab === "resolution" && (
+          <ResolutionPanel
+            agreement={agreement}
+            runs={runs}
+            selected={search.get("case")}
+            onSelect={(cid) => setTab("resolution", cid ? { case: cid } : undefined)}
+            onChanged={() => summaryQ.reload()}
+          />
+        )}
         {tab === "activity" && <Activity agreementId={agreement.id} />}
       </div>
     </div>

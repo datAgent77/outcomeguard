@@ -17,7 +17,7 @@ AI interprets the promise → Tools verify the evidence → Policy determines el
 Built for the [PayPal AI Hackathon](https://paypalaihackathon.devpost.com/) (2026).
 PayPal **Sandbox only** — no real money moves.
 
-> **Status: build in progress (P07 of P10).** Implemented and tested: the PayPal payment
+> **Status: build in progress (P08 of P10).** Implemented and tested: the PayPal payment
 > core (authorize → capture → partial refund **run against the live PayPal Sandbox**;
 > live webhook delivery not verified yet), the agreement domain (versioned agreements,
 > typed acceptance criteria, buyer approval and locking, RBAC), and real evidence
@@ -30,7 +30,9 @@ PayPal **Sandbox only** — no real money moves.
 > re-checked at the moment of capture. Product UI (P07): role-aware buyer/provider
 > workspaces, an AI agreement wizard, an evidence-first verification report, manual-review
 > and payment workspaces and an AG Grid ledger, served through a same-origin BFF with
-> HttpOnly session cookies. See
+> HttpOnly session cookies. Resolution (P08): evidence-bound cases between buyer and
+> provider; refunds only after both approve the same proposal and a fresh policy check;
+> governed authorization voids. See
 > [docs/IMPLEMENTATION_PROGRESS.md](docs/IMPLEMENTATION_PROGRESS.md) and
 > [docs/INTEGRATION_PROOF.md](docs/INTEGRATION_PROOF.md) for what is verified.
 
@@ -104,6 +106,7 @@ E2E_BASE_URL=… DEMO_PASSWORD=… npm run test:e2e:integration   # real local s
 - [AI contract & evidence intelligence (P05)](docs/AI_VERIFICATION.md)
 - [Payment governance (P06)](docs/GOVERNANCE.md)
 - [Product UI verification (P07)](docs/P07_UI_VERIFICATION.md)
+- [Resolution, void and refund governance (P08)](docs/RESOLUTION_AND_REFUNDS.md)
 - [Technical debt register](docs/TECH_DEBT.md)
 - [Webhooks: go-live procedure](docs/WEBHOOKS.md)
 - [P04 verification worker plan](docs/architecture/P04_VERIFICATION_PLAN.md)

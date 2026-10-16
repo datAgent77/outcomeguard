@@ -8,6 +8,7 @@ import { AUTH_STATUS, CAPTURE_STATUS, ERROR_HELP, ORDER_STATUS, POLICY, reasonTe
 import { dateTime, money, relative } from "@/lib/format";
 import { useSession } from "../session";
 import { Badge, Button, Card, CardHeader, Dialog, EmptyState, Hash, KV, LoadingBlock, Notice, Spinner } from "../ui";
+import { VoidPanel } from "../resolution/void-panel";
 
 export function PaymentWorkspace({
   agreement,
@@ -88,7 +89,8 @@ export function PaymentWorkspace({
           )}
         </div>
       </Card>
-      {order?.authorization && (
+      {order?.authorization && <VoidPanel order={order} canVoid={canAuthorize} onChange={refresh} />}
+      {order?.authorization && order.authorization.status !== "voided" && (
         <GovernancePanel
           order={order}
           canCapture={canCapture}
@@ -212,7 +214,12 @@ function OrderPanel({
           )}
         </div>
       )}
-      {auth && !live.capture && (
+      {auth && auth.status === "voided" && (
+        <Notice tone="neutral" title="Authorization cancelled">
+          The authorization was voided at PayPal. No money was captured or transferred.
+        </Notice>
+      )}
+      {auth && !live.capture && auth.status !== "voided" && (
         <Notice tone="info" title="Payment is authorized, not captured. Authorization can expire.">
           The provider has not been paid. Capture requires a passing verification, any required human review, a fresh policy check and a separate
           buyer approval.
@@ -388,6 +395,11 @@ function GovernancePanel({
                       </Button>
                     </div>
                   )}
+                </Notice>
+              )}
+              {cap.status === "completed" && cap.settlement.refunded_gross !== "0.00" && (
+                <Notice tone="info" title="Refunds">
+                  {money(cap.settlement.refunded_gross, cap.currency)} has been refunded through resolution cases (see the Resolution tab).
                 </Notice>
               )}
               {cap.status === "completed" &&

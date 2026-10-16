@@ -34,6 +34,7 @@ const BUCKETS: Bucket[] = [
   },
   { id: "blocked", label: "Payments blocked by policy", tone: "fail", test: (a) => a.payment?.last_policy_decision === "blocked" && a.payment.capture_status !== "completed" },
   { id: "completed", label: "Completed payments", tone: "pass", test: (a) => a.payment?.capture_status === "completed" },
+  { id: "cases", label: "Open resolution cases", tone: "review", test: (a) => !!a.open_resolution },
 ];
 
 export function BuyerDashboard() {
@@ -63,7 +64,7 @@ export function BuyerDashboard() {
 
       <ErrorState error={q.error} onRetry={q.reload} />
 
-      <div className="grid grid-cols-2 gap-3 sm:grid-cols-4 lg:grid-cols-7">
+      <div className="grid grid-cols-2 gap-3 sm:grid-cols-4 lg:grid-cols-4 xl:grid-cols-8">
         {BUCKETS.map((b) => (
           <StatTile
             key={b.id}

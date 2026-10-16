@@ -20,6 +20,7 @@ const BUCKETS: { id: string; label: string; tone: Tone; test: (a: AgreementSumma
   { id: "review", label: "Waiting for buyer review", tone: "review", test: (a) => (a.latest_completed_run?.awaiting_review ?? 0) > 0 },
   { id: "authorized", label: "Payment authorized (not captured)", tone: "info", test: (a) => !!a.payment?.authorization_status && !a.payment.capture_status },
   { id: "paid", label: "Payment captured", tone: "pass", test: (a) => a.payment?.capture_status === "completed" },
+  { id: "cases", label: "Open resolution cases", tone: "review", test: (a) => !!a.open_resolution },
 ];
 
 export function ProviderWorkspace() {
@@ -42,7 +43,7 @@ export function ProviderWorkspace() {
         </p>
       </div>
       <ErrorState error={q.error} onRetry={q.reload} />
-      <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-6">
+      <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-7">
         {BUCKETS.map((b) => (
           <StatTile key={b.id} label={b.label} value={q.data ? rows.filter(b.test).length : 0} tone={b.tone} active={filter === b.id} onClick={() => setFilter((f) => (f === b.id ? null : b.id))} />
         ))}

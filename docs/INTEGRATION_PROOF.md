@@ -35,7 +35,7 @@ Legend: ✅ yes · ❌ not yet · — not applicable
 | SSRF policy / egress proxy | ✅ | ✅ + real sockets + real Chromium | — | — |
 | Runner network isolation in a container | ✅ | — | — (Docker, `scripts/container_isolation_test.sh`, 17/17 probes) | — |
 
-Last updated: 2026-10-16 (P07) — API suite 341 passed (incl. 4 real-browser tests); `-m ai_live` 2 passed; `-m sandbox` 2 passed; `mypy` clean; web: lint, typecheck, build clean; 36 mocked browser tests + 8-step real-API browser flow passed; P06 governance run completed against the live PayPal Sandbox;
+Last updated: 2026-10-16 (P08, partial) — API suite 341 passed (incl. 4 real-browser tests); `-m ai_live` 2 passed; `-m sandbox` 2 passed; `mypy` clean; web: lint, typecheck, build clean; 36 mocked browser tests + 8-step real-API browser flow passed; P06 governance run completed against the live PayPal Sandbox;
 full lifecycle run passed against the live PayPal Sandbox (see Runs).
 
 **P02 core gate: PASSED** (OAuth → Create Order → Buyer Approval → Authorize → Capture →
@@ -306,6 +306,25 @@ verified intact (`verify_chain` → ok).
 Details, screenshots and commands: [P07_UI_VERIFICATION.md](P07_UI_VERIFICATION.md). The
 simulated-payment run made no PayPal call; its order/authorization/capture ids start with
 `SIM-` and every screen and ledger row marks them SIMULATED.
+
+## Resolution, void and refund evidence (P08, 2026-10-16)
+
+| Scenario | Mocked PayPal (service tests) | HTTP, simulated | Browser, real API, simulated | Real PayPal Sandbox |
+|---|---|---|---|---|
+| Open case bound to agreement + evidence snapshot | ✅ | ✅ | ✅ | ⏳ pending READY |
+| Negotiate, two-sided approval, stale/missing approval blocked | ✅ | ✅ | ✅ | ⏳ |
+| Partial refund executed through the case | ✅ | ✅ | ✅ | ⏳ |
+| Full refund / multiple partials / over-refund / wrong currency | ✅ | — | — | — |
+| Duplicate + concurrent refund safe | ✅ | ✅ (same key) | ✅ (double click) | — |
+| PayPal 5xx, lost response → UNKNOWN → read-first reconcile | ✅ | — | ✅ mocked UI | — |
+| Operator boundary (old UNKNOWN → reconciliation_required) | ✅ | — | — | — |
+| PayPal-reported refund figures, nothing invented | ✅ | — | — | ⏳ |
+| Void: valid, idempotent, unauthorized, captured, UNKNOWN capture, timeout, race with capture | ✅ | ✅ (valid, idempotent, roles) | ✅ (valid) | ⏳ |
+| Ledger shows case + refund/void trail | — | ✅ | ✅ | ⏳ |
+
+Details: [RESOLUTION_AND_REFUNDS.md](RESOLUTION_AND_REFUNDS.md). Screenshots from the running
+app with simulated payments: `docs/p08/screenshots/`. **No real Sandbox order, refund or void
+was created in P08 so far** — the demonstration waits for the user's READY.
 
 ## How to reproduce
 

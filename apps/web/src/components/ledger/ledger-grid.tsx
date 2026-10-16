@@ -35,6 +35,7 @@ export function LedgerGrid({ rows, quickFilter, onSelect }: { rows: LedgerRow[];
       { colId: "actor_type", headerName: "Actor type", width: 170, valueGetter: (p) => (p.data ? provenance(p.data).label : ""), filter: true },
       { field: "verification_run_id", headerName: "Run", width: 130, valueFormatter: short },
       { field: "criterion_key", headerName: "Criterion", width: 170, filter: true },
+      { field: "resolution_case_id", headerName: "Case", width: 120, valueFormatter: short },
       { field: "policy_decision", headerName: "Policy decision", width: 170, filter: true },
       { field: "payment_status", headerName: "Payment status", width: 190, filter: true },
       { field: "payment_environment", headerName: "Payment env.", width: 140, valueFormatter: (p) => (p.value === "simulated" ? "SIMULATED" : p.value === "sandbox" ? "PayPal Sandbox" : ""), filter: true },

@@ -19,6 +19,10 @@ only with a link to the commit and the evidence that proves it.
 | TD-13 | Real PayPal Sandbox flow through the UI not yet run | The browser flow is automated end-to-end with SIMULATED payments; the Sandbox path (checkout → human PayPal approval → authorize → approve → capture) through the UI still needs a person | 2026-10-16 (P07) | P07 acceptance | **closed** 2026-10-16 — run through the UI by a person: order `3PE754440H8280847`, capture `70F43933LT884351X` (INTEGRATION_PROOF.md) |
 | TD-14 | Ledger query does not scale | `/workspace/ledger` builds an `IN` list of all the organization's entity ids per request; needs an indexed agreement/org column on audit events or a projection table | 2026-10-16 (P07) | P09 | **open** |
 | TD-15 | Dev-only npm audit findings | `eslint-config-next` pulls `@next/eslint-plugin-next → fast-glob → micromatch → braces` (5 high, ReDoS/stack exhaustion); dev/lint-time only, not shipped to the browser; fix needs a Next ESLint plugin update | 2026-10-16 (P07) | P09 | **open** |
+| TD-16 | Real Sandbox evidence for P08 | Resolution-governed refund and void verified with mocks and simulated payments only | 2026-10-16 (P08) | P08 acceptance | **open** |
+| TD-17 | Refund replay window is an assumption | Lost refunds are replayed with the same PayPal-Request-Id only within 6 h; PayPal's exact key-retention window is not verified | 2026-10-16 (P08) | P09 | **open** |
+| TD-18 | Operator reconciliation has no tooling | `reconciliation_required` refunds need a person to check PayPal and record the outcome; there is no admin UI/endpoint for that yet | 2026-10-16 (P08) | P09 | **open** |
+| TD-19 | No notifications | Parties are not notified of new messages/proposals; they see them when they open the case | 2026-10-16 (P08) | P10 | **open** |
 | TD-10 | No browser console capture in verification | AI cannot see JavaScript errors, so root causes like the broken fixture's TypeError are reported as "not visible in the evidence" | 2026-10-15 (P05) | P09 | **open** |
 
 **Before any publicly accessible deployment** TD-1 (worker DB permissions), TD-3/TD-4
