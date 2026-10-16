@@ -52,6 +52,7 @@ from outcomeguard.models import (
 from outcomeguard.models.audit import record_audit
 from outcomeguard.models.base import utcnow
 from outcomeguard.models.payments import REFUND_HOLDS_BALANCE
+from outcomeguard.models.resolution import AuthorizationVoid, VoidStatus
 from outcomeguard.money import Money, MoneyError
 from outcomeguard.paypal.gateway import (
     Json,
@@ -88,6 +89,33 @@ class CaptureRefs:
 
 
 CaptureGate = Callable[["PaymentAuthorization"], CaptureRefs]
+
+
+@dataclass
+class RefundRefs:
+    """What the P08 resolution gate returns: the governance chain for this refund."""
+
+    resolution_case_id: str
+    proposal_id: str
+    policy_decision_id: str
+    on_reserved: Callable[[PaymentRefund], None] | None = None
+
+
+RefundGate = Callable[["PaymentCapture", Money], RefundRefs]
+
+
+@dataclass
+class VoidRefs:
+    policy_decision_id: str
+    case_id: str | None = None
+    proposal_id: str | None = None
+
+
+VoidGate = Callable[["PaymentAuthorization"], VoidRefs]
+
+# A lost refund is replayed with its original PayPal-Request-Id only while PayPal is
+# certain to still recognise the key. Conservative: older operations go to an operator.
+REFUND_REPLAY_WINDOW = timedelta(hours=6)
 
 
 class PaymentUncertain(Exception):
@@ -395,9 +423,10 @@ class PaymentService:
         auth.paypal_status = resp["status"]
         auth.last_paypal_response = redact(resp)
         mapped = _map_auth_status(resp["status"])
-        # Don't overwrite our in-flight marker with PayPal's still-CREATED view.
+        # Don't overwrite our in-flight markers with PayPal's still-CREATED view.
         if not (
-            auth.status is AuthorizationStatus.CAPTURE_IN_PROGRESS
+            auth.status
+            in (AuthorizationStatus.CAPTURE_IN_PROGRESS, AuthorizationStatus.VOID_IN_PROGRESS)
             and mapped is AuthorizationStatus.AUTHORIZED
         ):
             auth.status = mapped
@@ -667,7 +696,12 @@ class PaymentService:
         idempotency_key: str,
         actor: str,
         note: str | None = None,
+        gate: RefundGate | None = None,
     ) -> PaymentRefund:
+        """Refund (part of) a completed capture. For agreement-bound captures the P08
+        resolution `gate` is mandatory: it runs under the capture row lock, re-evaluates
+        the refund policy and returns the case / proposal / decision references —
+        otherwise nothing is reserved (POLICY_REQUIRED)."""
         if not _IDEMPOTENCY_KEY.match(idempotency_key):
             raise PaymentRuleViolation(
                 "INVALID_IDEMPOTENCY_KEY", "8-64 chars of [A-Za-z0-9_-]", http_status=422
@@ -708,6 +742,21 @@ class PaymentService:
             raise PaymentRuleViolation(
                 "REFUND_EXCEEDS_BALANCE", f"refundable balance is {remaining}", http_status=422
             )
+        refs: RefundRefs | None = None
+        if capture.authorization.order.agreement_version_id is not None:
+            if gate is None:
+                self.session.rollback()
+                raise PaymentRuleViolation(
+                    "POLICY_REQUIRED",
+                    "agreement-bound captures can only be refunded through an agreed "
+                    "resolution (both parties' approval + fresh refund policy)",
+                    http_status=403,
+                )
+            try:
+                refs = gate(capture, amount)  # same transaction, capture row still locked
+            except Exception:
+                self.session.rollback()
+                raise
         refund = PaymentRefund(
             payment_capture_id=capture.id,
             request_id=request_id,
@@ -716,9 +765,14 @@ class PaymentService:
             status=RefundStatus.REQUESTED,
             note=(note or None) and note[:255],
             requested_by=actor,
+            resolution_case_id=refs.resolution_case_id if refs else None,
+            proposal_id=refs.proposal_id if refs else None,
+            policy_decision_id=refs.policy_decision_id if refs else None,
         )
         self.session.add(refund)
         self.session.flush()
+        if refs and refs.on_reserved:
+            refs.on_reserved(refund)
         record_audit(
             self.session,
             actor=actor,
@@ -734,18 +788,21 @@ class PaymentService:
         self.session.commit()
         return self._send_refund(refund.id)
 
+    @staticmethod
+    def refund_invoice_id(refund: PaymentRefund) -> str:
+        return f"{refund.capture.authorization.order.reference}-r-{refund.id[:8]}"
+
     def _send_refund(self, refund_id: str) -> PaymentRefund:
         refund = self._get(PaymentRefund, refund_id)
-        capture = refund.capture
         body: Json = {
             "amount": self._money(refund).to_paypal(),
-            "invoice_id": f"{capture.authorization.order.reference}-r-{refund.id[:8]}",
+            "invoice_id": self.refund_invoice_id(refund),
         }
         if refund.note:
             body["note_to_payer"] = refund.note
         try:
             resp = self.gateway.refund_capture(
-                _require(capture.paypal_capture_id, "paypal_capture_id"),
+                _require(refund.capture.paypal_capture_id, "paypal_capture_id"),
                 body,
                 request_id=refund.request_id,
             )
@@ -809,12 +866,198 @@ class PaymentService:
         return refund
 
     def reconcile_refund(self, refund_id: str) -> PaymentRefund:
+        """Resolve a refund whose outcome is not final. Read first, never a new key:
+
+        1. a persisted PayPal refund id → GET the refund;
+        2. otherwise find our refund on the PayPal order (`invoice_id`, exactly one
+           match) → settle from it, no POST;
+        3. otherwise, while the original PayPal-Request-Id is certainly still honoured
+           (REFUND_REPLAY_WINDOW), replay it — PayPal returns the original refund if it
+           was processed;
+        4. otherwise RECONCILIATION_REQUIRED (operator); the amount stays held."""
         refund = self._get(PaymentRefund, refund_id)
+        self.last_reconcile_method = None
         if refund.paypal_refund_id:
+            self.last_reconcile_method = "read_refund"
             return self._settle_refund(refund_id, self.gateway.get_refund(refund.paypal_refund_id))
-        if refund.status in (RefundStatus.REQUESTED, RefundStatus.UNKNOWN):
-            return self._send_refund(refund_id)
+        if refund.status not in (
+            RefundStatus.REQUESTED,
+            RefundStatus.UNKNOWN,
+            RefundStatus.RECONCILIATION_REQUIRED,
+        ):
+            return refund
+        found = self._find_remote_refund(refund)
+        if found == "ambiguous":
+            return self._needs_operator(refund_id, "several PayPal refunds match this operation")
+        if found is not None:
+            self.last_reconcile_method = "read_existing_refund"
+            return self._settle_refund(refund_id, self.gateway.get_refund(found))
+        if utcnow() - refund.created_at > REFUND_REPLAY_WINDOW:
+            return self._needs_operator(
+                refund_id, "not found on the PayPal order and too old to replay safely"
+            )
+        self.last_reconcile_method = "replay_same_request_id"
+        return self._send_refund(refund_id)
+
+    def _find_remote_refund(self, refund: PaymentRefund) -> str | None:
+        order = refund.capture.authorization.order
+        if not order.paypal_order_id:
+            return None
+        resp = self.gateway.get_order(order.paypal_order_id)
+        refunds = resp["purchase_units"][0].get("payments", {}).get("refunds", [])
+        invoice = self.refund_invoice_id(refund)
+        matches = [r["id"] for r in refunds if r.get("invoice_id") == invoice]
+        if len(matches) > 1:
+            return "ambiguous"
+        return matches[0] if matches else None
+
+    def _needs_operator(self, refund_id: str, why: str) -> PaymentRefund:
+        refund = self._lock(PaymentRefund, refund_id)
+        refund.status = RefundStatus.RECONCILIATION_REQUIRED
+        refund.error = {**(refund.error or {}), "reconciliation": why}
+        self.last_reconcile_method = "operator_required"
+        record_audit(
+            self.session,
+            actor="system",
+            action="payment.refund.reconciliation_required",
+            entity_type="payment_refund",
+            entity_id=refund.id,
+            data={"reason": why},
+        )
+        self.session.commit()
         return refund
+
+    # -------------------------------------------------------------------- void
+
+    def void_authorization(
+        self, auth_id: str, *, actor: str, reason: str, gate: VoidGate
+    ) -> AuthorizationVoid:
+        """Void an uncaptured authorization (not a refund: no money had moved).
+
+        Reserve under the authorization row lock — the same lock capture uses — so a void
+        and a capture can never both proceed: the void marks the authorization
+        VOID_IN_PROGRESS (capture requires AUTHORIZED) and refuses while a capture row is
+        requested/unknown/pending/completed. The governance `gate` re-evaluates the void
+        policy inside the lock. One operation per authorization; repeats return it."""
+        auth = self._get(PaymentAuthorization, auth_id)
+        remote = self.gateway.get_authorization(auth.paypal_authorization_id)
+        auth = self._lock(PaymentAuthorization, auth_id)
+        self._apply_authorization(auth, remote)
+        op = self.session.scalar(
+            select(AuthorizationVoid).where(AuthorizationVoid.payment_authorization_id == auth.id)
+        )
+        if op is not None and op.status is VoidStatus.COMPLETED:
+            self.session.commit()
+            return op  # repeated request: the original result
+        try:
+            refs = gate(auth)  # raises when the policy blocks
+        except Exception:
+            self.session.rollback()
+            raise
+        request_id = f"og-void-{auth.id}"
+        if op is None:
+            op = AuthorizationVoid(
+                payment_authorization_id=auth.id,
+                request_id=request_id,
+                status=VoidStatus.REQUESTED,
+                requested_by=actor,
+                reason=reason,
+                policy_decision_id=refs.policy_decision_id,
+                case_id=refs.case_id,
+                proposal_id=refs.proposal_id,
+            )
+            self.session.add(op)
+        else:  # previous attempt FAILED at PayPal: nothing changed, try again
+            op.status = VoidStatus.REQUESTED
+            op.error = None
+            op.requested_by = actor
+            op.reason = reason
+            op.policy_decision_id = refs.policy_decision_id
+            op.case_id = refs.case_id
+            op.proposal_id = refs.proposal_id
+        auth.status = AuthorizationStatus.VOID_IN_PROGRESS
+        self.session.flush()
+        record_audit(
+            self.session,
+            actor=actor,
+            action="payment.void.requested",
+            entity_type="authorization_void",
+            entity_id=op.id,
+            data={"authorization": auth.paypal_authorization_id, "request_id": request_id},
+        )
+        self.session.commit()
+        return self._send_void(op.id)
+
+    def _send_void(self, void_id: str) -> AuthorizationVoid:
+        op = self._get(AuthorizationVoid, void_id)
+        auth = self._get(PaymentAuthorization, op.payment_authorization_id)
+        try:
+            self.gateway.void_authorization(auth.paypal_authorization_id, request_id=op.request_id)
+        except PayPalUncertainError as exc:
+            op = self._lock(AuthorizationVoid, void_id)
+            op.status = VoidStatus.UNKNOWN
+            op.error = exc.to_record()
+            record_audit(
+                self.session,
+                actor="system",
+                action="payment.void.unknown",
+                entity_type="authorization_void",
+                entity_id=op.id,
+                data=exc.to_record(),
+            )
+            self.session.commit()
+            raise PaymentUncertain("authorization_void", op.id) from None
+        except PayPalAPIError as exc:
+            # PayPal refused; read what the authorization actually is now.
+            return self._settle_void(void_id, failure=exc)
+        return self._settle_void(void_id)
+
+    def _settle_void(
+        self, void_id: str, failure: PayPalAPIError | None = None
+    ) -> AuthorizationVoid:
+        op = self._get(AuthorizationVoid, void_id)
+        auth = self._get(PaymentAuthorization, op.payment_authorization_id)
+        remote = self.gateway.get_authorization(auth.paypal_authorization_id)
+        op = self._lock(AuthorizationVoid, void_id)
+        auth = self._lock(PaymentAuthorization, op.payment_authorization_id)
+        op.paypal_status = remote.get("status")
+        if remote.get("status") == "VOIDED":
+            op.status = VoidStatus.COMPLETED
+            op.error = None
+            auth.status = AuthorizationStatus.AUTHORIZED  # let the mapper set VOIDED
+        else:
+            op.status = VoidStatus.FAILED
+            op.error = failure.to_record() if failure else {"paypal_status": remote.get("status")}
+            if auth.status is AuthorizationStatus.VOID_IN_PROGRESS:
+                auth.status = AuthorizationStatus.AUTHORIZED
+        self._apply_authorization(auth, remote)
+        record_audit(
+            self.session,
+            actor="system",
+            action=f"payment.void.{op.status.value}",
+            entity_type="authorization_void",
+            entity_id=op.id,
+            data={"paypal_status": op.paypal_status},
+        )
+        self.session.commit()
+        if failure is not None and op.status is VoidStatus.FAILED:
+            raise failure
+        return op
+
+    def reconcile_void(self, void_id: str) -> AuthorizationVoid:
+        """Read first: VOIDED → completed; CAPTURED/other final → failed (the capture path
+        reconciles money); still CREATED → replay the same PayPal-Request-Id (a void is
+        idempotent at PayPal)."""
+        op = self._get(AuthorizationVoid, void_id)
+        if op.status not in (VoidStatus.REQUESTED, VoidStatus.UNKNOWN):
+            return op
+        auth = self._get(PaymentAuthorization, op.payment_authorization_id)
+        status = self.gateway.get_authorization(auth.paypal_authorization_id).get("status")
+        if status == "CREATED":
+            self.last_reconcile_method = "replay_same_request_id"
+            return self._send_void(void_id)
+        self.last_reconcile_method = "read_authorization"
+        return self._settle_void(void_id)
 
     # ----------------------------------------------------------------- helpers
 

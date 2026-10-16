@@ -51,6 +51,23 @@ from outcomeguard.models.payments import (
     RefundStatus,
     WebhookEvent,
 )
+from outcomeguard.models.resolution import (
+    ApprovalChoice,
+    AuthorizationVoid,
+    CaseStatus,
+    FinancialDecision,
+    FinancialPolicyDecision,
+    FinancialPurpose,
+    ProposalStatus,
+    ReasonCategory,
+    Remedy,
+    ResolutionApproval,
+    ResolutionCase,
+    ResolutionEvent,
+    ResolutionProposal,
+    Side,
+    VoidStatus,
+)
 from outcomeguard.models.verification import (
     ArtifactKind,
     EvidenceArtifact,
@@ -64,6 +81,21 @@ from outcomeguard.models.verification import (
 )
 
 __all__ = [
+    "ApprovalChoice",
+    "AuthorizationVoid",
+    "CaseStatus",
+    "FinancialDecision",
+    "FinancialPolicyDecision",
+    "FinancialPurpose",
+    "ProposalStatus",
+    "ReasonCategory",
+    "Remedy",
+    "ResolutionApproval",
+    "ResolutionCase",
+    "ResolutionEvent",
+    "ResolutionProposal",
+    "Side",
+    "VoidStatus",
     "CaptureApproval",
     "ManualReviewDecision",
     "PolicyDecisionRecord",

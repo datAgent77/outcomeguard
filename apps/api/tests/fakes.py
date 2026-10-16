@@ -65,6 +65,14 @@ class FakeGateway(RehearsalPayPalGateway):
     def get_capture(self, capture_id: str) -> Json:
         return self._wrap("get_capture", super().get_capture, capture_id)
 
+    def void_authorization(self, authorization_id: str, *, request_id: str) -> Json | None:
+        return self._wrap(
+            "void_authorization",
+            super().void_authorization,
+            authorization_id,
+            request_id=request_id,
+        )
+
     def refund_capture(self, capture_id: str, body: Json, *, request_id: str) -> Json:
         return self._wrap(
             "refund_capture", super().refund_capture, capture_id, body, request_id=request_id

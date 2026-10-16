@@ -98,6 +98,8 @@ export type PaymentSummary = {
   last_policy_decision: PolicyDecision | null;
   last_policy_reasons: string[];
   last_policy_evaluated_at: string | null;
+  void_status: string | null;
+  refunded: string | null;
 };
 
 export type AgreementSummary = {
@@ -117,6 +119,7 @@ export type AgreementSummary = {
   latest_run: RunSummary | null;
   latest_completed_run: RunSummary | null;
   payment: PaymentSummary | null;
+  open_resolution: { id: string; status: string } | null;
 };
 
 export type Verdict = "pass" | "fail" | "needs_manual_review" | "inconclusive";
@@ -343,6 +346,7 @@ export type LedgerRow = {
   actor_type: "human_account" | "service_account" | "system";
   demo_account: boolean;
   provenance: "scripted" | null;
+  resolution_case_id: string | null;
   verification_run_id: string | null;
   criterion_key: string | null;
   policy_decision: string | null;
@@ -359,3 +363,144 @@ export type LedgerRow = {
 };
 
 export type LedgerPage = { total: number; offset: number; limit: number; rows: LedgerRow[]; chain_note: string };
+
+// ------------------------------------------------------------------ P08
+
+export type Refund = {
+  id: string;
+  environment: string;
+  paypal_refund_id: string | null;
+  amount: string;
+  currency: string;
+  status: "requested" | "unknown" | "pending" | "completed" | "failed" | "cancelled" | "reconciliation_required";
+  paypal_status: string | null;
+  paypal_fee_returned: string | null;
+  merchant_debit: string | null;
+  error: Record<string, unknown> | null;
+  created_at: string;
+};
+
+export type CaseEvent = {
+  id: string;
+  kind: string;
+  side: string | null;
+  author_email: string | null;
+  body: string | null;
+  data: Record<string, unknown>;
+  created_at: string;
+};
+
+export type Proposal = {
+  id: string;
+  number: number;
+  side: "buyer" | "provider";
+  author_email: string | null;
+  remedy: string;
+  amount: string | null;
+  currency: string;
+  rationale: string;
+  evidence_refs: unknown[];
+  content_sha256: string;
+  status: "open" | "accepted" | "rejected" | "superseded" | "withdrawn" | "executed";
+  created_at: string;
+  decided_at: string | null;
+  approvals: { side: string; choice: string; approver_email: string | null; approver_role: string; proposal_content_sha256: string; decided_at: string }[];
+};
+
+export type EvidenceSnapshot = {
+  agreement_version_id: string;
+  agreement_content_hash: string | null;
+  criteria: { id: string; key: string; title: string }[];
+  verification_run: {
+    id: string;
+    verdict: string | null;
+    evidence_snapshot_sha256: string;
+    finished_at: string | null;
+    results: { criterion_id: string; key: string; outcome: string }[];
+  } | null;
+  artifacts: { id: string; kind: string; label: string; sha256: string }[];
+  manual_reviews: { id: string; criterion_id: string; decision: string; evidence_snapshot_sha256: string; scripted: boolean }[];
+  payment: {
+    paypal_order_id: string | null;
+    paypal_authorization_id: string | null;
+    authorization_status: string | null;
+    paypal_capture_id: string | null;
+    capture_status: string | null;
+    amount: string | null;
+    currency: string;
+    environment: string | null;
+  };
+  limitations: string[];
+};
+
+export type ResolutionCase = {
+  id: string;
+  agreement_id: string;
+  agreement_version_id: string;
+  agreement_content_hash: string;
+  payment_authorization_id: string | null;
+  payment_capture_id: string | null;
+  status: string;
+  revision: number;
+  reason_category: string;
+  description: string;
+  requested_remedy: string;
+  requested_amount: string | null;
+  currency: string;
+  opened_by_email: string | null;
+  your_side: "buyer" | "provider" | null;
+  evidence_snapshot: EvidenceSnapshot;
+  evidence_snapshot_sha256: string;
+  outcome: string | null;
+  closure_reason: string | null;
+  created_at: string;
+  updated_at: string;
+  closed_at: string | null;
+  proposals: Proposal[];
+  events: CaseEvent[];
+  financials: {
+    currency: string;
+    captured: string | null;
+    refunded: string;
+    held: string;
+    remaining: string | null;
+    paypal_fee_at_capture: string | null;
+    refunds: Refund[];
+  } | null;
+};
+
+export type CaseSummary = {
+  id: string;
+  status: string;
+  reason_category: string;
+  requested_remedy: string;
+  requested_amount: string | null;
+  currency: string;
+  created_at: string;
+  closed_at: string | null;
+  outcome: string | null;
+};
+
+export type FinPolicy = {
+  policy_decision_id: string;
+  purpose: "refund" | "void";
+  decision: "allowed" | "blocked";
+  reasons: { code: string; detail?: string }[];
+  inputs_sha256: string;
+  figures: Record<string, number>;
+  proposal_id: string | null;
+  evaluated_at: string;
+};
+
+export type VoidOp = {
+  id: string;
+  payment_authorization_id: string;
+  status: "requested" | "unknown" | "completed" | "failed";
+  reason: string;
+  requested_by: string;
+  paypal_status: string | null;
+  case_id: string | null;
+  error: Record<string, unknown> | null;
+  created_at: string;
+  updated_at: string;
+};

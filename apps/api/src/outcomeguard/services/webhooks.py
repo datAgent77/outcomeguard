@@ -26,6 +26,7 @@ from outcomeguard.models import (
 )
 from outcomeguard.models.audit import record_audit
 from outcomeguard.models.base import utcnow
+from outcomeguard.models.resolution import AuthorizationVoid, VoidStatus
 from outcomeguard.paypal.gateway import Json, PayPalError, PayPalNotConfiguredError
 from outcomeguard.services.payments import PaymentService
 
@@ -114,6 +115,15 @@ def _process(svc: PaymentService, row: WebhookEvent) -> WebhookResult:
         )
         if not auth:
             return WebhookResult("unmatched", f"authorization {rid}")
+        void = s.scalar(
+            select(AuthorizationVoid).where(
+                AuthorizationVoid.payment_authorization_id == auth.id,
+                AuthorizationVoid.status.in_([VoidStatus.REQUESTED, VoidStatus.UNKNOWN]),
+            )
+        )
+        if void is not None and row.event_type == "PAYMENT.AUTHORIZATION.VOIDED":
+            svc.reconcile_void(void.id)  # reads the authorization first; never a new key
+            return WebhookResult("processed", f"authorization {rid} void reconciled")
         svc.refresh_authorization(auth.id)
         return WebhookResult("processed", f"authorization {rid} refreshed")
 

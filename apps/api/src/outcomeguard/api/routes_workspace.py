@@ -22,8 +22,10 @@ from outcomeguard.models import (
     AcceptanceCriterion,
     Agreement,
     AgreementVersion,
+    AuthorizationVoid,
     CaptureApproval,
     EvidenceSubmission,
+    FinancialPolicyDecision,
     ManualReviewDecision,
     MerchantAccount,
     Organization,
@@ -32,6 +34,7 @@ from outcomeguard.models import (
     PaymentOrder,
     PaymentRefund,
     PolicyDecisionRecord,
+    ResolutionCase,
     User,
     UserKind,
     VerificationRun,
@@ -150,6 +153,8 @@ class PaymentSummary(BaseModel):
     last_policy_decision: str | None
     last_policy_reasons: list[str]
     last_policy_evaluated_at: datetime | None
+    void_status: str | None = None
+    refunded: str | None = None  # completed refunds (PayPal-confirmed), decimal string
 
 
 class AgreementSummary(BaseModel):
@@ -169,6 +174,7 @@ class AgreementSummary(BaseModel):
     latest_run: RunSummary | None
     latest_completed_run: RunSummary | None
     payment: PaymentSummary | None
+    open_resolution: dict[str, str] | None = None  # {"id", "status"} of the live case
 
 
 def _run_summary(session: Session, run: VerificationRun | None) -> RunSummary | None:
@@ -223,7 +229,20 @@ def _payment_summary(session: Session, order: PaymentOrder | None) -> PaymentSum
             .order_by(PolicyDecisionRecord.evaluated_at.desc())
             .limit(1)
         )
+    void = (
+        session.scalar(
+            select(AuthorizationVoid).where(AuthorizationVoid.payment_authorization_id == auth.id)
+        )
+        if auth
+        else None
+    )
+    cap = auth.capture if auth else None
+    refunded = (
+        sum(r.amount_minor for r in cap.refunds if r.status.value == "completed") if cap else 0
+    )
     return PaymentSummary(
+        void_status=void.status.value if void else None,
+        refunded=Money(refunded, cap.currency).to_decimal_str() if cap and refunded else None,
         order_id=order.id,
         environment=order.environment.value,
         order_status=order.status.value,
@@ -278,7 +297,21 @@ def _summary(session: Session, principal, a: Agreement) -> AgreementSummary:
         latest_run=_run_summary(session, runs[0] if runs else None),
         latest_completed_run=_run_summary(session, completed),
         payment=_payment_summary(session, _latest_order(session, version_ids)),
+        open_resolution=_live_case(session, a.id),
     )
+
+
+def _live_case(session: Session, agreement_id: str) -> dict[str, str] | None:
+    c = session.scalar(
+        select(ResolutionCase)
+        .where(
+            ResolutionCase.agreement_id == agreement_id,
+            ResolutionCase.status.not_in(["resolved", "closed_no_action", "rejected", "cancelled"]),
+        )
+        .order_by(ResolutionCase.created_at.desc())
+        .limit(1)
+    )
+    return {"id": c.id, "status": c.status.value} if c else None
 
 
 @router.get("/workspace/agreements", response_model=list[AgreementSummary])
@@ -388,6 +421,7 @@ class LedgerRow(BaseModel):
     actor_type: str  # human_account | service_account | system
     demo_account: bool
     provenance: str | None  # "scripted" only when a persisted marker says so
+    resolution_case_id: str | None
     verification_run_id: str | None
     criterion_key: str | None
     policy_decision: str | None
@@ -553,6 +587,71 @@ def _index(session: Session, agreements: list[Agreement]) -> dict[str, _Ref]:
                     txn=rf.paypal_refund_id,
                     env=o.environment.value,
                 )
+    # P08: resolution cases, money-policy decisions and voids.
+    by_id = {a.id: a for a in agreements}
+    for rc in session.scalars(
+        select(ResolutionCase).where(ResolutionCase.agreement_id.in_(list(by_id)))
+    ):
+        a = by_id[rc.agreement_id]
+        n = next(v.version_number for v in a.versions if v.id == rc.agreement_version_id)
+        cap = session.get(PaymentCapture, rc.payment_capture_id) if rc.payment_capture_id else None
+        idx[rc.id] = _Ref(
+            a,
+            version=n,
+            case=rc.id,
+            evidence_ref=rc.evidence_snapshot_sha256,
+            amount=Money(rc.requested_amount_minor, rc.currency).to_decimal_str()
+            if rc.requested_amount_minor
+            else None,
+            currency=rc.currency,
+            txn=cap.paypal_capture_id if cap else None,
+            env=(rc.evidence_snapshot.get("payment") or {}).get("environment"),
+        )
+        for fd in session.scalars(
+            select(FinancialPolicyDecision).where(FinancialPolicyDecision.case_id == rc.id)
+        ):
+            idx[fd.id] = _Ref(
+                a,
+                version=n,
+                case=rc.id,
+                policy=fd.decision.value,
+                reasons=[r.get("code", "") for r in fd.reasons],
+            )
+    auth_ref = {
+        k: v
+        for k, v in idx.items()
+        if v.facts.get("payment_status", "").startswith("authorization")
+    }
+    if auth_ref:
+        for fd in session.scalars(
+            select(FinancialPolicyDecision).where(
+                FinancialPolicyDecision.payment_authorization_id.in_(list(auth_ref))
+            )
+        ):
+            r0 = auth_ref[fd.payment_authorization_id or ""]
+            idx[fd.id] = _Ref(
+                r0.agreement,
+                version=r0.facts.get("version"),
+                policy=fd.decision.value,
+                reasons=[r.get("code", "") for r in fd.reasons],
+                env=r0.facts.get("env"),
+            )
+        for vo in session.scalars(
+            select(AuthorizationVoid).where(
+                AuthorizationVoid.payment_authorization_id.in_(list(auth_ref))
+            )
+        ):
+            r0 = auth_ref[vo.payment_authorization_id]
+            idx[vo.id] = _Ref(
+                r0.agreement,
+                version=r0.facts.get("version"),
+                case=vo.case_id,
+                payment_status=f"void {vo.status.value}",
+                amount=r0.facts.get("amount"),
+                currency=r0.facts.get("currency"),
+                txn=r0.facts.get("txn"),
+                env=r0.facts.get("env"),
+            )
     return idx
 
 
@@ -566,6 +665,7 @@ _PREFIX = {
     "policy": "policy",
     "capture": "approval",
     "payment": "payment",
+    "resolution": "resolution",
 }
 
 
@@ -637,6 +737,7 @@ def ledger(
                 actor_type=actor_type,
                 demo_account=bool(email and _is_demo(email)),
                 provenance="scripted" if f.get("scripted") else None,
+                resolution_case_id=f.get("case"),
                 verification_run_id=f.get("run"),
                 criterion_key=f.get("criterion"),
                 policy_decision=f.get("policy"),

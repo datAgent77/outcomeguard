@@ -41,6 +41,7 @@ class AuthorizationStatus(StrEnum):
     AUTHORIZED = "authorized"  # PayPal CREATED — funds held, capturable
     PENDING = "pending"  # PayPal PENDING — not capturable yet
     CAPTURE_IN_PROGRESS = "capture_in_progress"
+    VOID_IN_PROGRESS = "void_in_progress"  # P08: void sent or uncertain — blocks capture
     CAPTURED = "captured"
     DENIED = "denied"
     VOIDED = "voided"
@@ -63,6 +64,9 @@ class RefundStatus(StrEnum):
     COMPLETED = "completed"
     FAILED = "failed"
     CANCELLED = "cancelled"
+    # P08: the outcome is still unknown and a safe automatic replay is no longer possible
+    # (older than the replay window, or PayPal's records are ambiguous). Operator action.
+    RECONCILIATION_REQUIRED = "reconciliation_required"
 
 
 # Refund statuses that count against the refundable balance.
@@ -71,6 +75,7 @@ REFUND_HOLDS_BALANCE = (
     RefundStatus.UNKNOWN,
     RefundStatus.PENDING,
     RefundStatus.COMPLETED,
+    RefundStatus.RECONCILIATION_REQUIRED,
 )
 
 
@@ -175,7 +180,16 @@ class PaymentCapture(IdMixin, TimestampMixin, Base):
 
 class PaymentRefund(IdMixin, TimestampMixin, Base):
     __tablename__ = "payment_refunds"
-    __table_args__ = (CheckConstraint("amount_minor > 0", name="amount_positive"),)
+    __table_args__ = (
+        CheckConstraint("amount_minor > 0", name="amount_positive"),
+        # P08: one live refund per approved proposal (a PayPal-rejected one may be retried).
+        Index(
+            "uq_payment_refunds_live_proposal",
+            "proposal_id",
+            unique=True,
+            postgresql_where=text("proposal_id IS NOT NULL AND status <> 'failed'"),
+        ),
+    )
 
     payment_capture_id: Mapped[str] = mapped_column(ForeignKey("payment_captures.id"))
     request_id: Mapped[str] = mapped_column(String(64), unique=True)
@@ -192,6 +206,12 @@ class PaymentRefund(IdMixin, TimestampMixin, Base):
     error: Mapped[dict[str, Any] | None] = mapped_column(JSONB)
     last_paypal_response: Mapped[dict[str, Any] | None] = mapped_column(JSONB)
     requested_by: Mapped[str] = mapped_column(String(200))
+    # P08 governance references (required for agreement-bound captures; DB trigger).
+    resolution_case_id: Mapped[str | None] = mapped_column(ForeignKey("resolution_cases.id"))
+    proposal_id: Mapped[str | None] = mapped_column(ForeignKey("resolution_proposals.id"))
+    policy_decision_id: Mapped[str | None] = mapped_column(
+        ForeignKey("financial_policy_decisions.id")
+    )
 
     capture: Mapped[PaymentCapture] = relationship(back_populates="refunds")
 

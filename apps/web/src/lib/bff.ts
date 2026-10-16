@@ -13,6 +13,10 @@ const ALLOWED = [
   /^verification\/(runs|artifacts)\/[A-Za-z0-9-]+(\/[a-z-]+)?$/,
   /^payments\/(orders|authorizations|captures)\/[A-Za-z0-9-]+(\/[a-z-]+)?$/,
   /^(me|ready|config\/public)$/,
+  // P08 resolution workflow
+  /^resolutions\/[A-Za-z0-9-]+(\/(messages|evidence|proposals|policy|refunds|close))?$/,
+  /^resolutions\/[A-Za-z0-9-]+\/proposals\/[A-Za-z0-9-]+\/(approve|reject|withdraw)$/,
+  /^(refunds|voids)\/[A-Za-z0-9-]+\/reconcile$/,
 ];
 
 export function isAllowedPath(path: string): boolean {

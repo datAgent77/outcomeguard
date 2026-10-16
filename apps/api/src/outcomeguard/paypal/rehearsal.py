@@ -197,9 +197,14 @@ class RehearsalPayPalGateway:
                 "status": "COMPLETED",
                 "amount": amount,
                 "capture_id": capture_id,
+                "invoice_id": body.get("invoice_id"),
                 "create_time": _now(),
             }
             self._refunds[ref["id"]] = ref
+            for order in self._orders.values():  # mirror PayPal: refunds appear on the order
+                caps = order["purchase_units"][0].get("payments", {}).get("captures", [])
+                if any(c["id"] == capture_id for c in caps):
+                    order["purchase_units"][0]["payments"].setdefault("refunds", []).append(ref)
             total = refunded + Decimal(amount["value"])
             cap["status"] = (
                 "REFUNDED" if total == Decimal(cap["amount"]["value"]) else "PARTIALLY_REFUNDED"

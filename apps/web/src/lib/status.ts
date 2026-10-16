@@ -64,7 +64,8 @@ export const AUTH_STATUS: Record<string, { label: string; tone: Tone }> = {
   capture_in_progress: { label: "Capture in progress", tone: "review" },
   captured: { label: "Captured", tone: "pass" },
   denied: { label: "Denied", tone: "fail" },
-  voided: { label: "Voided", tone: "neutral" },
+  void_in_progress: { label: "Cancellation in progress", tone: "review" },
+  voided: { label: "Cancelled (voided) — no money moved", tone: "neutral" },
   expired: { label: "Expired", tone: "fail" },
 };
 
@@ -102,6 +103,75 @@ export const REASON: Record<string, string> = {
   MANUAL_REVIEW_REJECTED: "A reviewer recorded that a blocking criterion is not satisfied.",
   NO_BLOCKING_CRITERIA: "Nothing binding was verified (no blocking criteria).",
   PAYPAL_CAPTURE_COMPLETED: "PayPal reported the capture as completed.",
+  // P08 refund / void policy
+  RESOLUTION_NOT_FOUND: "There is no resolution case for this refund.",
+  RESOLUTION_NOT_AGREED: "Both parties have not agreed to this proposal yet.",
+  APPROVAL_MISSING: "An approval is missing from one side.",
+  APPROVAL_STALE: "An approval no longer matches the proposal (it changed or was not valid).",
+  REFUND_AMOUNT_INVALID: "The refund amount or remedy is not valid.",
+  REFUND_EXCEEDS_REMAINING: "The refund is larger than what remains refundable.",
+  CAPTURE_NOT_COMPLETED: "The payment has not been captured, so there is nothing to refund.",
+  CAPTURE_NOT_REFUNDABLE: "This capture cannot be refunded.",
+  CURRENCY_MISMATCH: "The currency does not match the captured payment.",
+  REFUND_ALREADY_COMPLETED: "This proposal has already been refunded.",
+  REFUND_IN_PROGRESS: "A refund for this proposal is already in progress.",
+  REFUND_OUTCOME_UNKNOWN: "An earlier refund's outcome is unknown — reconcile it first. Its amount stays reserved.",
+  AUTHORIZATION_NOT_VOIDABLE: "The authorization cannot be cancelled in its current state.",
+  EVIDENCE_REFERENCE_INVALID: "An evidence reference does not belong to this agreement.",
+  AGREEMENT_MISMATCH: "The payment does not belong to this agreement or case.",
+  ACTOR_NOT_AUTHORIZED: "Your role does not allow this financial action.",
+  VOID_IN_PROGRESS: "A cancellation is already in progress — reconcile it first.",
+  VOID_ALREADY_COMPLETED: "The authorization has already been cancelled.",
+  PROVIDER_CONSENT_REQUIRED: "The delivery is verified: cancelling now needs the provider's agreement through a resolution case.",
+};
+
+export const CASE_STATUS: Record<string, { label: string; tone: Tone; help: string }> = {
+  open: { label: "Open", tone: "review", help: "Waiting for the provider to respond." },
+  under_review: { label: "Under review", tone: "review", help: "Both parties are discussing the issue." },
+  proposed: { label: "Proposal pending", tone: "review", help: "A proposal is waiting for the other party." },
+  agreed: { label: "Agreed", tone: "info", help: "Both parties approved a remedy." },
+  executing: { label: "Executing", tone: "info", help: "The agreed money operation was sent to PayPal." },
+  action_required: { label: "Action required", tone: "fail", help: "The money operation failed or its outcome is unknown. Reconcile or retry." },
+  resolved: { label: "Resolved", tone: "pass", help: "The agreed remedy was carried out." },
+  closed_no_action: { label: "Closed — no action", tone: "neutral", help: "Closed by the buyer without a remedy." },
+  rejected: { label: "Claim rejected", tone: "neutral", help: "The buyer accepted the provider's rejection." },
+  cancelled: { label: "Withdrawn", tone: "neutral", help: "The buyer withdrew the case." },
+};
+
+export const REMEDY: Record<string, string> = {
+  rework: "Correction / rework",
+  new_verification: "New verification run",
+  partial_refund: "Partial refund",
+  full_refund: "Full refund (remaining balance)",
+  cancel_authorization: "Cancel the uncaptured authorization",
+  other: "Other agreed resolution (no money moved by OutcomeGuard)",
+  no_remedy: "No remedy",
+};
+
+export const REASON_CATEGORY: Record<string, string> = {
+  criterion_not_met: "An acceptance criterion is not met",
+  defect_after_acceptance: "A defect appeared after acceptance",
+  incomplete_delivery: "Delivery is incomplete",
+  late_delivery: "Delivery was late",
+  cancel_before_capture: "Cancel before payment is captured",
+  other: "Other",
+};
+
+export const REFUND_STATUS: Record<string, { label: string; tone: Tone }> = {
+  requested: { label: "Sent to PayPal", tone: "info" },
+  pending: { label: "Pending at PayPal", tone: "review" },
+  completed: { label: "Refunded", tone: "pass" },
+  failed: { label: "Rejected by PayPal — no money moved", tone: "fail" },
+  unknown: { label: "Outcome unknown — reconcile", tone: "review" },
+  reconciliation_required: { label: "Operator reconciliation required", tone: "fail" },
+  cancelled: { label: "Cancelled", tone: "neutral" },
+};
+
+export const VOID_STATUS: Record<string, { label: string; tone: Tone }> = {
+  requested: { label: "Cancellation sent", tone: "info" },
+  unknown: { label: "Cancellation outcome unknown — reconcile", tone: "review" },
+  completed: { label: "Authorization cancelled", tone: "neutral" },
+  failed: { label: "PayPal refused the cancellation", tone: "fail" },
 };
 
 // Errors returned by mutation endpoints (P06 governance + P03 agreements).
@@ -126,6 +196,11 @@ export const ERROR_HELP: Record<string, string> = {
   PAYPAL_REJECTED: "PayPal rejected the request.",
   PAYPAL_NOT_CONFIGURED: "PayPal Sandbox credentials are not configured on the server.",
   API_UNREACHABLE: "The OutcomeGuard API is unreachable.",
+  CASE_ALREADY_OPEN: "This payment already has an open resolution case.",
+  CASE_CHANGED: "The case changed since you loaded it. Reload and try again.",
+  CASE_CLOSED: "This case is closed.",
+  INVALID_TRANSITION: "That action is not possible in the case's current state.",
+  IDEMPOTENCY_KEY_REUSED: "This request key was already used for a different operation.",
 };
 
 // AI gateway outcomes (P05) shown when drafting fails.
