@@ -104,6 +104,7 @@ class PaymentService:
     session: Session
     gateway: PayPalGateway
     settings: Settings
+    last_reconcile_method: str | None = None
 
     @property
     def environment(self) -> PaymentEnvironment:
@@ -620,12 +621,37 @@ class PaymentService:
         if capture.status not in (CaptureStatus.REQUESTED, CaptureStatus.UNKNOWN):
             return capture
         auth = capture.authorization
+        # Read first: if PayPal already has a capture for this authorization (our invoice
+        # id), settle from it — no further POST is sent.
+        found = self._find_remote_capture(auth)
+        if found is not None:
+            self.last_reconcile_method = "read_existing_capture"
+            return self._settle_capture(capture_id, self.gateway.get_capture(found))
+        self.last_reconcile_method = "replay_same_request_id"
         body = {
             "amount": self._money(capture).to_paypal(),
             "final_capture": True,
             "invoice_id": auth.order.reference,
         }
         return self._send_capture(capture_id, auth.paypal_authorization_id, body)
+
+    def _find_remote_capture(self, auth: PaymentAuthorization) -> str | None:
+        """The PayPal capture id for this authorization, read from the order, or None.
+        More than one candidate → None (never guess; fall back to the idempotent replay)."""
+        order = auth.order
+        if not order.paypal_order_id:
+            return None
+        resp = self.gateway.get_order(order.paypal_order_id)
+        caps = resp["purchase_units"][0].get("payments", {}).get("captures", [])
+        matches = [
+            c["id"]
+            for c in caps
+            if c.get("invoice_id") == order.reference
+            or any(
+                auth.paypal_authorization_id in (lk.get("href") or "") for lk in c.get("links", [])
+            )
+        ]
+        return matches[0] if len(matches) == 1 else None
 
     # ------------------------------------------------------------------ refund
 

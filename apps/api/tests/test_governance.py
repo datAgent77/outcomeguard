@@ -358,8 +358,9 @@ def test_lost_paypal_response_is_unknown_then_reconciled(gov, who, world, tmp_pa
     assert "CAPTURE_IN_PROGRESS" in codes(e2)
     cap = gov.reconcile(who("bob"), cap_id)
     assert cap.status is CaptureStatus.COMPLETED
-    ids_ = gateway.request_ids["capture_authorization"]
-    assert len(ids_) == 2 and ids_[0] == ids_[1] and len(gateway._captures) == 1
+    # No additional capture was issued: reconciliation read the existing PayPal capture.
+    assert gateway.calls["capture_authorization"] == 1 and len(gateway._captures) == 1
+    assert gov.payments.last_reconcile_method == "read_existing_capture"
 
 
 # ======================================================= bypass and immutability

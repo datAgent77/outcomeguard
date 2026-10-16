@@ -9,7 +9,7 @@ Deadline: **2026-11-12 23:00 GMT+3** (PayPal AI Hackathon). Spec: [BUILD_PROMPT_
 | P03 | Agreement domain | ✅ accepted (gate re-run before P04: 47/47) |
 | P04 | Verification engine (Playwright, Lighthouse, SSRF guard) | ✅ conditionally accepted — see [VERIFICATION.md](VERIFICATION.md), open items in [TECH_DEBT.md](TECH_DEBT.md) |
 | P05 | AI contract and evidence intelligence | ✅ accepted — see [AI_VERIFICATION.md](AI_VERIFICATION.md) |
-| P06 | Deterministic policy, human approval, auth/RBAC | 🟡 implemented + tested; **awaiting review** — see [GOVERNANCE.md](GOVERNANCE.md) |
+| P06 | Deterministic policy, human approval, auth/RBAC | 🟡 implemented + tested; real Sandbox governance run ✅ 2026-10-16; **awaiting final review** — see [GOVERNANCE.md](GOVERNANCE.md) |
 | P07 | Product UI + AG Grid ledger | ⏳ |
 | P08 | Resolution and refunds | ⏳ (payment-level refund done in P02) |
 | P09 | Security and integration hardening | ⏳ |
@@ -126,6 +126,13 @@ Deadline: **2026-11-12 23:00 GMT+3** (PayPal AI Hackathon). Spec: [BUILD_PROMPT_
 - [x] DB trigger requires policy/approval/run references on agreement-bound captures;
       service refuses gate-less capture (dev endpoint cannot bypass); prod refuses dev endpoints
 - [x] Migration `c3be1fa32c64`; mocked + HTTP + real-Sandbox evidence (see INTEGRATION_PROOF)
+- [x] Final integration gate (2026-10-16): real Sandbox order `1TX60210NL069393C` →
+      authorization `5JG340237M213032N` → capture `6A555091CM668061A`; human buyer approval
+      only, all in-app decisions scripted and labeled; lost capture response reconciled by
+      reading the existing capture (1 POST total, same request id)
+- [x] Reconcile is read-first (find the capture on the PayPal order before replaying the same
+      `PayPal-Request-Id`); demo polling bounded (timeout, transient-failure budget)
+- [x] Access logs redact the query string of `/paypal/*` and `/rehearsal/*` (order token, PayerID)
 
 ## Verified vs unverified
 

@@ -1,0 +1,452 @@
+{
+  "kind": "p06-governance-demo",
+  "environment": "paypal-sandbox",
+  "status": "completed",
+  "started_at": "2026-10-16T07:12:43.860354+00:00",
+  "finished_at": "2026-10-16T07:14:22.573117+00:00",
+  "actors": {
+    "HUMAN": "HUMAN (buyer approving in the PayPal Sandbox browser)",
+    "SCRIPTED": "demo accounts driven by this script",
+    "SYSTEM": "SYSTEM (OutcomeGuard)"
+  },
+  "simulated": [
+    "the capture response was discarded client-side after a real POST"
+  ],
+  "log": [
+    {
+      "t_seconds": 0.2,
+      "step": "Agreement created, proposed and locked",
+      "actor": "SCRIPTED demo account alice/bob@acme.demo (not a human decision)",
+      "agreement_id": "2d7860a2-db4b-4b00-9fcc-7c7b404c9394",
+      "version_id": "3cd2449c-8ded-48ed-ae05-ce3c80e5228d",
+      "content_hash": "06ccf0ae93722ac3f3a48520ac862de2e6bdc228e2afdd151dd9a6ba4465d036",
+      "criteria": {
+        "site_available": "blocking",
+        "mobile_layout": "blocking",
+        "contact_form_works": "blocking",
+        "lighthouse_performance": "blocking",
+        "website_accessible": "blocking"
+      }
+    },
+    {
+      "t_seconds": 2.6,
+      "step": "PayPal Sandbox order created (intent AUTHORIZE)",
+      "actor": "SYSTEM (OutcomeGuard)",
+      "paypal_order_id": "1TX60210NL069393C",
+      "amount": "500.00 USD",
+      "paypal_status": "PAYER_ACTION_REQUIRED"
+    },
+    {
+      "t_seconds": 43.5,
+      "step": "Buyer approved the payment at PayPal (read server-side via GET order)",
+      "actor": "HUMAN (buyer approving in the PayPal Sandbox browser)",
+      "paypal_status": "APPROVED",
+      "payer_recorded": true,
+      "transient_poll_failures_retried": 0
+    },
+    {
+      "t_seconds": 45.6,
+      "step": "Authorized (real Sandbox)",
+      "actor": "SYSTEM (OutcomeGuard)",
+      "paypal_authorization_id": "5JG340237M213032N",
+      "paypal_status": "CREATED",
+      "amount": "500.00 USD",
+      "expires_at": "2026-11-14 07:13:28+00:00",
+      "db_status": "authorized"
+    },
+    {
+      "t_seconds": 68.2,
+      "step": "Evidence submitted (landing-page-broken) and verified with Chromium + Lighthouse",
+      "actor": "SCRIPTED demo account maya@northwind.demo (not a human decision) submits; SYSTEM (OutcomeGuard) verifies",
+      "run_id": "c5e434b8-599a-492d-99a5-473e2805fa91",
+      "verdict": "fail",
+      "results": {
+        "site_available": "pass",
+        "mobile_layout": "pass",
+        "contact_form_works": "fail",
+        "lighthouse_performance": "pass",
+        "website_accessible": "manual_review_required"
+      },
+      "evidence_snapshot_sha256": "e73264fa92af51cdd716aa2c4a09e52d94644506e7747c4265be900d13dbee86"
+    },
+    {
+      "t_seconds": 68.2,
+      "step": "Policy evaluation \u2014 after broken page",
+      "actor": "SYSTEM (OutcomeGuard)",
+      "decision": "blocked",
+      "reasons": [
+        "BLOCKING_CRITERION_FAILED",
+        "MANUAL_REVIEW_PENDING"
+      ],
+      "inputs_sha256": "32e4ca6fb9e85e0b5f66fc86ebc31e016aa205d0be96d77ff99bcd3ef1134706",
+      "policy_decision_id": "ffa1b45b-1601-4d02-bfa2-0555714d1fc2"
+    },
+    {
+      "t_seconds": 68.3,
+      "step": "Capture approval while verification FAILED: BLOCKED",
+      "actor": "SCRIPTED demo account bob@acme.demo (not a human decision)",
+      "code": "POLICY_NOT_SATISFIED",
+      "reasons": [
+        "BLOCKING_CRITERION_FAILED",
+        "MANUAL_REVIEW_PENDING"
+      ]
+    },
+    {
+      "t_seconds": 80.0,
+      "step": "Evidence submitted (landing-page-fixed) and verified with Chromium + Lighthouse",
+      "actor": "SCRIPTED demo account maya@northwind.demo (not a human decision) submits; SYSTEM (OutcomeGuard) verifies",
+      "run_id": "8237f0af-03f7-4374-8b0c-6b837289a683",
+      "verdict": "needs_manual_review",
+      "results": {
+        "site_available": "pass",
+        "mobile_layout": "pass",
+        "contact_form_works": "pass",
+        "lighthouse_performance": "pass",
+        "website_accessible": "manual_review_required"
+      },
+      "evidence_snapshot_sha256": "74280b868f9c3e8b284eb2f4777e9050b4fc063fe7bdfafb672ac16e680492f2"
+    },
+    {
+      "t_seconds": 80.0,
+      "step": "Policy evaluation \u2014 after fixed page",
+      "actor": "SYSTEM (OutcomeGuard)",
+      "decision": "needs_review",
+      "reasons": [
+        "MANUAL_REVIEW_PENDING"
+      ],
+      "inputs_sha256": "b4b21325431e702e3de9927289b576c2640683fa8113611ab2b8b9fb614fbcc6",
+      "policy_decision_id": "a3f97dbe-a4e7-4975-8563-42d98799a06e"
+    },
+    {
+      "t_seconds": 80.0,
+      "step": "Capture approval while accessibility is unreviewed: BLOCKED",
+      "actor": "SCRIPTED demo account bob@acme.demo (not a human decision)",
+      "code": "POLICY_NOT_SATISFIED",
+      "reasons": [
+        "MANUAL_REVIEW_PENDING"
+      ]
+    },
+    {
+      "t_seconds": 80.0,
+      "step": "Manual review by the provider (own delivery): REJECTED",
+      "actor": "SCRIPTED demo account maya@northwind.demo (not a human decision)",
+      "reason": "the service provider cannot review its own delivery"
+    },
+    {
+      "t_seconds": 80.0,
+      "step": "Manual review by a service account (AI integration): REJECTED",
+      "actor": "SCRIPTED service account ai-assistant@system.local",
+      "reason": "deciding a manual review must be performed by a human account"
+    },
+    {
+      "t_seconds": 80.0,
+      "step": "Manual review decision recorded",
+      "actor": "SCRIPTED demo account rita@acme.demo (buyer_reviewer) (not a human decision)",
+      "decision_id": "5babc739-11be-4493-8916-4ae88849ad9a",
+      "decision": "satisfied",
+      "run_id": "8237f0af-03f7-4374-8b0c-6b837289a683",
+      "evidence_snapshot_sha256": "74280b868f9c3e8b284eb2f4777e9050b4fc063fe7bdfafb672ac16e680492f2",
+      "rationale": "SCRIPTED DEMO DECISION: recorded by the governance demo script through the buyer reviewer demo account. No human performed an accessibility review."
+    },
+    {
+      "t_seconds": 80.0,
+      "step": "Policy evaluation \u2014 after manual review",
+      "actor": "SYSTEM (OutcomeGuard)",
+      "decision": "eligible_for_approval",
+      "reasons": [],
+      "inputs_sha256": "9aa94b6eebaaa4cbbc15886afd7165581b5f58e95767caa8f2e9dac805802d1a",
+      "policy_decision_id": "ed1f8d2c-2245-46fa-8f46-b5306af59927"
+    },
+    {
+      "t_seconds": 80.0,
+      "step": "Buyer capture approval recorded",
+      "actor": "SCRIPTED demo account bob@acme.demo (buyer_approver) (not a human decision)",
+      "approval_id": "ee416674-48c6-41d0-9878-41e9cd860a61",
+      "bound_inputs_sha256": "9aa94b6eebaaa4cbbc15886afd7165581b5f58e95767caa8f2e9dac805802d1a"
+    },
+    {
+      "t_seconds": 80.0,
+      "step": "New evidence submitted after the approval",
+      "actor": "SCRIPTED demo account maya@northwind.demo (not a human decision)"
+    },
+    {
+      "t_seconds": 80.7,
+      "step": "Capture with the pre-existing approval: BLOCKED",
+      "actor": "SCRIPTED demo account bob@acme.demo (not a human decision)",
+      "code": "POLICY_NOT_SATISFIED",
+      "reasons": [
+        "STALE_EVIDENCE"
+      ]
+    },
+    {
+      "t_seconds": 92.3,
+      "step": "Latest evidence verified",
+      "actor": "SYSTEM (OutcomeGuard)",
+      "run_id": "c57b4991-1ba6-4302-98ad-a039db9e3991",
+      "verdict": "needs_manual_review",
+      "evidence_snapshot_sha256": "d5e3cc6751acb321b25380abff2f68a94d25086f575d1940376ca1cdb508bc0f"
+    },
+    {
+      "t_seconds": 92.3,
+      "step": "Policy evaluation \u2014 new run \u2014 the earlier review is bound to the old run",
+      "actor": "SYSTEM (OutcomeGuard)",
+      "decision": "needs_review",
+      "reasons": [
+        "MANUAL_REVIEW_PENDING"
+      ],
+      "inputs_sha256": "1d0f07ec8f5cf10b2122625543bff1f4721e0e1c425457a29dc91692b8949e5f",
+      "policy_decision_id": "e72759c1-e199-4c9c-8ccd-8c9bb17f5783"
+    },
+    {
+      "t_seconds": 92.3,
+      "step": "Manual review decision recorded for the new run",
+      "actor": "SCRIPTED demo account rita@acme.demo (buyer_reviewer) (not a human decision)",
+      "decision_id": "145ea891-5ed4-4369-8c3a-976480aa0d6f",
+      "evidence_snapshot_sha256": "d5e3cc6751acb321b25380abff2f68a94d25086f575d1940376ca1cdb508bc0f"
+    },
+    {
+      "t_seconds": 92.3,
+      "step": "Policy evaluation \u2014 after review of the new run",
+      "actor": "SYSTEM (OutcomeGuard)",
+      "decision": "eligible_for_approval",
+      "reasons": [],
+      "inputs_sha256": "eaac5125cfacd1162cab5911831ef031608f47604b8b9464195e61629b0bbc88",
+      "policy_decision_id": "fff6552c-adb6-496e-861f-93210366f1f4"
+    },
+    {
+      "t_seconds": 92.9,
+      "step": "Capture with the OLD approval: BLOCKED",
+      "actor": "SCRIPTED demo account bob@acme.demo (not a human decision)",
+      "code": "APPROVAL_STALE",
+      "reasons": []
+    },
+    {
+      "t_seconds": 92.9,
+      "step": "Fresh buyer capture approval recorded",
+      "actor": "SCRIPTED demo account bob@acme.demo (buyer_approver) (not a human decision)",
+      "approval_id": "b37f601d-2480-4889-94a4-57eed35321a6",
+      "bound_inputs_sha256": "eaac5125cfacd1162cab5911831ef031608f47604b8b9464195e61629b0bbc88"
+    },
+    {
+      "t_seconds": 94.8,
+      "step": "Capture POST sent to PayPal; response LOST (simulated) \u2192 UNKNOWN",
+      "actor": "SCRIPTED demo account bob@acme.demo (not a human decision) requests; SYSTEM (OutcomeGuard) reserves and calls PayPal",
+      "capture_id": "88777be1-e2d9-460e-bc68-d46bf489a8ec",
+      "db_capture_status": "unknown",
+      "db_authorization_status": "capture_in_progress",
+      "request_id": "og-cap-47cafc34-2d9e-4c98-a4cd-e9193089eb38-c34ac36e",
+      "capture_posts_sent": 1,
+      "policy_decision_id": "15c6868a-a143-4b66-ba37-cf0959f78956",
+      "approval_id": "b37f601d-2480-4889-94a4-57eed35321a6",
+      "verification_run_id": "c57b4991-1ba6-4302-98ad-a039db9e3991",
+      "approval_consumed_by": "88777be1-e2d9-460e-bc68-d46bf489a8ec"
+    },
+    {
+      "t_seconds": 95.3,
+      "step": "Second capture attempt while UNKNOWN: BLOCKED",
+      "actor": "SCRIPTED demo account bob@acme.demo (not a human decision)",
+      "code": "CAPTURE_IN_PROGRESS"
+    },
+    {
+      "t_seconds": 98.3,
+      "step": "Reconciled from PayPal's actual state",
+      "actor": "SYSTEM (OutcomeGuard)",
+      "method": "read_existing_capture",
+      "capture_posts_sent": 1,
+      "db_capture_status": "completed",
+      "db_authorization_status": "captured",
+      "paypal_capture": {
+        "id": "6A555091CM668061A",
+        "status": "COMPLETED",
+        "amount": {
+          "currency_code": "USD",
+          "value": "500.00"
+        },
+        "final_capture": true,
+        "invoice_id": "og_a5283f0af8b245ac82c53ddf",
+        "create_time": "2026-10-16T07:14:17Z",
+        "update_time": "2026-10-16T07:14:17Z",
+        "seller_receivable_breakdown": {
+          "gross_amount": {
+            "currency_code": "USD",
+            "value": "500.00"
+          },
+          "paypal_fee": {
+            "currency_code": "USD",
+            "value": "17.94"
+          },
+          "net_amount": {
+            "currency_code": "USD",
+            "value": "482.06"
+          }
+        }
+      },
+      "paypal_authorization_status": "CAPTURED",
+      "paypal_order_status": "COMPLETED",
+      "paypal_order_capture_count": 1
+    },
+    {
+      "t_seconds": 98.8,
+      "step": "Duplicate capture with the used approval: BLOCKED",
+      "actor": "SCRIPTED demo account bob@acme.demo (not a human decision)",
+      "code": "ALREADY_CAPTURED"
+    },
+    {
+      "t_seconds": 98.8,
+      "step": "Policy evaluation \u2014 after capture",
+      "actor": "SYSTEM (OutcomeGuard)",
+      "decision": "blocked",
+      "reasons": [
+        "AUTH_NOT_CAPTURABLE",
+        "ALREADY_CAPTURED"
+      ],
+      "inputs_sha256": "c294253546113d9abef1a99e609b888f174c5581fe98269f9fcbe69ebdda269e",
+      "policy_decision_id": "f618f17a-28b3-4d6a-9e76-4c6980ec1969"
+    },
+    {
+      "t_seconds": 98.8,
+      "step": "New capture approval after capture: BLOCKED",
+      "actor": "SCRIPTED demo account bob@acme.demo (not a human decision)",
+      "code": "POLICY_NOT_SATISFIED",
+      "reasons": [
+        "AUTH_NOT_CAPTURABLE",
+        "ALREADY_CAPTURED"
+      ]
+    },
+    {
+      "t_seconds": 98.8,
+      "step": "Policy decision trail (database)",
+      "actor": "SYSTEM (OutcomeGuard)",
+      "decisions": [
+        {
+          "purpose": "preview",
+          "decision": "blocked",
+          "reasons": [
+            "BLOCKING_CRITERION_FAILED",
+            "MANUAL_REVIEW_PENDING"
+          ],
+          "inputs_sha256": "32e4ca6fb9e85e0b5f66fc86ebc31e016aa205d0be96d77ff99bcd3ef1134706",
+          "evaluated_at": "2026-10-16T00:13:51.954314-07:00"
+        },
+        {
+          "purpose": "approval",
+          "decision": "blocked",
+          "reasons": [
+            "BLOCKING_CRITERION_FAILED",
+            "MANUAL_REVIEW_PENDING"
+          ],
+          "inputs_sha256": "32e4ca6fb9e85e0b5f66fc86ebc31e016aa205d0be96d77ff99bcd3ef1134706",
+          "evaluated_at": "2026-10-16T00:13:51.977056-07:00"
+        },
+        {
+          "purpose": "preview",
+          "decision": "needs_review",
+          "reasons": [
+            "MANUAL_REVIEW_PENDING"
+          ],
+          "inputs_sha256": "b4b21325431e702e3de9927289b576c2640683fa8113611ab2b8b9fb614fbcc6",
+          "evaluated_at": "2026-10-16T00:14:03.711677-07:00"
+        },
+        {
+          "purpose": "approval",
+          "decision": "needs_review",
+          "reasons": [
+            "MANUAL_REVIEW_PENDING"
+          ],
+          "inputs_sha256": "b4b21325431e702e3de9927289b576c2640683fa8113611ab2b8b9fb614fbcc6",
+          "evaluated_at": "2026-10-16T00:14:03.721178-07:00"
+        },
+        {
+          "purpose": "preview",
+          "decision": "eligible_for_approval",
+          "reasons": [],
+          "inputs_sha256": "9aa94b6eebaaa4cbbc15886afd7165581b5f58e95767caa8f2e9dac805802d1a",
+          "evaluated_at": "2026-10-16T00:14:03.738552-07:00"
+        },
+        {
+          "purpose": "approval",
+          "decision": "eligible_for_approval",
+          "reasons": [],
+          "inputs_sha256": "9aa94b6eebaaa4cbbc15886afd7165581b5f58e95767caa8f2e9dac805802d1a",
+          "evaluated_at": "2026-10-16T00:14:03.745220-07:00"
+        },
+        {
+          "purpose": "capture",
+          "decision": "blocked",
+          "reasons": [
+            "STALE_EVIDENCE"
+          ],
+          "inputs_sha256": "80cbe7694fbddbfff5acb710463c98c5b8610f0b7677103783e2af024c292bab",
+          "evaluated_at": "2026-10-16T00:14:03.758636-07:00"
+        },
+        {
+          "purpose": "preview",
+          "decision": "needs_review",
+          "reasons": [
+            "MANUAL_REVIEW_PENDING"
+          ],
+          "inputs_sha256": "1d0f07ec8f5cf10b2122625543bff1f4721e0e1c425457a29dc91692b8949e5f",
+          "evaluated_at": "2026-10-16T00:14:16.042507-07:00"
+        },
+        {
+          "purpose": "preview",
+          "decision": "eligible_for_approval",
+          "reasons": [],
+          "inputs_sha256": "eaac5125cfacd1162cab5911831ef031608f47604b8b9464195e61629b0bbc88",
+          "evaluated_at": "2026-10-16T00:14:16.057596-07:00"
+        },
+        {
+          "purpose": "capture",
+          "decision": "eligible_for_approval",
+          "reasons": [],
+          "inputs_sha256": "eaac5125cfacd1162cab5911831ef031608f47604b8b9464195e61629b0bbc88",
+          "evaluated_at": "2026-10-16T00:14:16.063433-07:00"
+        },
+        {
+          "purpose": "approval",
+          "decision": "eligible_for_approval",
+          "reasons": [],
+          "inputs_sha256": "eaac5125cfacd1162cab5911831ef031608f47604b8b9464195e61629b0bbc88",
+          "evaluated_at": "2026-10-16T00:14:16.623419-07:00"
+        },
+        {
+          "purpose": "capture",
+          "decision": "capture_approved",
+          "reasons": [],
+          "inputs_sha256": "eaac5125cfacd1162cab5911831ef031608f47604b8b9464195e61629b0bbc88",
+          "evaluated_at": "2026-10-16T00:14:16.639953-07:00"
+        },
+        {
+          "purpose": "settlement",
+          "decision": "captured",
+          "reasons": [
+            "PAYPAL_CAPTURE_COMPLETED"
+          ],
+          "inputs_sha256": "eaac5125cfacd1162cab5911831ef031608f47604b8b9464195e61629b0bbc88",
+          "evaluated_at": "2026-10-16T00:14:20.461251-07:00"
+        },
+        {
+          "purpose": "preview",
+          "decision": "blocked",
+          "reasons": [
+            "AUTH_NOT_CAPTURABLE",
+            "ALREADY_CAPTURED"
+          ],
+          "inputs_sha256": "c294253546113d9abef1a99e609b888f174c5581fe98269f9fcbe69ebdda269e",
+          "evaluated_at": "2026-10-16T00:14:22.545823-07:00"
+        },
+        {
+          "purpose": "approval",
+          "decision": "blocked",
+          "reasons": [
+            "AUTH_NOT_CAPTURABLE",
+            "ALREADY_CAPTURED"
+          ],
+          "inputs_sha256": "c294253546113d9abef1a99e609b888f174c5581fe98269f9fcbe69ebdda269e",
+          "evaluated_at": "2026-10-16T00:14:22.559949-07:00"
+        }
+      ],
+      "order_db_status": "authorized"
+    }
+  ]
+}

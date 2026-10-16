@@ -49,8 +49,10 @@ Every evaluation is stored in `policy_decisions` (purpose `preview` / `approval`
    → commit.
 3. PayPal capture call (no transaction open), deterministic `PayPal-Request-Id`.
 4. Settle; `completed` → `captured` policy decision. Lost/uncertain response → `unknown`,
-   which blocks every new attempt (`CAPTURE_IN_PROGRESS`) until `reconcile` replays the
-   same `PayPal-Request-Id`.
+   which blocks every new attempt (`CAPTURE_IN_PROGRESS`) until `reconcile`. Reconcile reads
+   first: it looks for the capture on PayPal's order (matched by invoice id / authorization
+   link) and settles from it; only if PayPal shows none does it replay the **same**
+   `PayPal-Request-Id`. It never issues an independent capture.
 
 Database layer: trigger `og_require_capture_policy` rejects any capture row of an
 agreement-bound payment without a `capture_approved` policy decision and a capture

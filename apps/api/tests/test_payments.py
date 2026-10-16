@@ -162,8 +162,10 @@ def test_lost_capture_response_is_unknown_and_reconciled_without_double_capture(
 
     cap = svc.reconcile_capture(cap_id)
     assert cap.status is CaptureStatus.COMPLETED
-    ids = gateway.request_ids["capture_authorization"]
-    assert len(ids) == 2 and ids[0] == ids[1]  # same PayPal-Request-Id replayed
+    # Read-first reconciliation: the existing PayPal capture is found on the order; no
+    # second capture POST is sent.
+    assert gateway.calls["capture_authorization"] == 1
+    assert svc.last_reconcile_method == "read_existing_capture"
     assert len(gateway._captures) == 1  # PayPal captured exactly once
 
 
@@ -384,3 +386,18 @@ def test_net_after_refunds_unknown_while_refund_in_flight(svc, authorization, ga
         svc.refund_capture(cap.id, amount=Money(100, "USD"), idempotency_key="fin-ref-2", actor="m")
     s = settlement_summary(svc._get(type(cap), cap.id))
     assert s.refunds_in_flight == 100 and s.net_after_refunds is None
+
+
+def test_reconcile_replays_same_request_id_only_when_paypal_has_no_capture(
+    svc, authorization, gateway
+):
+    # The request never reached PayPal (lost before processing): nothing to read, so the
+    # SAME PayPal-Request-Id is replayed — idempotent, still at most one capture.
+    gateway.fail_before["capture_authorization"] = PayPalUncertainError("connect timeout")
+    with pytest.raises(PaymentUncertain) as ei:
+        svc.capture_authorization(authorization.id, actor="approver")
+    cap = svc.reconcile_capture(ei.value.entity_id)
+    assert cap.status is CaptureStatus.COMPLETED
+    assert svc.last_reconcile_method == "replay_same_request_id"
+    ids = gateway.request_ids["capture_authorization"]
+    assert len(ids) == 2 and ids[0] == ids[1] and len(gateway._captures) == 1

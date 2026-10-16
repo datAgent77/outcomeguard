@@ -147,8 +147,16 @@ class RehearsalPayPalGateway:
                 "create_time": _now(),
                 "payee": {"merchant_id": SIM_MERCHANT_ID},
             }
+            cap["invoice_id"] = body.get("invoice_id")
+            cap["links"] = [
+                {"rel": "up", "href": f"/v2/payments/authorizations/{authorization_id}"}
+            ]
             self._captures[cap["id"]] = cap
             auth["status"] = "CAPTURED"
+            for order in self._orders.values():  # mirror PayPal: captures appear on the order
+                auths = order["purchase_units"][0].get("payments", {}).get("authorizations", [])
+                if any(a["id"] == authorization_id for a in auths):
+                    order["purchase_units"][0]["payments"].setdefault("captures", []).append(cap)
             return dict(cap)
 
         return self._idem(request_id, make)

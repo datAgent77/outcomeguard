@@ -46,6 +46,19 @@ class JsonFormatter(logging.Formatter):
         return json.dumps(payload, default=str)
 
 
+class RedactPayPalQuery(logging.Filter):
+    """uvicorn access logs include the full path; PayPal return/cancel URLs carry the order
+    token and PayerID in the query string. Keep the path, drop the query."""
+
+    def filter(self, record: logging.LogRecord) -> bool:
+        args = record.args
+        if isinstance(args, tuple) and len(args) >= 3 and isinstance(args[2], str):
+            path = args[2]
+            if path.startswith(("/paypal/", "/rehearsal/")) and "?" in path:
+                record.args = (*args[:2], path.split("?", 1)[0] + "?[REDACTED]", *args[3:])
+        return True
+
+
 def configure_logging(level: str = "INFO") -> None:
     handler = logging.StreamHandler(sys.stdout)
     handler.setFormatter(JsonFormatter())
@@ -54,3 +67,6 @@ def configure_logging(level: str = "INFO") -> None:
     root.setLevel(level.upper())
     # httpx logs full URLs at INFO; keep it quieter.
     logging.getLogger("httpx").setLevel(logging.WARNING)
+    access = logging.getLogger("uvicorn.access")
+    if not any(isinstance(f, RedactPayPalQuery) for f in access.filters):
+        access.addFilter(RedactPayPalQuery())

@@ -140,3 +140,22 @@ def test_rehearsal_flow_over_http_is_labeled_simulated(make_session):
 def test_webhook_endpoint_rejects_garbage(make_session):
     c = client()
     assert c.post("/webhooks/paypal", content=b"not json").status_code == 400
+
+
+def test_access_log_redacts_paypal_return_query():
+    import logging
+
+    from outcomeguard.logs import RedactPayPalQuery
+
+    rec = logging.LogRecord(
+        "uvicorn.access",
+        logging.INFO,
+        "",
+        0,
+        '%s - "%s %s HTTP/%s" %d',
+        ("127.0.0.1:1", "GET", "/paypal/return?token=ABC&PayerID=XYZ", "1.1", 200),
+        None,
+    )
+    RedactPayPalQuery().filter(rec)
+    msg = rec.getMessage()
+    assert "ABC" not in msg and "XYZ" not in msg and "/paypal/return?[REDACTED]" in msg

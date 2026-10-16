@@ -35,12 +35,12 @@ Legend: ✅ yes · ❌ not yet · — not applicable
 | SSRF policy / egress proxy | ✅ | ✅ + real sockets + real Chromium | — | — |
 | Runner network isolation in a container | ✅ | — | — (Docker, `scripts/container_isolation_test.sh`, 17/17 probes) | — |
 
-Last updated: 2026-10-15 (P06) — API suite 336 passed (incl. 4 real-browser tests; AI and governance tests use mocked providers/gateways); `-m ai_live` 2 passed; `-m sandbox` 2 passed; `mypy` clean;
+Last updated: 2026-10-16 (P06 final) — API suite 338 passed (incl. 4 real-browser tests; AI and governance tests use mocked providers/gateways); `-m ai_live` 2 passed; `-m sandbox` 2 passed; `mypy` clean; P06 governance run completed against the live PayPal Sandbox;
 full lifecycle run passed against the live PayPal Sandbox (see Runs).
 
 **P02 core gate: PASSED** (OAuth → Create Order → Buyer Approval → Authorize → Capture →
 Partial Refund, real Sandbox responses). **Still open:** live webhook delivery and
-signature verification, and the lost-response reconcile path (mocks only).
+signature verification. (The lost-response reconcile path was proven on real Sandbox in P06.)
 
 ## Verification evidence (P04, 2026-10-15)
 
@@ -170,31 +170,88 @@ fallback on): 21 485 in / 16 663 out ≈ $0.52 at list price.
 `claude-opus-5`, the buyer **explicitly made accessibility non-blocking** (audited), so the
 fixed page was PASS. Valid only as a buyer-approved relaxed-criteria scenario.
 
-## Payment governance evidence (P06, 2026-10-15)
+## Payment governance evidence (P06, 2026-10-15 / real Sandbox 2026-10-16)
 
 | Scenario | Mocked gateway (`tests/test_governance.py`) | HTTP + sessions, simulated payments (`tests/test_governance_api.py`) | Real PayPal Sandbox (`scripts/governance_demo.py`) |
 |---|---|---|---|
-| Broken page → FAIL → capture blocked | ✅ | — | ⏳ pending |
-| Fixed page → NEEDS_MANUAL_REVIEW → capture blocked | ✅ | ✅ | ⏳ pending |
-| Authorized human review satisfies accessibility | ✅ | ✅ | ⏳ pending |
-| Separate buyer capture approval bound to inputs hash | ✅ | ✅ | ⏳ pending |
-| Fresh policy evaluation at capture (under lock) | ✅ | ✅ | ⏳ pending |
-| Capture completes | ✅ (mock) | ✅ (simulated, labeled) | ⏳ pending |
-| Duplicate capture blocked | ✅ | ✅ | ⏳ pending |
-| Stale evidence / agreement change blocks capture | ✅ / ✅ | — | ⏳ pending (stale evidence) |
-| Provider self-approval rejected | ✅ | ✅ | ⏳ pending |
-| AI / service-account approval rejected | ✅ | — | ⏳ pending |
+| Broken page → FAIL → capture blocked | ✅ | — | ✅ |
+| Fixed page → NEEDS_MANUAL_REVIEW → capture blocked | ✅ | ✅ | ✅ |
+| Manual review satisfies accessibility | ✅ | ✅ | ✅ mechanism only — **scripted demo account, no human review** |
+| Separate buyer capture approval bound to inputs hash | ✅ | ✅ | ✅ (scripted demo account) |
+| Fresh policy evaluation at capture (under lock) | ✅ | ✅ | ✅ |
+| Capture completes | ✅ (mock) | ✅ (simulated, labeled) | ✅ real Sandbox capture |
+| Duplicate capture blocked | ✅ | ✅ | ✅ |
+| Stale evidence / agreement change blocks capture | ✅ / ✅ | — | ✅ stale evidence / — |
+| Provider self-approval rejected | ✅ | ✅ | ✅ |
+| AI / service-account approval rejected | ✅ | — | ✅ |
 | Expired authorization rejected | ✅ | — | — (cannot be produced live; mock only) |
-| Lost PayPal response → UNKNOWN → reconcile | ✅ | — | ⏳ pending (real capture, response dropped client-side) |
+| Lost PayPal response → UNKNOWN → reconcile | ✅ | — | ✅ (real capture POST, response dropped client-side) |
 | Dev endpoint cannot bypass policy | ✅ | ✅ | — |
 | DB trigger rejects capture rows without policy refs | ✅ | — | — |
 
-**Real Sandbox status: not yet run to completion.** Two attempts on 2026-10-15 created real
-Sandbox orders (`0J671308PH8748725`, `3XF69583SJ739070F`) but stopped before any
-authorization: the first on a transient PayPal `502` while polling for approval (polling now
-retries transient errors), the second because the buyer approval did not arrive within the
-15-minute window. No authorization or capture happened in either. The run requires a human
-to approve the payment in the browser.
+### Real Sandbox governance run (2026-10-16)
+
+Transcript: [`runs/governance-demo-20261016T071243Z.json`](integration/runs/governance-demo-20261016T071243Z.json)
+(status `completed`, 07:12:43 → 07:14:22 UTC, 98.8 s). It contains no approval URL, buyer
+token, PayerID or credentials.
+
+**Who did what.** Exactly one step was a human action: the buyer approving the payment in
+the PayPal Sandbox browser. Every OutcomeGuard user action (lock agreement, submit evidence,
+manual review, capture approval, capture request) was performed **by the script through demo
+accounts**. The manual-review rationale stored in the database says so literally:
+*"SCRIPTED DEMO DECISION … No human performed an accessibility review."* This run proves the
+mechanism, not a real accessibility review. The only simulation: the capture response was
+discarded client-side after a real POST.
+
+PayPal Sandbox objects:
+
+| Object | ID | Final PayPal state |
+|---|---|---|
+| Order (intent AUTHORIZE, $500.00 USD) | `1TX60210NL069393C` | `COMPLETED`, 1 capture |
+| Authorization | `5JG340237M213032N` | `CAPTURED` (expiry 2026-11-14 07:13:28 UTC) |
+| Capture | `6A555091CM668061A` | `COMPLETED`, $500.00, `final_capture: true`, invoice `og_a5283f0af8b245ac82c53ddf` |
+
+PayPal's seller receivable breakdown for the capture: gross 500.00, PayPal fee 17.94, net
+482.06 USD (as reported by PayPal; no fee rate is assumed).
+
+| t (s) | Step | Actor | Result |
+|---|---|---|---|
+| 0.2 | Agreement locked (5 blocking criteria, content hash `06ccf0ae…`) | SCRIPTED | locked |
+| 2.6 | Order created | SYSTEM | `PAYER_ACTION_REQUIRED` |
+| 43.5 | Buyer approval detected via server-side `GET order` | **HUMAN** | `APPROVED`, 0 transient poll failures |
+| 45.6 | Authorize | SYSTEM | DB `authorized` |
+| 68.2 | Broken page verified (run `c5e434b8…`, snapshot `e73264fa…`) | SCRIPTED submit, SYSTEM verify | FAIL → policy `blocked` [`BLOCKING_CRITERION_FAILED`, `MANUAL_REVIEW_PENDING`] |
+| 68.3 | Capture approval attempt | SCRIPTED | `POLICY_NOT_SATISFIED` |
+| 80.0 | Fixed page verified (run `8237f0af…`, snapshot `74280b86…`) | SCRIPTED submit, SYSTEM verify | NEEDS_MANUAL_REVIEW → `needs_review`; approval attempt `POLICY_NOT_SATISFIED` |
+| 80.0 | Review by provider (maya) / by service account (ai-assistant) | SCRIPTED | both rejected (provider; human account required) |
+| 80.0 | Review `5babc739…` bound to snapshot `74280b86…` | SCRIPTED (rita) | `eligible_for_approval`, inputs `9aa94b6e…` |
+| 80.0 | Capture approval `ee416674…` | SCRIPTED (bob) | bound to `9aa94b6e…` |
+| 80.7 | New evidence submitted, capture with that approval | SCRIPTED | `STALE_EVIDENCE` |
+| 92.3 | New run `c57b4991…` (snapshot `d5e3cc67…`) | SYSTEM | `needs_review` — old review is bound to the old run |
+| 92.3 | Review `145ea891…` | SCRIPTED (rita) | `eligible_for_approval`, inputs `eaac5125…` |
+| 92.9 | Capture with old approval | SCRIPTED | `APPROVAL_STALE` |
+| 92.9 | Fresh approval `b37f601d…` | SCRIPTED (bob) | bound to `eaac5125…` |
+| 94.8 | Capture: reserve (policy decision `15c6868a…`, approval consumed) → 1 real POST, response dropped | SCRIPTED request, SYSTEM call | DB capture `unknown`, authorization `capture_in_progress` |
+| 95.3 | Second capture while UNKNOWN | SCRIPTED | `CAPTURE_IN_PROGRESS` |
+| 98.3 | Reconcile | SYSTEM | method `read_existing_capture`; DB capture `completed`, authorization `captured` |
+| 98.8 | Duplicate capture / new approval | SCRIPTED | `ALREADY_CAPTURED` / `POLICY_NOT_SATISFIED` [`AUTH_NOT_CAPTURABLE`, `ALREADY_CAPTURED`] |
+
+**Lost response, no second capture.** The capture used `PayPal-Request-Id`
+`og-cap-47cafc34-2d9e-4c98-a4cd-e9193089eb38-c34ac36e`. Exactly one capture POST was sent in
+the whole run (`capture_posts_sent: 1` before and after reconcile). Reconcile first reads the
+order from PayPal and matches the existing capture by invoice id/authorization link; it only
+replays the **same** request id if PayPal shows no capture. Here it found the capture and
+issued no further POST. PayPal's order shows exactly one capture.
+
+The database policy trail ends with `capture / capture_approved` and
+`settlement / captured (PAYPAL_CAPTURE_COMPLETED)`, both under inputs hash `eaac5125…`, the
+hash the approver approved. The order row remains `authorized`: order, authorization and
+capture state are tracked on separate rows (authorization `captured`, capture `completed`).
+
+Earlier attempts (2026-10-15): orders `0J671308PH8748725` and `3XF69583SJ739070F` stopped
+before authorization (transient `502` while polling; approval timeout). Both are verified
+unauthorized and uncaptured in the DB (0 authorizations, 0 captures); PayPal now returns 404
+for them (unapproved orders expired). Their approval links were not reused.
 
 ## How to reproduce
 
