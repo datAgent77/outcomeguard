@@ -1,0 +1,59 @@
+1
+00:00:00,000 --> 00:00:08,000
+Don't just pay for a promise. Pay for proof.
+
+2
+00:00:08,000 --> 00:00:15,000
+Hiring a freelancer means paying for a promise.
+
+3
+00:00:15,000 --> 00:00:30,000
+AI drafts · Tools verify · Humans approve · PayPal executes
+
+4
+00:00:30,000 --> 00:00:34,000
+Buyer: plain-English request
+
+5
+00:00:34,000 --> 00:00:50,000
+LIVE · Claude drafts acceptance criteria
+
+6
+00:00:50,000 --> 00:00:58,000
+Every criterion quotes the buyer · AI suggestions are opt-in
+
+7
+00:00:58,000 --> 00:01:10,000
+Locked · content hash frozen
+
+8
+00:01:10,000 --> 00:01:18,000
+Freelancer delivers
+
+9
+00:01:18,000 --> 00:01:30,000
+LIVE · real Chromium + Lighthouse
+
+10
+00:01:30,000 --> 00:01:40,000
+Measured · AI interpretation · Human decision
+
+11
+00:01:40,000 --> 00:01:55,000
+Recorded earlier · broken delivery → FAIL → capture blocked
+
+12
+00:01:55,000 --> 00:02:05,000
+Scripted demo decision (labelled in the app)
+
+13
+00:02:05,000 --> 00:02:25,000
+SIMULATED payment (rehearsal mode)
+
+14
+00:02:25,000 --> 00:02:45,000
+Real PayPal Sandbox · recorded Oct 16, 2026
+
+15
+00:02:45,000 --> 00:02:50,000
+OutcomeGuard · github.com/datAgent77/outcomeguard · MIT
