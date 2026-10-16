@@ -11,7 +11,7 @@ Deadline: **2026-11-12 23:00 GMT+3** (PayPal AI Hackathon). Spec: [BUILD_PROMPT_
 | P05 | AI contract and evidence intelligence | ✅ accepted — see [AI_VERIFICATION.md](AI_VERIFICATION.md) |
 | P06 | Deterministic policy, human approval, auth/RBAC | ✅ accepted (real Sandbox governance run 2026-10-16) — see [GOVERNANCE.md](GOVERNANCE.md) |
 | P07 | Product UI + AG Grid ledger | ✅ accepted (real PayPal Sandbox flow through the UI 2026-10-16) — see [P07_UI_VERIFICATION.md](P07_UI_VERIFICATION.md) |
-| P08 | Resolution, void and refund governance | 🟡 **partial** — implemented and tested (mocked + real API with simulated payments); real PayPal Sandbox refund + void demonstration pending (waits for READY) — see [RESOLUTION_AND_REFUNDS.md](RESOLUTION_AND_REFUNDS.md) |
+| P08 | Resolution, void and refund governance | 🟡 implemented + tested; real Sandbox refund ($100 of $500) and void ✅ 2026-10-16; **awaiting final review** — see [RESOLUTION_AND_REFUNDS.md](RESOLUTION_AND_REFUNDS.md) |
 | P09 | Security and integration hardening | ⏳ |
 | P10 | Hackathon delivery | ⏳ |
 
@@ -158,7 +158,7 @@ Deadline: **2026-11-12 23:00 GMT+3** (PayPal AI Hackathon). Spec: [BUILD_PROMPT_
 - [x] Governed void under the authorization lock, capture/void mutual exclusion, provider consent once delivery is verified, VOIDED webhook
 - [x] API, ledger and overview extensions; Resolution tab, case wizard + workspace, refund confirmation, UNKNOWN reconciliation, Cancel authorization
 - [x] Tests: 78 backend (pure, mocked fault injection, HTTP), 9 mocked browser, 7-step real-API browser flow with simulated payments
-- [ ] Real PayPal Sandbox: resolution-governed partial refund + separate authorization void (needs a person at PayPal; waits for READY)
+- [x] Real PayPal Sandbox: resolution-governed partial refund (capture `95Y56941P3956690M` → refund `2DF34389JE394200F`, $400 remaining) and separate authorization void (`32284282MB448210R` VOIDED)
 
 ## Verified vs unverified
 

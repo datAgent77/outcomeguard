@@ -35,7 +35,7 @@ Legend: ✅ yes · ❌ not yet · — not applicable
 | SSRF policy / egress proxy | ✅ | ✅ + real sockets + real Chromium | — | — |
 | Runner network isolation in a container | ✅ | — | — (Docker, `scripts/container_isolation_test.sh`, 17/17 probes) | — |
 
-Last updated: 2026-10-16 (P08, partial) — API suite 341 passed (incl. 4 real-browser tests); `-m ai_live` 2 passed; `-m sandbox` 2 passed; `mypy` clean; web: lint, typecheck, build clean; 36 mocked browser tests + 8-step real-API browser flow passed; P06 governance run completed against the live PayPal Sandbox;
+Last updated: 2026-10-16 (P08 final) — API suite 341 passed (incl. 4 real-browser tests); `-m ai_live` 2 passed; `-m sandbox` 2 passed; `mypy` clean; web: lint, typecheck, build clean; 36 mocked browser tests + 8-step real-API browser flow passed; P06 governance run completed against the live PayPal Sandbox;
 full lifecycle run passed against the live PayPal Sandbox (see Runs).
 
 **P02 core gate: PASSED** (OAuth → Create Order → Buyer Approval → Authorize → Capture →
@@ -311,20 +311,70 @@ simulated-payment run made no PayPal call; its order/authorization/capture ids s
 
 | Scenario | Mocked PayPal (service tests) | HTTP, simulated | Browser, real API, simulated | Real PayPal Sandbox |
 |---|---|---|---|---|
-| Open case bound to agreement + evidence snapshot | ✅ | ✅ | ✅ | ⏳ pending READY |
-| Negotiate, two-sided approval, stale/missing approval blocked | ✅ | ✅ | ✅ | ⏳ |
-| Partial refund executed through the case | ✅ | ✅ | ✅ | ⏳ |
+| Open case bound to agreement + evidence snapshot | ✅ | ✅ | ✅ | ✅ |
+| Negotiate, two-sided approval, stale/missing approval blocked | ✅ | ✅ | ✅ | ✅ two-sided approval |
+| Partial refund executed through the case | ✅ | ✅ | ✅ | ✅ $100 of $500 |
 | Full refund / multiple partials / over-refund / wrong currency | ✅ | — | — | — |
 | Duplicate + concurrent refund safe | ✅ | ✅ (same key) | ✅ (double click) | — |
 | PayPal 5xx, lost response → UNKNOWN → read-first reconcile | ✅ | — | ✅ mocked UI | — |
 | No automatic re-send: not found at PayPal → reconciliation_required, later read settles | ✅ | — | — | — |
-| PayPal-reported refund figures, nothing invented | ✅ | — | — | ⏳ |
+| PayPal-reported refund figures, nothing invented | ✅ | — | — | ✅ |
 | Void: valid, idempotent, unauthorized, captured, UNKNOWN capture, timeout, race with capture | ✅ | ✅ (valid, idempotent, roles) | ✅ (valid) | ✅ valid void (2026-10-16) |
-| Ledger shows case + refund/void trail | — | ✅ | ✅ | ⏳ |
+| Ledger shows case + refund/void trail | — | ✅ | ✅ | ✅ |
 
 Details: [RESOLUTION_AND_REFUNDS.md](RESOLUTION_AND_REFUNDS.md). Screenshots from the running
 app with simulated payments: `docs/p08/screenshots/`. **No real Sandbox order, refund or void
-was created in P08 before the user's READY.**
+was created in P08 before the user's READY.** Both scenarios below ran after it.
+
+### Real Sandbox scenario 1 — resolution-governed partial refund (2026-10-16)
+
+Agreement `2d4dab2a-4bc9-4953-a551-9f680bca93dd`, prepared without PayPal calls
+(`p08-sandbox-prep.spec.ts`): fixed page verified (run `b8a46ab9…`, NEEDS_MANUAL_REVIEW) and
+the accessibility review recorded as a **scripted demo decision** (rationale starts with
+`SCRIPTED DEMO DECISION`). Started after the user's READY and a green CI on `f4e619e`.
+
+**Actors.** The PayPal buyer approval was given by **a person** in PayPal's Sandbox page.
+Every in-app step was performed by **an automated browser through the demo accounts**
+(`apps/web/e2e/sandbox/p08-refund.mjs`, transcript `docs/p08/sandbox/scenario1.json`) —
+**SCRIPTED**, not human decisions. The script stopped once (no financial call was made)
+because the PayPal return page had already recorded the approval; it was corrected to
+handle that and re-run.
+
+| t (UTC) | Audit seq | Event | Actor |
+|---|---|---|---|
+| 12:42:17 | 454 | order requested | SCRIPTED alice@acme.demo |
+| 12:42:19 | 455 | PayPal order created | system |
+| 12:43:33 | 456 | buyer approved at PayPal (read server-side) | **person** at PayPal Sandbox |
+| 12:44:40 | 457 | authorization created | SCRIPTED alice@acme.demo |
+| 12:44:41 | 463–464 | P06 `eligible_for_approval` (inputs `dd6626ba…`) → capture approval `d56db9dc…` | SCRIPTED bob@acme.demo |
+| 12:44:41 | 465–466 | P06 `capture_approved` (decision `47c4aa4a…`) → capture requested (`og-cap-304881a9-…`) | SCRIPTED bob@acme.demo |
+| 12:44:43 | 467 | capture completed | system |
+| 12:44:44 | 469 | resolution case `a85bc629…` opened (no money moved) | SCRIPTED alice@acme.demo |
+| 12:44:45 | 470–471 | proposal #1 `9157ac4e…` partial refund $100.00 + provider approval (hash `c39330cc…`) | SCRIPTED maya@northwind.demo (merchant_admin) |
+| 12:44:46 | 472 | buyer approval, same hash → case `agreed` | SCRIPTED bob@acme.demo (buyer_approver) |
+| 12:44:46 | 474 | refund policy `allowed` (decision `5348cdd0…`, inputs `7937308e…`, no reasons) under the capture lock | SCRIPTED bob@acme.demo |
+| 12:44:46 | 475–476 | refund requested, `PayPal-Request-Id og-ref-refund-a3de3232-…` | SCRIPTED bob@acme.demo |
+| 12:44:48 | 477–478 | refund completed → case `resolved` ("refunded 100.00 USD"), proposal `executed` | system |
+
+Re-read from PayPal after the run (`GET`):
+
+| Object | ID | PayPal state |
+|---|---|---|
+| Order ($500.00 USD, AUTHORIZE) | `05H10672XC320630A` | `COMPLETED`; 1 capture, 1 refund |
+| Authorization | `5HM25175J7696434P` | `CAPTURED` |
+| Capture | `95Y56941P3956690M` | `PARTIALLY_REFUNDED`, $500.00, `final_capture: true`; fee 17.94, net 482.06 (PayPal-reported) |
+| Refund | `2DF34389JE394200F` | `COMPLETED`, $100.00, invoice `og_6b7a0493eefe4975bcdfcc87-r-84e1b398`; `seller_payable_breakdown`: gross 100.00, **paypal_fee 0.00**, net 100.00, total refunded 100.00 |
+
+PayPal returned no fee on this refund (`paypal_fee` 0.00) — stored as reported
+(`paypal_fee_returned` 0, `merchant_debit` 100.00); the 17.94 capture fee was not
+assumed returned. DB: refund `completed`, bound to case `a85bc629…`, proposal `9157ac4e…`
+and refund decision `5348cdd0…` (DB trigger satisfied); both approvals quote hash
+`c39330cc…`; capture bound to P06 decision `47c4aa4a…`, approval `d56db9dc…`, run
+`b8a46ab9…`. **Remaining refundable balance: $400.00** (UI, API financials and overview
+agree). Ledger (`GET /workspace/ledger`, as alice): capture, case, approvals, refund policy
+and refund rows present with `payment_environment = sandbox`; demo accounts flagged
+`demo_account`. Audit hash chain verified intact (`verify_chain` → ok). Screenshots:
+`docs/p08/sandbox/`.
 
 ### Real Sandbox scenario 2 — authorization void (2026-10-16)
 

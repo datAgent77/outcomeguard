@@ -1,0 +1,71 @@
+{
+  "agreement": "2d4dab2a-4bc9-4953-a551-9f680bca93dd",
+  "case_id": "a85bc629-8bb0-45f9-bf62-07c8cd1be29f",
+  "log": [
+    {
+      "t": "2026-10-16T12:44:40.801Z",
+      "what": "Authorized (real Sandbox)",
+      "actor": "SCRIPTED demo account alice@acme.demo (automated browser)",
+      "paypal_authorization_id": "5HM25175J7696434P",
+      "amount": "500.00 USD",
+      "expires_at": "2026-11-14T04:44:39-08:00"
+    },
+    {
+      "t": "2026-10-16T12:44:41.038Z",
+      "what": "P06 policy evaluated",
+      "actor": "SCRIPTED demo account bob@acme.demo (automated browser)",
+      "decision": "eligible_for_approval",
+      "inputs_sha256": "dd6626ba3526ede8c076c7365f08c161673cb460a4fb4eb57385bd83db1d599a",
+      "run": "b8a46ab9-1ae8-4dfe-b714-d7550762f9cf"
+    },
+    {
+      "t": "2026-10-16T12:44:41.386Z",
+      "what": "Capture approval recorded",
+      "actor": "SCRIPTED demo account bob@acme.demo (automated browser)",
+      "approval_id": "d56db9dc-12c9-4698-8f8f-d186c87d9d98",
+      "bound_inputs_sha256": "dd6626ba3526ede8c076c7365f08c161673cb460a4fb4eb57385bd83db1d599a"
+    },
+    {
+      "t": "2026-10-16T12:44:43.759Z",
+      "what": "Captured (real Sandbox)",
+      "actor": "SCRIPTED demo account bob@acme.demo (automated browser) requests; SYSTEM calls PayPal",
+      "paypal_capture_id": "95Y56941P3956690M",
+      "amount": "500.00 USD",
+      "paypal_fee": "17.94",
+      "net": "482.06"
+    },
+    {
+      "t": "2026-10-16T12:44:44.604Z",
+      "what": "Resolution case opened (no money moved)",
+      "actor": "SCRIPTED demo account alice@acme.demo (automated browser)",
+      "case_id": "a85bc629-8bb0-45f9-bf62-07c8cd1be29f"
+    },
+    {
+      "t": "2026-10-16T12:44:45.156Z",
+      "what": "Proposal #1 submitted + provider approval",
+      "actor": "SCRIPTED demo account maya@northwind.demo (automated browser)",
+      "proposal_id": "9157ac4e-e12c-4531-9d2e-fa9a666ce4d4",
+      "amount": "100.00 USD",
+      "content_sha256": "c39330cc62feab5aad8bc837d65b15766bad84e3fbdb187648f95ccf6471d02c"
+    },
+    {
+      "t": "2026-10-16T12:44:46.353Z",
+      "what": "Buyer approval recorded; refund policy allowed",
+      "actor": "SCRIPTED demo account bob@acme.demo (automated browser)",
+      "case_status": "agreed"
+    },
+    {
+      "t": "2026-10-16T12:44:48.998Z",
+      "what": "Refund completed (real Sandbox)",
+      "actor": "SCRIPTED demo account bob@acme.demo (automated browser) executes; SYSTEM calls PayPal",
+      "paypal_refund_id": "2DF34389JE394200F",
+      "amount": "100.00 USD",
+      "paypal_status": "COMPLETED",
+      "fee_returned": "0.00",
+      "merchant_debit": "100.00",
+      "case_status": "resolved",
+      "remaining": "400.00"
+    }
+  ],
+  "console_errors": []
+}
