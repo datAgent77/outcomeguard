@@ -319,12 +319,36 @@ simulated-payment run made no PayPal call; its order/authorization/capture ids s
 | PayPal 5xx, lost response → UNKNOWN → read-first reconcile | ✅ | — | ✅ mocked UI | — |
 | No automatic re-send: not found at PayPal → reconciliation_required, later read settles | ✅ | — | — | — |
 | PayPal-reported refund figures, nothing invented | ✅ | — | — | ⏳ |
-| Void: valid, idempotent, unauthorized, captured, UNKNOWN capture, timeout, race with capture | ✅ | ✅ (valid, idempotent, roles) | ✅ (valid) | ⏳ |
+| Void: valid, idempotent, unauthorized, captured, UNKNOWN capture, timeout, race with capture | ✅ | ✅ (valid, idempotent, roles) | ✅ (valid) | ✅ valid void (2026-10-16) |
 | Ledger shows case + refund/void trail | — | ✅ | ✅ | ⏳ |
 
 Details: [RESOLUTION_AND_REFUNDS.md](RESOLUTION_AND_REFUNDS.md). Screenshots from the running
 app with simulated payments: `docs/p08/screenshots/`. **No real Sandbox order, refund or void
-was created in P08 so far** — the demonstration waits for the user's READY.
+was created in P08 before the user's READY.**
+
+### Real Sandbox scenario 2 — authorization void (2026-10-16)
+
+Agreement `6f2a7610-df0c-48a4-bfed-dee63d585be9` (locked; prepared by
+`p08-sandbox-prep.spec.ts` without any PayPal call). **Every step below was performed by a
+person in the web UI** (signed in as the demo buyer admin alice@acme.demo), including the
+buyer approval on PayPal's Sandbox page. No capture was attempted.
+
+| t (UTC) | Audit event | Actor |
+|---|---|---|
+| 12:11:17 | order requested | alice@acme.demo (UI, person) |
+| 12:11:19 | PayPal order created | system |
+| 12:11:37 | buyer approved at PayPal (read server-side) | person at PayPal Sandbox |
+| 12:11:48 | authorization created | alice@acme.demo (UI, person) |
+| 12:11:49 | void policy preview `allowed` | alice@acme.demo |
+| 12:14:55 | void policy `allowed` (decision `8e39e9a9…`, inputs `0169fc6b…`, no reasons) → void requested, request id `og-void-049bfdf7-…` | alice@acme.demo (UI, person) |
+| 12:14:57 | void completed | system |
+
+Re-read from PayPal after the run: order `0RU29828UU233982H` `COMPLETED` with one
+authorization and **0 captures**; authorization `32284282MB448210R` **`VOIDED`**, $500.00
+USD (created 12:11:48Z, updated 12:14:56Z). DB: void operation `5d97896a…` `completed`
+(PayPal status `VOIDED`, reason "cancel because of delivery problem"), authorization
+`voided`, no capture row. No money was captured or transferred. Audit hash chain verified
+intact.
 
 ## How to reproduce
 
