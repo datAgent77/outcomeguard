@@ -9,7 +9,7 @@ submitted.
 | Project name | OutcomeGuard |
 | Elevator pitch / tagline | Don't just pay for a promise. Pay for proof. AI turns a job into measurable checks, real tools verify the delivery, and PayPal captures only when the proof and the buyer say yes. (178 characters) |
 | Built with (tags) | paypal · paypal-orders-api · paypal-payments-api · anthropic · claude · python · fastapi · postgresql · sqlalchemy · next.js · typescript · tailwindcss · ag-grid · playwright · lighthouse |
-| Try it out | GitHub: https://github.com/datAgent77/outcomeguard · hosted demo: **none** (local setup per README) **[YOU: decide whether to host]** |
+| Try it out | GitHub: https://github.com/datAgent77/outcomeguard · hosted demo: **none** — local setup per README (decided 2026-10-24) |
 | Video demo link (YouTube, public, < 3:00) | **[YOU: upload and paste]** — video is ready: `docs/hackathon/video/OutcomeGuard-cinematic.mp4` (2:16); upload steps in `06_DEVPOST_READY.md` |
 | Image gallery | `submission/gallery/01…09-*.jpg` (3:2, real frames with truth labels); order and captions in `06_DEVPOST_READY.md` |
 | Sponsor prize opt-in | Best Use of AG Grid **[CONFIRM the form field]** |
@@ -103,5 +103,5 @@ built after that date — see the git history and `docs/IMPLEMENTATION_PROGRESS.
 See README → "Run it locally". Rehearsal mode needs no PayPal or AI keys (payments
 SIMULATED). Real Sandbox: the judge's own free PayPal developer app. AI drafting: an
 Anthropic API key. Demo accounts are created locally with a password the judge chooses
-(`DEMO_PASSWORD`). **[YOU: decide whether to provide a hosted demo or shared Sandbox
-credentials — never commit secrets.]**
+(`DEMO_PASSWORD`). There is no hosted demo and no shared credentials: everything runs
+locally, and no secrets are committed.

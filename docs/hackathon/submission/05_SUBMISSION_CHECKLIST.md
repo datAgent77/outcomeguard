@@ -21,7 +21,7 @@ Deadline: **Thu Nov 12, 2026, 12:00 pm PT = 23:00 GMT+3** (rules §1). Aim to su
       broken FAIL, fixed NEEDS_MANUAL_REVIEW) → login → simulated capture; no browser errors.
       (Dependencies were cached on this machine; a first install takes longer.)
 - [ ] Repeat the fresh-clone check on the final commit
-- [ ] **[YOU]** Decide: hosted demo (optional; needs deploy approval) or local-only
+- [x] Decided 2026-10-24: local-only, no hosted demo
 
 ## Video (YouTube)
 - [x] Recorded from the running app: `docs/hackathon/video/OutcomeGuard-cinematic.mp4`, **2:16**, 1080p

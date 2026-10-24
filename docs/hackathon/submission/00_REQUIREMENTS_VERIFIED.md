@@ -35,7 +35,7 @@ Quotes are short; the rules page is authoritative and may change — re-check be
 | All source, assets and instructions in the repo | ✅ (secrets only in git-ignored `.env`) |
 | Demo video **under 3 minutes**, shows the project working on its device, **public on YouTube**, link in the form | Script/storyboard: `03_VIDEO_PACKAGE.md` — **recording and upload are yours** |
 | No third-party trademarks or copyrighted music/material without permission | Video plan avoids PayPal's checkout page and logos and uses no music; **confirm** whether showing the PayPal name/logo is acceptable to you |
-| Testing access: provide credentials/keys/sandbox details needed, or instructions to obtain them | README: rehearsal mode needs none; Sandbox needs the judge's own free PayPal developer app; AI needs an Anthropic key. **Decide** whether to also provide a hosted demo or keys |
+| Testing access: provide credentials/keys/sandbox details needed, or instructions to obtain them | README: rehearsal mode needs none; Sandbox needs the judge's own free PayPal developer app; AI needs an Anthropic key. No hosted demo or shared keys (Decided 2026-10-24: no hosted demo) |
 | English | ✅ |
 
 ## Judging (rules, section 6)
@@ -50,7 +50,7 @@ Grand prizes; honorable mentions incl. **Best Use of PayPal + AI**, **Best Demo 
 Most Impactful, Most Creative; sponsor prize **Best Use of AG Grid** ("All Eligible
 Submissions that use any AG Grid tools") — OutcomeGuard's ledger uses AG Grid Community. A
 project can win at most one grand/honorable prize plus one sponsor prize. Render prizes
-would require a Render deployment (not done; deploying needs your approval).
+would require a Render deployment — **Decided 2026-10-24: no hosted demo**, so not entered.
 
 ## Needs manual confirmation
 
@@ -62,4 +62,4 @@ would require a Render deployment (not done; deploying needs your approval).
 3. Whether to disclose that the code was written with an AI coding assistant (not required
    by the rules as read; entrant must own the work and its ideas).
 4. Use of the PayPal name/logo in the video (sponsor's trademark) — the plan avoids logos.
-5. Hosted demo or not (optional per rules; Render sponsor prize only with a deployment).
+5. ~~Hosted demo or not~~ — **Decided 2026-10-24: no hosted demo** (local setup only; no Render prize entry).

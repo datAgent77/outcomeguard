@@ -92,8 +92,8 @@ Built for the PayPal AI Hackathon 2026. PayPal Sandbox only — no real money. N
    The rules bar third-party trademarks without permission. PayPal is the sponsor, and the
    name is only used to describe the integration. If you want to be fully safe, ask the
    organisers.
-4. **Hosted demo**: optional (the README's local setup meets the rule). A Render deployment
-   would also enter the Render sponsor prizes; it needs your approval.
+4. ~~Hosted demo~~ — **Decided 2026-10-24: no hosted demo** (no Render deployment). Judges run it locally per the README
+   (meets the rule), and the video shows it working end to end.
 5. **Freeze tag**: `v1.0-hackathon` on the submitted commit.
 
 ## Rules re-check (2026-10-24, browser)
