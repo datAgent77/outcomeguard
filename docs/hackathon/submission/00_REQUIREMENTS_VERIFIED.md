@@ -4,6 +4,8 @@ Source: the official pages, read on **2026-10-16** in a browser:
 <https://paypalaihackathon.devpost.com/> and <https://paypalaihackathon.devpost.com/rules>
 (automated fetching returns HTTP 403; the pages render normally in a browser).
 Quotes are short; the rules page is authoritative and may change — re-check before submitting.
+**Re-checked 2026-10-24:** unchanged for us; differences noted in `06_DEVPOST_READY.md` →
+"Rules re-check" (Best Use of Agentic Commerce listed; judging may use automated AI-driven analysis).
 
 ## Dates
 

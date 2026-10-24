@@ -24,18 +24,19 @@ Deadline: **Thu Nov 12, 2026, 12:00 pm PT = 23:00 GMT+3** (rules §1). Aim to su
 - [ ] **[YOU]** Decide: hosted demo (optional; needs deploy approval) or local-only
 
 ## Video (YouTube)
-- [ ] Record per `03_VIDEO_PACKAGE.md`; length **< 3:00** (target 2:50)
-- [ ] Truth labels on screen: LIVE (Claude, Chromium/Lighthouse) · Recorded earlier (broken
+- [x] Recorded from the running app: `docs/hackathon/video/OutcomeGuard-cinematic.mp4`, **2:16**, 1080p
+- [x] Truth labels on screen: LIVE (Claude, Chromium/Lighthouse) · Recorded earlier (broken
       FAIL) · SIMULATED (capture) · Real PayPal Sandbox (IDs, Oct 16)
-- [ ] No copyrighted music; no PayPal checkout page or logos unless you confirm permission
-- [ ] Upload **Public**, add `03b_captions.srt`, paste the link into Devpost
+- [x] No music; no PayPal checkout page or logos (PayPal named in text only — see 06, decision 3)
+- [ ] **[YOU]** ElevenLabs narration: confirm your plan's usage/attribution terms
+- [ ] **[YOU]** Upload **Public** with title/description/thumbnail/captions from `06_DEVPOST_READY.md`, paste the link into Devpost
 
 ## Devpost form (`02_DEVPOST_DRAFT.md`)
 - [ ] Name, tagline, description, "built with", tools used, repo link, video link, gallery
 - [ ] Sponsor prize: Best Use of AG Grid (confirm the opt-in field)
 - [ ] Testing instructions (README section) and, if you choose, any test access
 - [ ] Eligibility and team/representative details **[YOU]**
-- [ ] Screenshots: real ones only; label simulated ones as simulated
+- [x] Gallery: `gallery/01…09` — real frames, simulated ones labelled
 
 ## PayPal Sandbox precautions
 - [x] Real Sandbox evidence already recorded (no new transactions needed for submission)

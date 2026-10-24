@@ -10,8 +10,8 @@ submitted.
 | Elevator pitch / tagline | Don't just pay for a promise. Pay for proof. AI turns a job into measurable checks, real tools verify the delivery, and PayPal captures only when the proof and the buyer say yes. (178 characters) |
 | Built with (tags) | paypal · paypal-orders-api · paypal-payments-api · anthropic · claude · python · fastapi · postgresql · sqlalchemy · next.js · typescript · tailwindcss · ag-grid · playwright · lighthouse |
 | Try it out | GitHub: https://github.com/datAgent77/outcomeguard · hosted demo: **none** (local setup per README) **[YOU: decide whether to host]** |
-| Video demo link (YouTube, public, < 3:00) | **[YOU: upload and paste]** |
-| Image gallery | `docs/hackathon/screenshots/p09-landing-1440.png`, `08-evidence-needs-review.png`, `06-evidence-fail.png`, `12-payment-captured.png` (label: rehearsal, simulated), `13-ledger-grid.png`, `docs/p08/sandbox/04-case-resolved.png` (real Sandbox), `m02-evidence-390.png` |
+| Video demo link (YouTube, public, < 3:00) | **[YOU: upload and paste]** — video is ready: `docs/hackathon/video/OutcomeGuard-cinematic.mp4` (2:16); upload steps in `06_DEVPOST_READY.md` |
+| Image gallery | `submission/gallery/01…09-*.jpg` (3:2, real frames with truth labels); order and captions in `06_DEVPOST_READY.md` |
 | Sponsor prize opt-in | Best Use of AG Grid **[CONFIRM the form field]** |
 | Team / eligibility | **[YOU]** |
 
@@ -93,6 +93,7 @@ notifications, a hosted pilot with freelancers and agencies.
 - Playwright/Chromium and Google Lighthouse for deterministic verification.
 - **[YOU]** Optional disclosure: the code was written with the help of an AI coding
   assistant (Claude Code) under your direction — decide whether to mention it.
+- Video only (not part of the product): narration generated with ElevenLabs text-to-speech.
 
 ## How the project was built during the submission period
 Repository created on Oct 15, 2026 (within the Oct 1 – Nov 12 period); all functionality was

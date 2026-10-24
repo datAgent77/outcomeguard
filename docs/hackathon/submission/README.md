@@ -8,5 +8,8 @@
 | [03_VIDEO_PACKAGE.md](03_VIDEO_PACKAGE.md) · [03b_captions.srt](03b_captions.srt) | Narration, storyboard, recording plan, captions, truth labels, backups |
 | [04_PITCH_DECK_OUTLINE.md](04_PITCH_DECK_OUTLINE.md) | Five slides |
 | [05_SUBMISSION_CHECKLIST.md](05_SUBMISSION_CHECKLIST.md) | Links, visibility, video, reproducibility, deadline |
+| [03c_VOICEOVER_ELEVENLABS.md](03c_VOICEOVER_ELEVENLABS.md) | Per-segment narration used for the video |
+| [06_DEVPOST_READY.md](06_DEVPOST_READY.md) | **Start here on submission day:** YouTube + Devpost step by step, paste-ready texts |
+| [gallery/](gallery/) | Devpost gallery (3:2) and YouTube thumbnail |
 
 Nothing here has been submitted, published or deployed.

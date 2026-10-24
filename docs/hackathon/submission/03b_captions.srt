@@ -1,59 +1,147 @@
 1
-00:00:00,000 --> 00:00:08,000
-Don't just pay for a promise. Pay for proof.
-
-2
-00:00:08,000 --> 00:00:15,000
+00:00:00,300 --> 00:00:03,542
 Hiring a freelancer means paying for a promise.
 
+2
+00:00:03,542 --> 00:00:08,990
+Either the buyer pays first and hopes, or the freelancer works first and hopes.
+
 3
-00:00:15,000 --> 00:00:30,000
-AI drafts · Tools verify · Humans approve · PayPal executes
+00:00:08,990 --> 00:00:11,911
+OutcomeGuard replaces hope with proof.
 
 4
-00:00:30,000 --> 00:00:34,000
-Buyer: plain-English request
+00:00:12,610 --> 00:00:15,935
+The payment is authorized on PayPal up front,
 
 5
-00:00:34,000 --> 00:00:50,000
-LIVE · Claude drafts acceptance criteria
+00:00:15,935 --> 00:00:21,329
+but it is captured only when measurable evidence, and the buyer, say yes.
 
 6
-00:00:50,000 --> 00:00:58,000
-Every criterion quotes the buyer · AI suggestions are opt-in
+00:00:21,329 --> 00:00:25,841
+AI drafts, tools verify, humans approve, PayPal executes.
 
 7
-00:00:58,000 --> 00:01:10,000
-Locked · content hash frozen
+00:00:29,043 --> 00:00:31,894
+Acme needs a five-hundred-dollar landing page.
 
 8
-00:01:10,000 --> 00:01:18,000
-Freelancer delivers
+00:00:31,894 --> 00:00:34,744
+The buyer writes the request in plain English,
 
 9
-00:01:18,000 --> 00:01:30,000
-LIVE · real Chromium + Lighthouse
+00:00:34,744 --> 00:00:38,215
+and Claude turns it into measurable acceptance criteria.
 
 10
-00:01:30,000 --> 00:01:40,000
-Measured · AI interpretation · Human decision
+00:00:38,215 --> 00:00:40,570
+Each one quotes the buyer's own words.
 
 11
-00:01:40,000 --> 00:01:55,000
-Recorded earlier · broken delivery → FAIL → capture blocked
+00:00:40,570 --> 00:00:43,110
+Anything that says "must" stays blocking,
 
 12
-00:01:55,000 --> 00:02:05,000
-Scripted demo decision (labelled in the app)
+00:00:43,110 --> 00:00:46,767
+and the AI's own idea is only a suggestion, off by default.
 
 13
-00:02:05,000 --> 00:02:25,000
-SIMULATED payment (rehearsal mode)
+00:00:46,767 --> 00:00:50,485
+The buyer adds what only they know, and locks the agreement.
 
 14
-00:02:25,000 --> 00:02:45,000
-Real PayPal Sandbox · recorded Oct 16, 2026
+00:00:50,485 --> 00:00:55,309
+Locking freezes a content hash, so nobody can quietly move the goalposts.
 
 15
-00:02:45,000 --> 00:02:50,000
-OutcomeGuard · github.com/datAgent77/outcomeguard · MIT
+00:00:58,523 --> 00:01:00,245
+Now the freelancer delivers.
+
+16
+00:01:00,245 --> 00:01:05,104
+OutcomeGuard opens the page in a real Chromium browser on a phone-sized screen,
+
+17
+00:01:05,104 --> 00:01:10,210
+submits the contact form to a controlled test endpoint, and runs Google Lighthouse.
+
+18
+00:01:10,210 --> 00:01:12,486
+Three checks pass, in plain language,
+
+19
+00:01:12,486 --> 00:01:15,561
+with stored screenshots and the Lighthouse report.
+
+20
+00:01:15,561 --> 00:01:19,982
+Accessibility can't be measured by a tool, so it waits for a human.
+
+21
+00:01:20,703 --> 00:01:23,446
+Here is the first delivery, recorded earlier.
+
+22
+00:01:23,446 --> 00:01:27,286
+The form was submitted, but the success message never appeared.
+
+23
+00:01:27,286 --> 00:01:30,329
+That single failed check blocked the payment.
+
+24
+00:01:33,536 --> 00:01:36,068
+The accessibility decision is recorded,
+
+25
+00:01:36,068 --> 00:01:39,443
+and labelled in the app as a scripted demo decision.
+
+26
+00:01:39,443 --> 00:01:41,715
+The payment policy is re-evaluated:
+
+27
+00:01:41,715 --> 00:01:42,299
+eligible.
+
+28
+00:01:42,299 --> 00:01:44,506
+The buyer approves, then captures.
+
+29
+00:01:44,506 --> 00:01:46,388
+Two separate, explicit steps.
+
+30
+00:01:46,388 --> 00:01:50,842
+In this recording the payment is simulated, and the app says so.
+
+31
+00:01:54,070 --> 00:01:55,945
+And it isn't only a simulation.
+
+32
+00:01:55,945 --> 00:02:01,451
+On PayPal Sandbox, we captured a five-hundred-dollar payment through this exact governance,
+
+33
+00:02:01,451 --> 00:02:07,260
+refunded one hundred after both parties approved, and cancelled an authorization before capture.
+
+34
+00:02:07,260 --> 00:02:09,677
+Every ID was read back from PayPal.
+
+35
+00:02:10,403 --> 00:02:11,416
+OutcomeGuard.
+
+36
+00:02:11,416 --> 00:02:13,675
+Don't just pay for a promise.
+
+37
+00:02:13,675 --> 00:02:15,065
+Pay for proof.
