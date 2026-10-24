@@ -39,7 +39,7 @@ hash, so nobody can quietly move the goalposts."
 **[1:10–1:40] Verification (live)**
 "Now the freelancer delivers. OutcomeGuard opens the page in a real Chromium browser on a
 phone-sized screen, submits the contact form to a controlled test endpoint, and runs Google
-Lighthouse. Four checks pass — in plain language, with stored screenshots and the
+Lighthouse. Three checks pass — in plain language, with stored screenshots and the
 Lighthouse report. Accessibility can't be measured by a tool, so it waits for a human."
 
 **[1:40–1:55] Broken delivery (recorded)**
@@ -72,7 +72,7 @@ and cancelled an authorization before capture — every ID read back from PayPal
 | 0:58–1:10 | Configure → Approve and lock dialog | confirm | Locked · content hash frozen |
 | 1:10–1:18 | Delivery tab (maya) | paste fixed URL, submit | Freelancer delivers |
 | 1:18–1:30 | "Verification running" → report | wait (trim to ~6 s, mark "⏩ 14 s") | **LIVE · real Chromium + Lighthouse** |
-| 1:30–1:40 | Evidence report | scroll the 4 PASS cards + legend | Measured · AI interpretation · Human decision |
+| 1:30–1:40 | Evidence report | scroll the 3 PASS cards + pending review + legend | Measured · AI interpretation · Human decision |
 | 1:40–1:55 | Prepared agreement, broken run | contact-form FAIL card | **Recorded earlier** · broken delivery → FAIL → capture blocked |
 | 1:55–2:05 | Manual review panel (prepared) | show "Scripted demo decision" label | scripted demo decision (labelled in app) |
 | 2:05–2:25 | Payment tab (bob) | Eligible → Approve capture → Capture | **SIMULATED payment (rehearsal mode)** — banner visible |

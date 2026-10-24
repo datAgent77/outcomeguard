@@ -1,0 +1,184 @@
+<!doctype html>
+<html>
+<head>
+<meta charset="utf-8" />
+<title>OutcomeGuard motion scenes</title>
+<style>
+  :root { --navy:#0b1830; --ink:#0f1f3a; --muted:#9fb0cc; --brand:#3a64e6; --brand-l:#9db4f7; --pass:#2fbf7f; --amber:#f0a23b; --card:#13264a; --line:#26406e; }
+  * { box-sizing: border-box; }
+  html, body { margin:0; width:1920px; height:1080px; overflow:hidden; background:var(--navy); font-family:-apple-system,"SF Pro Display","Helvetica Neue",Arial,sans-serif; color:#fff; }
+  #stage { position:absolute; inset:0; background: radial-gradient(1300px 760px at 50% 38%, #18366a 0%, #0b1830 58%, #060d1c 100%); }
+  #stage::after { content:""; position:absolute; inset:0; background-image: linear-gradient(rgba(157,180,247,.05) 1px, transparent 1px), linear-gradient(90deg, rgba(157,180,247,.05) 1px, transparent 1px); background-size: 64px 64px; mask-image: radial-gradient(900px 600px at 50% 45%, #000 30%, transparent 80%); }
+  .abs { position:absolute; }
+  .fade { opacity:0; transition: opacity .6s ease, transform .8s cubic-bezier(.2,.8,.2,1); }
+  .fade.in { opacity:1; transform:none !important; }
+  .kicker { left:0; right:0; top:110px; text-align:center; font-size:28px; letter-spacing:.22em; text-transform:uppercase; color:var(--brand-l); font-weight:600; }
+  .headline { left:0; right:0; top:156px; text-align:center; font-size:68px; font-weight:750; letter-spacing:-.02em; }
+  .swap { transition: opacity .3s ease; }
+  .party { width:400px; height:300px; border-radius:28px; background:linear-gradient(180deg,#16305a,#112548); border:1px solid var(--line); box-shadow:0 30px 60px rgba(0,0,0,.35); display:flex; flex-direction:column; align-items:center; justify-content:center; gap:14px; }
+  .avatar { width:110px; height:110px; border-radius:50%; display:flex; align-items:center; justify-content:center; font-size:48px; font-weight:700; background:linear-gradient(135deg,#3a64e6,#7f9bf2); }
+  .avatar.f { background:linear-gradient(135deg,#13804f,#47c78f); }
+  .role { font-size:36px; font-weight:700; }
+  .org { font-size:22px; color:var(--muted); }
+  .badge { left:50%; transform:translateX(-50%) translateY(10px); top:330px; white-space:nowrap; padding:12px 22px; border-radius:999px; font-size:24px; font-weight:650; opacity:0; transition: all .5s ease; }
+  .badge.in { opacity:1; transform:translateX(-50%); }
+  .badge.amber { background:rgba(240,162,59,.16); color:#ffc77a; border:1px solid rgba(240,162,59,.5); }
+  .badge.green { background:rgba(47,191,127,.16); color:#7fe0b2; border:1px solid rgba(47,191,127,.5); }
+  .coin { width:120px; height:120px; border-radius:50%; background:radial-gradient(circle at 35% 30%, #ffe9a8, #f1b93a 55%, #c98a12); color:#5b3a00; font-weight:800; font-size:34px; display:flex; align-items:center; justify-content:center; box-shadow:0 14px 30px rgba(0,0,0,.4), inset 0 -6px 0 rgba(0,0,0,.12); transition: left 1.1s cubic-bezier(.45,0,.2,1), top 1.1s cubic-bezier(.45,0,.2,1), opacity .4s ease, transform .4s ease; opacity:0; transform:scale(.6); }
+  .coin.in { opacity:1; transform:scale(1); }
+  .sheet { width:96px; height:124px; border-radius:12px; background:#fff; box-shadow:0 14px 30px rgba(0,0,0,.4); padding:16px 14px; display:flex; flex-direction:column; gap:10px; transition: left 1.1s cubic-bezier(.45,0,.2,1), top 1.1s cubic-bezier(.45,0,.2,1), opacity .4s ease; opacity:0; }
+  .sheet i { display:block; height:8px; border-radius:4px; background:#c9d3e6; }
+  .sheet.in { opacity:1; }
+  .doc { width:420px; height:470px; perspective:1600px; }
+  .doc .flip { position:absolute; inset:0; transition: transform 1s cubic-bezier(.6,0,.2,1); transform-style:preserve-3d; }
+  .doc.flipped .flip { transform: rotateY(180deg); }
+  .face { position:absolute; inset:0; border-radius:26px; backface-visibility:hidden; padding:34px 34px; background:#fff; color:var(--ink); box-shadow:0 40px 80px rgba(0,0,0,.45); }
+  .face.back { transform: rotateY(180deg); }
+  .face h3 { margin:0 0 6px; font-size:20px; letter-spacing:.2em; color:#6b7a93; }
+  .face h2 { margin:0 0 26px; font-size:42px; letter-spacing:-.01em; }
+  .scribble { font-size:26px; color:#4d5d78; line-height:1.5; font-style:italic; }
+  .scribble b { color:#0f1f3a; font-style:normal; }
+  .check { display:flex; align-items:center; gap:16px; font-size:25px; font-weight:600; padding:12px 0; border-bottom:1px solid #e8edf5; }
+  .tick { width:36px; height:36px; border-radius:50%; flex:none; border:2px solid #c9d3e6; display:flex; align-items:center; justify-content:center; transition: all .35s ease; color:transparent; font-size:22px; font-weight:800; }
+  .check.ok .tick { background:#13804f; border-color:#13804f; color:#fff; transform:scale(1.08); }
+  .check .pill { margin-left:auto; font-size:16px; font-weight:800; letter-spacing:.08em; color:#13804f; opacity:0; transition:opacity .3s; }
+  .check.ok .pill { opacity:1; }
+  /* concept */
+  .pay { width:540px; height:330px; border-radius:28px; background:#fff; color:var(--ink); padding:36px 40px; box-shadow:0 40px 80px rgba(0,0,0,.45); }
+  .pay .label { font-size:22px; color:#6b7a93; font-weight:600; letter-spacing:.06em; text-transform:uppercase; }
+  .pay .amt { font-size:92px; font-weight:800; letter-spacing:-.03em; margin:8px 0 18px; }
+  .status { display:inline-flex; align-items:center; gap:10px; padding:10px 20px; border-radius:999px; font-size:24px; font-weight:800; letter-spacing:.06em; transition: all .4s ease; }
+  .status.auth { background:#fff3df; color:#9a5b00; }
+  .status.cap { background:#e3f6ec; color:#0f6b46; }
+  .pay .sub { margin-top:14px; font-size:22px; color:#6b7a93; }
+  .gate { width:22px; height:330px; border-radius:11px; background:linear-gradient(180deg,#f0a23b,#c97d14); box-shadow:0 0 40px rgba(240,162,59,.5); transition: transform .9s cubic-bezier(.6,0,.2,1), opacity .9s ease; }
+  .gate.open { transform: translateY(-380px); opacity:0; }
+  .lock { width:96px; height:96px; border-radius:50%; background:#1b335f; border:2px solid #f0a23b; display:flex; align-items:center; justify-content:center; font-size:44px; transition: all .5s ease; }
+  .lock.open { border-color:#2fbf7f; box-shadow:0 0 40px rgba(47,191,127,.6); }
+  .conds { width:520px; border-radius:22px; background:rgba(19,38,74,.92); border:1px solid var(--line); padding:18px 26px; }
+  .cond { display:flex; align-items:center; gap:16px; font-size:28px; font-weight:600; padding:12px 0; }
+  .cond .dot { width:22px; height:22px; border-radius:50%; background:#3c5684; transition: all .3s; }
+  .cond .st { margin-left:auto; font-size:20px; font-weight:800; letter-spacing:.1em; color:#7d8fb0; transition: color .3s; }
+  .cond.ok .dot { background:var(--pass); box-shadow:0 0 18px rgba(47,191,127,.8); }
+  .cond.ok .st { color:#7fe0b2; }
+  .group { transition: opacity .7s ease, transform .9s cubic-bezier(.2,.8,.2,1); }
+  .group.dim { opacity:.28; transform: translateY(-90px) scale(.9); }
+  /* pipeline strip */
+  .strip { display:flex; align-items:center; gap:22px; }
+  .chip { width:360px; padding:26px 28px; border-radius:24px; background:rgba(19,38,74,.9); border:2px solid var(--line); transition: all .45s ease; }
+  .chip .n { font-size:18px; letter-spacing:.18em; color:#7d8fb0; font-weight:700; }
+  .chip .t { font-size:38px; font-weight:750; margin-top:6px; color:#c3cfe6; transition: color .45s; }
+  .chip .s { font-size:21px; color:#7d8fb0; margin-top:6px; }
+  .chip.on { background:linear-gradient(160deg,#2952d4,#3a64e6); border-color:#9db4f7; box-shadow:0 0 0 6px rgba(58,100,230,.25), 0 30px 60px rgba(41,82,212,.45); transform: translateY(-10px) scale(1.04); }
+  .chip.on .t { color:#fff; } .chip.on .n, .chip.on .s { color:#dbe4ff; }
+  .chip.done { border-color:#2f8f66; }
+  .chip.done .n::after { content:"  ✓"; color:#7fe0b2; }
+  .arrow { width:34px; height:4px; background:var(--line); position:relative; border-radius:2px; }
+  .arrow::after { content:""; position:absolute; right:-2px; top:-7px; border-left:12px solid var(--line); border-top:9px solid transparent; border-bottom:9px solid transparent; }
+  .sub2 { left:0; right:0; text-align:center; font-size:30px; color:var(--muted); }
+  .logo { width:150px; height:150px; }
+  .word { font-size:110px; font-weight:800; letter-spacing:-.03em; }
+  .blue { color:#9db4f7; }
+</style>
+</head>
+<body>
+<div id="stage"></div>
+<script>
+const stage = document.getElementById("stage");
+const el = (html) => { const t = document.createElement("template"); t.innerHTML = html.trim(); const n = t.content.firstChild; stage.appendChild(n); return n; };
+const at = (ms, fn) => setTimeout(fn, ms);
+const q = (s) => stage.querySelector(s);
+const pos = (n, x, y) => { n.style.left = x + "px"; n.style.top = y + "px"; };
+function swapText(n, text) { n.style.opacity = 0; setTimeout(() => { n.innerHTML = text; n.style.opacity = 1; }, 300); }
+const CHIPS = [
+  ["AI drafts", "Claude writes the criteria"],
+  ["Tools verify", "Chromium + Lighthouse"],
+  ["Humans approve", "Buyer & reviewer"],
+  ["PayPal executes", "Authorize → capture"],
+];
+function strip(x, y) {
+  const s = el(`<div class="abs strip fade" style="left:${x}px;top:${y}px;transform:translateY(30px)"></div>`);
+  CHIPS.forEach(([t, sub], i) => {
+    if (i) s.insertAdjacentHTML("beforeend", `<div class="arrow"></div>`);
+    s.insertAdjacentHTML("beforeend", `<div class="chip" data-i="${i}"><div class="n">STEP ${i + 1}</div><div class="t">${t}</div><div class="s">${sub}</div></div>`);
+  });
+  return s;
+}
+const SHIELD = `<svg viewBox="0 0 32 32" class="logo"><rect width="32" height="32" rx="8" fill="#0f1f3a" stroke="#26406e" stroke-width=".6"/><path d="M16 6.5 8.5 9.6v5.6c0 4.7 3.1 8.6 7.5 10.3 4.4-1.7 7.5-5.6 7.5-10.3V9.6L16 6.5Z" fill="none" stroke="#9db4f7" stroke-width="1.7"/><path d="m12.4 16 2.6 2.6 4.8-5.2" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>`;
+
+const SCENES = {
+  intro() {
+    const kick = el(`<div class="abs kicker swap">Freelance work today</div>`);
+    const head = el(`<div class="abs headline swap">Paying for a promise</div>`);
+    const buyer = el(`<div class="abs party fade" style="left:180px;top:380px;transform:translateX(-60px)"><div class="avatar">A</div><div class="role">Buyer</div><div class="org">Acme Outdoor Co.</div><div class="abs badge amber" id="bb">Paid first · hopes the work arrives</div></div>`);
+    const prov = el(`<div class="abs party fade" style="left:1340px;top:380px;transform:translateX(60px)"><div class="avatar f">N</div><div class="role">Freelancer</div><div class="org">Northwind Studio</div><div class="abs badge amber" id="fb">Worked first · hopes to get paid</div></div>`);
+    const doc = el(`<div class="abs doc fade" style="left:750px;top:330px;transform:scale(.9)"><div class="flip">
+        <div class="face"><h3>THE PROMISE</h3><h2>Landing page · $500</h2><div class="scribble">“It’ll be <b>mobile-friendly</b>, the <b>form will work</b>, it’ll be <b>fast</b> and <b>accessible</b>.”<br><br>— trust me</div></div>
+        <div class="face back"><h3>THE PROOF</h3><h2>Verified delivery</h2>
+          <div class="check" id="c0"><div class="tick">✓</div>Fits a phone screen<span class="pill">PASS</span></div>
+          <div class="check" id="c1"><div class="tick">✓</div>Contact form works<span class="pill">PASS</span></div>
+          <div class="check" id="c2"><div class="tick">✓</div>Lighthouse ≥ 90<span class="pill">PASS</span></div>
+          <div class="check" id="c3"><div class="tick">✓</div>Buyer approves<span class="pill">YES</span></div>
+        </div></div></div>`);
+    const coin = el(`<div class="abs coin">$500</div>`); pos(coin, 320, 470);
+    const sheet = el(`<div class="abs sheet"><i></i><i style="width:70%"></i><i></i><i style="width:55%"></i></div>`); pos(sheet, 1492, 468);
+    at(100, () => { buyer.classList.add("in"); prov.classList.add("in"); });
+    at(500, () => doc.classList.add("in"));
+    at(3200, () => { swapText(head, "Who goes first?"); doc.style.opacity = .35; coin.classList.add("in"); });
+    at(3550, () => pos(coin, 1660, 310));
+    at(4300, () => q("#bb").classList.add("in"));
+    at(5700, () => { coin.classList.remove("in"); sheet.classList.add("in"); });
+    at(6000, () => pos(sheet, 150, 300));
+    at(6800, () => q("#fb").classList.add("in"));
+    at(8500, () => { swapText(kick, "OutcomeGuard"); swapText(head, "Replace hope with <span class='blue'>proof</span>"); sheet.classList.remove("in"); doc.style.opacity = 1; doc.classList.add("flipped"); q("#bb").classList.remove("in"); q("#fb").classList.remove("in"); });
+    [9100, 9400, 9700, 10000].forEach((t, i) => at(t, () => q("#c" + i).classList.add("ok")));
+    at(10150, () => { pos(coin, 900, 690); coin.classList.add("in"); });
+    at(10500, () => pos(coin, 1660, 310));
+    at(10400, () => { const b = q("#fb"); b.className = "abs badge green"; b.textContent = "Paid on proof"; b.classList.add("in"); const a = q("#bb"); a.className = "abs badge green"; a.textContent = "Pays for proof"; a.classList.add("in"); });
+  },
+  concept() {
+    const kick = el(`<div class="abs kicker swap">How OutcomeGuard pays</div>`);
+    const g = el(`<div class="abs group" style="left:0;top:0;width:1920px;height:1080px"></div>`);
+    const add = (h) => { const t = document.createElement("template"); t.innerHTML = h.trim(); const n = t.content.firstChild; g.appendChild(n); return n; };
+    const pay = add(`<div class="abs pay fade" style="left:170px;top:240px;transform:translateX(-50px)"><div class="label">Payment</div><div class="amt">$500.00</div><span class="status auth" id="st">● AUTHORIZED</span><div class="sub" id="sub">On PayPal, up front — not captured</div></div>`);
+    const gate = add(`<div class="abs gate fade" style="left:950px;top:240px"></div>`);
+    const lock = add(`<div class="abs lock fade" style="left:913px;top:357px">🔒</div>`);
+    const prov = add(`<div class="abs party fade" style="left:1340px;top:255px;transform:translateX(50px)"><div class="avatar f">N</div><div class="role">Freelancer</div><div class="org">gets paid on proof</div></div>`);
+    const conds = add(`<div class="abs conds fade" style="left:700px;top:620px;transform:translateY(20px)"><div class="cond" id="k0"><div class="dot"></div>Measurable evidence<span class="st">PENDING</span></div><div class="cond" id="k1"><div class="dot"></div>The buyer says yes<span class="st">PENDING</span></div></div>`);
+    const coin = add(`<div class="abs coin">$500</div>`); pos(coin, 560, 300);
+    const s = strip(115, 760);
+    at(100, () => { pay.classList.add("in"); gate.classList.add("in"); lock.classList.add("in"); prov.classList.add("in"); });
+    at(2800, () => conds.classList.add("in"));
+    at(4500, () => { const k = q("#k0"); k.classList.add("ok"); k.querySelector(".st").textContent = "PASS"; });
+    at(6000, () => { const k = q("#k1"); k.classList.add("ok"); k.querySelector(".st").textContent = "APPROVED"; });
+    at(6600, () => { gate.classList.add("open"); lock.classList.add("open"); lock.textContent = "🔓"; const st = q("#st"); st.className = "status cap"; st.textContent = "● CAPTURED"; q("#sub").textContent = "Only after proof — then PayPal moves the money"; coin.classList.add("in"); });
+    at(6900, () => pos(coin, 1660, 190));
+    at(7450, () => { g.classList.add("dim"); swapText(kick, "Who does what"); s.classList.add("in"); });
+    [7750, 8970, 10200, 11500].forEach((t, i) => at(t, () => { s.querySelectorAll(".chip").forEach((c, j) => { c.classList.toggle("on", j === i); c.classList.toggle("done", j < i); }); }));
+    at(12600, () => s.querySelectorAll(".chip").forEach((c) => { c.classList.remove("on"); c.classList.add("done"); }));
+  },
+  chapter({ active = 0, title, sub }) {
+    const kick = el(`<div class="abs kicker fade" style="top:250px;transform:translateY(10px)">${active >= 0 ? `Step ${active + 1} of 4` : "Proof"}</div>`);
+    const head = el(`<div class="abs headline fade" style="top:300px;transform:translateY(16px)">${title}</div>`);
+    const s = strip(115, 500);
+    const subn = sub ? el(`<div class="abs sub2 fade" style="top:760px">${sub}</div>`) : null;
+    s.querySelectorAll(".chip").forEach((c, j) => c.classList.toggle("done", active < 0 || j < active));
+    at(50, () => { kick.classList.add("in"); head.classList.add("in"); s.classList.add("in"); subn?.classList.add("in"); });
+    at(450, () => { if (active >= 0) s.querySelectorAll(".chip")[active].classList.add("on"); });
+  },
+  outro() {
+    const logo = el(`<div class="abs fade" style="left:885px;top:250px;transform:scale(.7)">${SHIELD}</div>`);
+    const w = el(`<div class="abs fade word" style="left:0;right:0;top:420px;text-align:center;transform:translateY(20px)">OutcomeGuard</div>`);
+    const l1 = el(`<div class="abs fade" style="left:0;right:0;top:580px;text-align:center;font-size:52px;color:#c3cad6;transform:translateY(16px)">Don’t just pay for a promise.</div>`);
+    const l2 = el(`<div class="abs fade blue" style="left:0;right:0;top:660px;text-align:center;font-size:76px;font-weight:800;transform:translateY(16px)">Pay for proof.</div>`);
+    const l3 = el(`<div class="abs fade" style="left:0;right:0;top:850px;text-align:center;font-size:30px;color:#8f9bae">github.com/datAgent77/outcomeguard · MIT · PayPal Sandbox · Claude</div>`);
+    at(50, () => { logo.classList.add("in"); w.classList.add("in"); });
+    at(1250, () => l1.classList.add("in"));
+    at(3150, () => l2.classList.add("in"));
+    at(3800, () => l3.classList.add("in"));
+  },
+};
+window.play = (name, opts = {}) => SCENES[name](opts);
+</script>
+</body>
+</html>
