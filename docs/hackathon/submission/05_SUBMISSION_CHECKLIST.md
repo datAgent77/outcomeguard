@@ -33,7 +33,7 @@ Deadline: **Thu Nov 12, 2026, 12:00 pm PT = 23:00 GMT+3** (rules §1). Aim to su
 
 ## Devpost form (`02_DEVPOST_DRAFT.md`)
 - [ ] Name, tagline, description, "built with", tools used, repo link, video link, gallery
-- [ ] Sponsor prize: Best Use of AG Grid (confirm the opt-in field)
+- [ ] Sponsor prize: Best Use of AG Grid — opt in if the form has a field (eligible; secondary chance, see 06)
 - [ ] Testing instructions (README section) and, if you choose, any test access
 - [ ] Eligibility and team/representative details **[YOU]**
 - [x] Gallery: `gallery/01…09` — real frames, simulated ones labelled

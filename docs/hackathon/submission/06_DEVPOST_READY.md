@@ -78,7 +78,8 @@ Built for the PayPal AI Hackathon 2026. PayPal Sandbox only — no real money. N
 | 8 | `08-sandbox-proof.jpg` | Real PayPal Sandbox (Oct 16, 2026): capture, two-party refund, void |
 | 9 | `09-ag-grid-ledger.jpg` | Payment & evidence ledger built with AG Grid Community (rehearsal data) |
 
-- **Sponsor prize**: opt in to **Best Use of AG Grid** if the form asks.
+- **Sponsor prize**: opt in to **Best Use of AG Grid** if the form asks (eligible; a secondary
+  chance — that prize favours AG Studio dashboards, we use AG Grid Community).
 - Eligibility / team / representative fields: yours.
 - Submit, then open the public project page and click every link.
 
@@ -95,6 +96,22 @@ Built for the PayPal AI Hackathon 2026. PayPal Sandbox only — no real money. N
 4. ~~Hosted demo~~ — **Decided 2026-10-24: no hosted demo** (no Render deployment). Judges run it locally per the README
    (meets the rule), and the video shows it working end to end.
 5. **Freeze tag**: `v1.0-hackathon` on the submitted commit.
+
+## Resources page check (2026-10-25, browser)
+<https://paypalaihackathon.devpost.com/resources> and its sub-pages (AG Grid, FAQs, Updates):
+- **Inspiration** list includes "pays contractors automatically when a job is marked complete"
+  and payouts "the moment a task is approved": a direct fit; noted in the Devpost Inspiration text.
+- **Best Use of AG Grid** judges "what your dashboard looks like and how you build it" and
+  points to AG Studio (custom widgets, theming, Studio Agent Framework). We are eligible
+  (AG Grid Community ledger) but not built for that brief: treat it as a secondary chance.
+  Decided: no AG Studio work (no new features).
+- PayPal **AI Toolkit / Agent Toolkit / MCP server** are suggested, not required. "Best Use
+  of Agentic Commerce" rewards agents that transact; OutcomeGuard deliberately keeps AI away
+  from money movement, so our natural categories are Best Use of PayPal + AI, Best Demo
+  Delivery and Most Impactful.
+- FAQs: sponsor prizes are considered automatically per tool used; at most one sponsor prize +
+  one grand or honorable mention prize. Updates: webinar recording and FAQ only; no rule changes.
+- Questions to organisers: PayPal Discord (linked on the resources page).
 
 ## Rules re-check (2026-10-24, browser)
 Same as `00_REQUIREMENTS_VERIFIED.md`. Points that matter:

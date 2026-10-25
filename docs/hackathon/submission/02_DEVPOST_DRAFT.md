@@ -12,7 +12,7 @@ submitted.
 | Try it out | GitHub: https://github.com/datAgent77/outcomeguard · hosted demo: **none** — local setup per README (decided 2026-10-24) |
 | Video demo link (YouTube, public, < 3:00) | **[YOU: upload and paste]** — video is ready: `docs/hackathon/video/OutcomeGuard-cinematic.mp4` (2:16); upload steps in `06_DEVPOST_READY.md` |
 | Image gallery | `submission/gallery/01…09-*.jpg` (3:2, real frames with truth labels); order and captions in `06_DEVPOST_READY.md` |
-| Sponsor prize opt-in | Best Use of AG Grid **[CONFIRM the form field]** |
+| Sponsor prize opt-in | Best Use of AG Grid — eligible (any AG Grid tool; FAQ: projects are considered for each sponsor tool they use). Opt in if the form has a field. Realistic note: that prize favours AG Studio dashboards/agents; we use AG Grid Community for the ledger, so it is a secondary chance — the main targets are the grand prizes and Best Use of PayPal + AI / Best Demo Delivery / Most Impactful |
 | Team / eligibility | **[YOU]** |
 
 ## About the project (Devpost markdown)
@@ -24,6 +24,10 @@ Every freelance job ends with a leap of faith: the buyer pays first and hopes, o
 provider works first and hopes. When something breaks, it's "it doesn't work" against "yes
 it does", with no shared record of what was promised. We wanted payments that follow
 **proof** instead of trust.
+
+The hackathon's own ideas list includes paying contractors when a job is marked complete and
+paying gig workers the moment a task is approved. OutcomeGuard takes that one step further:
+the trigger is not a status flag but verified evidence plus the buyer's explicit approval.
 
 ### What it does
 OutcomeGuard ties a PayPal payment to proof that the agreed work was delivered.

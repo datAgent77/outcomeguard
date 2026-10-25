@@ -48,7 +48,8 @@ Presentation**. Ties broken in that order.
 
 Grand prizes; honorable mentions incl. **Best Use of PayPal + AI**, **Best Demo Delivery**,
 Most Impactful, Most Creative; sponsor prize **Best Use of AG Grid** ("All Eligible
-Submissions that use any AG Grid tools") — OutcomeGuard's ledger uses AG Grid Community. A
+Submissions that use any AG Grid tools") — OutcomeGuard's ledger uses AG Grid Community
+(eligible; the AG Grid page favours AG Studio dashboards, so a secondary chance — see 06). A
 project can win at most one grand/honorable prize plus one sponsor prize. Render prizes
 would require a Render deployment — **Decided 2026-10-24: no hosted demo**, so not entered.
 
