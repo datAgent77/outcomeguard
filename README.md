@@ -16,6 +16,8 @@ AI drafts criteria & explains evidence → deterministic tools verify → humans
 Built for the [PayPal AI Hackathon 2026](https://paypalaihackathon.devpost.com/). **PayPal
 Sandbox only — no real money.** MIT licensed.
 
+▶ **Demo video (2:16):** https://youtu.be/NC4gV5sbMEg
+
 <p align="center"><img src="docs/hackathon/screenshots/p09-landing-1440.png" width="720" alt="OutcomeGuard landing page"></p>
 
 ## Why it matters

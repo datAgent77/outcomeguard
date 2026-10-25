@@ -10,7 +10,7 @@ submitted.
 | Elevator pitch / tagline | Don't just pay for a promise. Pay for proof. AI turns a job into measurable checks, real tools verify the delivery, and PayPal captures only when the proof and the buyer say yes. (178 characters) |
 | Built with (tags) | paypal · paypal-orders-api · paypal-payments-api · anthropic · claude · python · fastapi · postgresql · sqlalchemy · next.js · typescript · tailwindcss · ag-grid · playwright · lighthouse |
 | Try it out | GitHub: https://github.com/datAgent77/outcomeguard · hosted demo: **none** — local setup per README (decided 2026-10-24) |
-| Video demo link (YouTube, public, < 3:00) | **[YOU: upload and paste]** — video is ready: `docs/hackathon/video/OutcomeGuard-cinematic.mp4` (2:16); upload steps in `06_DEVPOST_READY.md` |
+| Video demo link (YouTube, public, < 3:00) | https://youtu.be/NC4gV5sbMEg (public, 2:16; uploaded 2026-10-25) |
 | Image gallery | `submission/gallery/01…09-*.jpg` (3:2, real frames with truth labels); order and captions in `06_DEVPOST_READY.md` |
 | Sponsor prize opt-in | Best Use of AG Grid — eligible (any AG Grid tool; FAQ: projects are considered for each sponsor tool they use). Opt in if the form has a field. Realistic note: that prize favours AG Studio dashboards/agents; we use AG Grid Community for the ledger, so it is a secondary chance — the main targets are the grand prizes and Best Use of PayPal + AI / Best Demo Delivery / Most Impactful |
 | Team / eligibility | **[YOU]** |

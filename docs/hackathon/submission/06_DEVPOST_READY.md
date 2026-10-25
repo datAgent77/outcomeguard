@@ -21,7 +21,9 @@ Repository → ⚙ next to "About":
 - Topics: `paypal` `ai` `claude` `anthropic` `fastapi` `nextjs` `ag-grid` `playwright` `lighthouse` `hackathon`
 - Check that "MIT license" shows in the About box.
 
-## Step 2 — YouTube upload [YOU]
+## Step 2 — YouTube upload — ✅ done 2026-10-25: https://youtu.be/NC4gV5sbMEg
+Public, 2:16, title/description/chapters as below. Captions: YouTube's automatic English
+captions (the user decided not to upload `03b_captions.srt`).
 1. Upload `OutcomeGuard-cinematic.mp4`. Visibility **Public** (rules require public). Audience: "No, it's not made for kids".
 2. **Title** (≤100 chars):
    `OutcomeGuard — Don't just pay for a promise. Pay for proof. | PayPal AI Hackathon 2026`
@@ -63,7 +65,7 @@ Built for the PayPal AI Hackathon 2026. PayPal Sandbox only — no real money. N
 - Name, tagline, "About the project", "Built with", tools, testing notes: copy from `02_DEVPOST_DRAFT.md`.
 - **Try it out** links: `https://github.com/datAgent77/outcomeguard` and
   `https://github.com/datAgent77/outcomeguard/blob/main/docs/INTEGRATION_PROOF.md`.
-- **Video demo link**: the YouTube URL from step 2.
+- **Video demo link**: https://youtu.be/NC4gV5sbMEg
 - **Image gallery** (in this order; the first image is the cover). If there is a caption field, use these:
 
 | # | File | Caption |

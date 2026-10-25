@@ -6,7 +6,7 @@ Deadline: **Thu Nov 12, 2026, 12:00 pm PT = 23:00 GMT+3** (rules §1). Aim to su
 ## Repository (GitHub)
 - [x] Public: https://github.com/datAgent77/outcomeguard
 - [x] `LICENSE` = MIT, detected by GitHub (license API returns MIT)
-- [ ] **[YOU]** "About" box: add description ("Don't just pay for a promise. Pay for proof.
+- [x] "About" box set 2026-10-25: description ("Don't just pay for a promise. Pay for proof.
       Proof-gated PayPal payments with AI-drafted criteria and real-browser verification."),
       topics (paypal, ai, claude, fastapi, nextjs, ag-grid, hackathon) and check that the
       license shows there
@@ -29,7 +29,8 @@ Deadline: **Thu Nov 12, 2026, 12:00 pm PT = 23:00 GMT+3** (rules §1). Aim to su
       FAIL) · SIMULATED (capture) · Real PayPal Sandbox (IDs, Oct 16)
 - [x] No music; no PayPal checkout page or logos (PayPal named in text only — see 06, decision 3)
 - [ ] **[YOU]** ElevenLabs narration: confirm your plan's usage/attribution terms
-- [ ] **[YOU]** Upload **Public** with title/description/thumbnail/captions from `06_DEVPOST_READY.md`, paste the link into Devpost
+- [x] Uploaded **Public** 2026-10-25: https://youtu.be/NC4gV5sbMEg (2:16; YouTube auto captions)
+- [ ] **[YOU]** Paste that link into the Devpost video field (the first upload's link no longer works)
 
 ## Devpost form (`02_DEVPOST_DRAFT.md`)
 - [ ] Name, tagline, description, "built with", tools used, repo link, video link, gallery
