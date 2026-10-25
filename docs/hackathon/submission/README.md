@@ -1,5 +1,7 @@
 # Submission package (P10)
 
+▶ **Demo video:** https://youtu.be/NC4gV5sbMEg · start here on submission day: [06_DEVPOST_READY.md](06_DEVPOST_READY.md)
+
 | File | What |
 |---|---|
 | [00_REQUIREMENTS_VERIFIED.md](00_REQUIREMENTS_VERIFIED.md) | Official rules (read 2026-10-16), how we meet them, what needs manual confirmation |

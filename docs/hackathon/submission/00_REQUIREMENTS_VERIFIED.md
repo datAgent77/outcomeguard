@@ -33,7 +33,7 @@ Quotes are short; the rules page is authoritative and may change — re-check be
 | Tools: "identify which tools (model or AI service) were used and explain how" | In the Devpost draft |
 | Public repository on GitHub with an **open-source license visible in the About section** | Public; GitHub API detects **MIT**. About description/topics are empty — **needs your action** |
 | All source, assets and instructions in the repo | ✅ (secrets only in git-ignored `.env`) |
-| Demo video **under 3 minutes**, shows the project working on its device, **public on YouTube**, link in the form | Script/storyboard: `03_VIDEO_PACKAGE.md` — **recording and upload are yours** |
+| Demo video **under 3 minutes**, shows the project working on its device, **public on YouTube**, link in the form | ✅ Public on YouTube: https://youtu.be/NC4gV5sbMEg (2:16) |
 | No third-party trademarks or copyrighted music/material without permission | Video plan avoids PayPal's checkout page and logos and uses no music; **confirm** whether showing the PayPal name/logo is acceptable to you |
 | Testing access: provide credentials/keys/sandbox details needed, or instructions to obtain them | README: rehearsal mode needs none; Sandbox needs the judge's own free PayPal developer app; AI needs an Anthropic key. No hosted demo or shared keys (Decided 2026-10-24: no hosted demo) |
 | English | ✅ |

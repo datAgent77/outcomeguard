@@ -1,5 +1,7 @@
 # Three-minute video package
 
+▶ **Published:** https://youtu.be/NC4gV5sbMEg (public, 2:16)
+
 Target **2:50** (rules: under 3:00; judges need not watch beyond). **Final cut: 2:16** — `OutcomeGuard-cinematic.mp4`, built by `apps/web/e2e/video/build-cinematic.mjs` with the narration in `03c_VOICEOVER_ELEVENLABS.md`. One story, one voice, no
 music (the rules forbid copyrighted music without permission). English narration.
 

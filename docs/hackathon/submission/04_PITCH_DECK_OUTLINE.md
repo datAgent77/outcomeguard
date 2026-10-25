@@ -42,5 +42,5 @@ for PASS / REVIEW / FAIL). One idea per slide, large type, real screenshots only
 - Impact: fewer disputes, faster payment for good work, a clear record when something goes wrong.
 - Next: more deliverable types (APIs, mobile builds, documents), richer accessibility
   tooling, a hosted pilot with freelancers and agencies.
-- Close: tagline + github.com/datAgent77/outcomeguard (MIT).
+- Close: tagline + github.com/datAgent77/outcomeguard (MIT) + demo video https://youtu.be/NC4gV5sbMEg.
 - Avoid: market-size numbers we cannot source; claims of production readiness.

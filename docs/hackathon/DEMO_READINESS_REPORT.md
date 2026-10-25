@@ -1,5 +1,7 @@
 # Demo readiness report (P09)
 
+> Update 2026-10-25: the recorded demo video is public at https://youtu.be/NC4gV5sbMEg.
+
 Date: 2026-10-16 · Baseline: P08 accepted (`d4ff99c`) · Scope: hackathon demonstration, not
 production hardening.
 

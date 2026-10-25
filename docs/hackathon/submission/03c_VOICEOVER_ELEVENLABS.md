@@ -1,5 +1,7 @@
 # Voice-over for ElevenLabs — 8 files
 
+▶ **Final video with this narration:** https://youtu.be/NC4gV5sbMEg
+
 The video is already recorded as silent, captioned segments
 (`docs/hackathon/video/segments/`, preview `OutcomeGuard-silent-preview.mp4`). Generate **one
 audio file per segment** with the exact text below, save them as `s1.mp3` … `s8.mp3` in

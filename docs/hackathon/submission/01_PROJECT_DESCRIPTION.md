@@ -1,5 +1,7 @@
 # OutcomeGuard — project description
 
+▶ **Demo video (2:16):** https://youtu.be/NC4gV5sbMEg · **Code (MIT):** https://github.com/datAgent77/outcomeguard
+
 **Tagline (≤ 200 characters):** Don't just pay for a promise. Pay for proof. AI turns a job
 into measurable checks, real tools verify the delivery, and PayPal captures only when the
 proof and the buyer say yes.
